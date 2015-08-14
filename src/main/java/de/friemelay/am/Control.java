@@ -1,17 +1,11 @@
 package de.friemelay.am;
 
-import de.friemelay.am.db.DB;
 import de.friemelay.am.model.Order;
-import de.friemelay.am.model.OrderItem;
+import de.friemelay.am.resources.ResourceLoader;
 import de.friemelay.am.ui.OrderTabPane;
 import de.friemelay.am.ui.OrderTreePane;
-import javafx.scene.Node;
 import javafx.scene.Parent;
-import javafx.scene.Scene;
-import javafx.scene.control.Menu;
-import javafx.scene.control.MenuBar;
-import javafx.scene.control.MenuItem;
-import javafx.scene.control.SplitPane;
+import javafx.scene.control.*;
 import javafx.scene.layout.BorderPane;
 
 /**
@@ -31,26 +25,35 @@ public class Control {
     BorderPane root = new BorderPane();
     this.tabPane = new OrderTabPane();
     this.treePane = new OrderTreePane();
-    
+
     SplitPane splitPane = new SplitPane();
     splitPane.getItems().addAll(treePane, tabPane);
-    splitPane.setDividerPositions(0.05);
+    splitPane.setDividerPositions(0.25);
     root.setCenter(splitPane);
 
     final MenuBar menuBar = new MenuBar();
 
-    Menu menu = new Menu("Submenu 1");
-    // Options->Submenu 2 submenu
-    MenuItem menu1 = new MenuItem("Item 1");
-    MenuItem menu2 = new MenuItem("Item 2");
-    menu.getItems().addAll(menu1, menu2);
+    Menu menu = new Menu("Verwaltung");
+    MenuItem menu1 = new MenuItem("Newsletter erstellen", ResourceLoader.getImageView("email.png"));
+    menu.getItems().addAll(menu1);
 
-    menuBar.getMenus().addAll(menu);
+    Menu help = new Menu("Hilfe");
+    MenuItem info = new MenuItem("Über Friemelay");
+    help.getItems().addAll(info);
+
+    menuBar.getMenus().addAll(menu, help);
     root.setTop(menuBar);
+
+    treePane.openFirst();
     return root;
   }
   
   public void openOrder(Order order) {
     tabPane.openOrder(order);
   }
+
+  public void selectTreeNode(Order order) {
+    treePane.selectOrder(order);
+  }
+
 }

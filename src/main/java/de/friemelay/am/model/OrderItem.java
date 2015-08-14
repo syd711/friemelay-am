@@ -10,6 +10,7 @@ public class OrderItem {
   private String product_id;
   private String productDescription;
   private String imageUrl;
+  private String url;
 
   public int getOrder_id() {
     return order_id;
@@ -62,5 +63,13 @@ public class OrderItem {
 
   public void setImageUrl(String imageUrl) {
     this.imageUrl = imageUrl;
+  }
+
+  public String getUrl() {
+    return url;
+  }
+
+  public void setUrl(String url) {
+    this.url = url;
   }
 }

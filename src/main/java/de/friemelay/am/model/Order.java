@@ -7,7 +7,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * 
+ *
  */
 public class Order {
   private int id;
@@ -58,6 +58,13 @@ public class Order {
     return paymentType;
   }
 
+  public String getFormattedPaymentType() {
+    if(paymentType == 0) {
+      return "Vorkasse";
+    }
+    return "Barzahlung bei Abholung";
+  }
+
   public void setPaymentType(int paymentType) {
     this.paymentType = paymentType;
   }
@@ -99,8 +106,7 @@ public class Order {
     if(getCreationDate() == null) {
       return "Bestellungen";
     }
-    DecimalFormat df = new DecimalFormat("#.00");
-    return id + " - " + new SimpleDateFormat("dd:MM:yyyy").format(getCreationDate());
+    return id + " - " + getFormattedCreationDate();
   }
 
   public List<OrderItem> getOrderItems() {
@@ -118,4 +124,14 @@ public class Order {
   public Customer getCustomer() {
     return customer;
   }
+
+  public String getFormattedCreationDate() {
+    return new SimpleDateFormat("dd.MM.yyyy").format(getCreationDate());
+  }
+
+  public String getFormattedTotalPrice() {
+    DecimalFormat df = new DecimalFormat("#.00");
+    return df.format(getTotalPrice()) + " Euro";
+  }
+
 }

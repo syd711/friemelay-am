@@ -1,7 +1,10 @@
 package de.friemelay.am.ui;
 
+import de.friemelay.am.Control;
 import de.friemelay.am.db.DB;
 import de.friemelay.am.model.Order;
+import javafx.beans.value.ChangeListener;
+import javafx.beans.value.ObservableValue;
 import javafx.collections.ObservableList;
 import javafx.geometry.Side;
 import javafx.scene.control.Tab;
@@ -11,7 +14,7 @@ import javafx.scene.layout.BorderPane;
 /**
  *
  */
-public class OrderTabPane extends BorderPane {
+public class OrderTabPane extends BorderPane implements ChangeListener<Tab> {
   private TabPane tabPane;
 
   public OrderTabPane() {
@@ -19,7 +22,8 @@ public class OrderTabPane extends BorderPane {
     tabPane.setRotateGraphic(false);
     tabPane.setTabClosingPolicy(TabPane.TabClosingPolicy.SELECTED_TAB);
     tabPane.setSide(Side.TOP);
-    
+    tabPane.getSelectionModel().selectedItemProperty().addListener(this);
+
     setCenter(tabPane);
   }
 
@@ -41,4 +45,14 @@ public class OrderTabPane extends BorderPane {
     tabPane.getTabs().add(tab);
     tabPane.getSelectionModel().select(tab);
   }
+
+
+
+  public void changed(ObservableValue<? extends Tab> observable, Tab oldValue, Tab newValue) {
+    if(newValue != null) {
+      Order order = ((OrderTab)newValue).getOrder();
+      Control.getInstance().selectTreeNode(order);
+    }
+  }
+
 }

@@ -9,6 +9,7 @@ public class Address {
   private String lastname;
   private String company;
   private String additional;
+  private String street;
   private String zip;
   private String city;
   private String country;
@@ -75,5 +76,13 @@ public class Address {
 
   public void setCountry(String country) {
     this.country = country;
+  }
+
+  public String getStreet() {
+    return street;
+  }
+
+  public void setStreet(String street) {
+    this.street = street;
   }
 }

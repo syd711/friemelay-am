@@ -36,7 +36,7 @@ public class DB {
     List<Order> orders = new ArrayList<Order>();
     try {
       Statement statement = connection.createStatement();
-      ResultSet rs = statement.executeQuery("select * from orders order by creation_date");
+      ResultSet rs = statement.executeQuery("select * from orders order by id desc");
       while (rs.next()) {
 
         Order order = ModelFactory.createOrder(rs);

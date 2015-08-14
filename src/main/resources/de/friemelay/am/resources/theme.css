@@ -1,0 +1,16 @@
+.root {
+  /*-fx-background-image: url("radio_background.png");*/
+  -fx-background-color: #FFF;
+}
+
+.email {
+  -fx-border-width: 2;
+  -fx-border-color: black;
+}
+
+.text-area {
+    -fx-border-color: transparent;
+    -fx-background-color: white;
+    -fx-focus-color: -fx-control-inner-background ;
+    -fx-faint-focus-color: -fx-control-inner-background ;
+}

@@ -46,6 +46,7 @@ public class ModelFactory {
       double price = resultSet.getInt("price");
       String productId = resultSet.getString("product_id");
       String imageUrl = resultSet.getString("image_url");
+      String url = resultSet.getString("url");
       String productDescription = resultSet.getString("product_description");
 
       OrderItem item = new OrderItem();
@@ -54,6 +55,7 @@ public class ModelFactory {
       item.setProduct_id(productId);
       item.setProductDescription(productDescription);
       item.setImageUrl(imageUrl);
+      item.setUrl(url);
       return item;
     } catch (SQLException e) {
       Logger.getLogger(ModelFactory.class.getName()).error("Failed create order item model: " + e.getMessage(), e);
@@ -104,6 +106,7 @@ public class ModelFactory {
       String additional = resultSet.getString("additional");
       String zip = resultSet.getString("zip");
       String city = resultSet.getString("city");
+      String street = resultSet.getString("street");
       String country = resultSet.getString("country");
 
       Address address = new Address();
@@ -114,6 +117,7 @@ public class ModelFactory {
       address.setFirstname(firstname);
       address.setLastname(lastname);
       address.setCountry(country);
+      address.setStreet(street);
       address.setZip(zip);
       
       return address;

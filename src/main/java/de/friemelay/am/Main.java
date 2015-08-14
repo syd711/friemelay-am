@@ -1,7 +1,7 @@
 package de.friemelay.am;
 
 import de.friemelay.am.db.DB;
-import de.friemelay.am.images.ResourceLoader;
+import de.friemelay.am.resources.ResourceLoader;
 import javafx.application.Application;
 import javafx.scene.Scene;
 import javafx.scene.image.Image;
@@ -25,7 +25,9 @@ public class Main extends Application {
     primaryStage.addEventFilter(KeyEvent.KEY_PRESSED, new MainKeyEventFilter());
     primaryStage.setMinWidth(1024);
     primaryStage.setMinHeight(700);
-    primaryStage.setScene(new Scene(Control.getInstance().init()));
+    Scene scene = new Scene(Control.getInstance().init());
+    scene.getStylesheets().add(ResourceLoader.getResource("theme.css"));
+    primaryStage.setScene(scene);
     primaryStage.getIcons().add(new Image(ResourceLoader.getResource("favicon.png")));
     primaryStage.show();
   }
