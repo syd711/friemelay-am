@@ -1,6 +1,6 @@
 package de.friemelay.am.ui;
 
-import de.friemelay.am.Control;
+import de.friemelay.am.UIController;
 import de.friemelay.am.db.DB;
 import de.friemelay.am.model.Order;
 import de.friemelay.am.model.OrderItem;
@@ -57,7 +57,7 @@ public class OrderTreePane extends BorderPane implements EventHandler<MouseEvent
       TreeItem selectedItem = (TreeItem) treeView.getSelectionModel().getSelectedItem();
       if(selectedItem.getValue() instanceof Order) {
         TreeItem<Order> item = (TreeItem<Order>)selectedItem;
-        Control.getInstance().openOrder(item.getValue());
+        UIController.getInstance().openOrder(item.getValue());
       }
     }
   }
@@ -86,7 +86,7 @@ public class OrderTreePane extends BorderPane implements EventHandler<MouseEvent
     if(!children.isEmpty()) {
       TreeItem<Object> treeItem = children.get(0);
       Order order = (Order) treeItem.getValue();
-      Control.getInstance().openOrder(order);
+      UIController.getInstance().openOrder(order);
     }
   }
 

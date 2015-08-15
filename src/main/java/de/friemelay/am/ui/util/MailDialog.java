@@ -1,5 +1,6 @@
 package de.friemelay.am.ui.util;
 
+import de.friemelay.am.UIController;
 import de.friemelay.am.mail.MailRepresentation;
 import de.friemelay.am.mail.Mailer;
 import de.friemelay.am.mail.TemplateService;
@@ -40,6 +41,8 @@ public class MailDialog implements EventHandler<ActionEvent> {
   private String to;
   private String bcc;
 
+  private int returnCode = -1;
+
   public MailDialog(String subject, String to, String bcc) {
     this.subject = subject;
     this.to = to;
@@ -65,7 +68,9 @@ public class MailDialog implements EventHandler<ActionEvent> {
       }
     });
 
-    textArea.requestFocus();
+    if(textArea != null) {
+      textArea.requestFocus();
+    }
   }
 
   private Parent createMailDialog() {
@@ -126,18 +131,39 @@ public class MailDialog implements EventHandler<ActionEvent> {
       stage.close();
     }
     else if(event.getSource() == sendButton) {
-      MailRepresentation model = new MailRepresentation(toText.getText(), subjectText.getText(), textArea.getText());
+      MailRepresentation model = getModel();
+      updateModel(model);
 
       String mailText = TemplateService.getTemplateSet().renderTemplate(getTemplateName(), model);
       model.setMailText(mailText);
 
       Mailer mailer = new Mailer(model);
       mailer.mail();
+      returnCode = 0;
+      updateStatus();
       stage.close();
     }
   }
 
+  protected void updateStatus() {
+    if(getReturnCode() == 0) {
+      UIController.getInstance().setStatusMessage("Kontaktmail versendet");
+    }
+  }
+
+  protected MailRepresentation getModel() {
+    return new MailRepresentation(toText.getText(), subjectText.getText());
+  }
+
+  protected void updateModel(MailRepresentation model) {
+    model.setMailText(textArea.getText().trim());
+  }
+
   protected String getTemplateName() {
     return "contact-mail.ftl";
+  }
+
+  public int getReturnCode() {
+    return returnCode;
   }
 }

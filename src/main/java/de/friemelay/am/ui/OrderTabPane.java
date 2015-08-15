@@ -1,6 +1,6 @@
 package de.friemelay.am.ui;
 
-import de.friemelay.am.Control;
+import de.friemelay.am.UIController;
 import de.friemelay.am.db.DB;
 import de.friemelay.am.model.Order;
 import javafx.beans.value.ChangeListener;
@@ -51,7 +51,7 @@ public class OrderTabPane extends BorderPane implements ChangeListener<Tab> {
   public void changed(ObservableValue<? extends Tab> observable, Tab oldValue, Tab newValue) {
     if(newValue != null) {
       Order order = ((OrderTab)newValue).getOrder();
-      Control.getInstance().selectTreeNode(order);
+      UIController.getInstance().selectTreeNode(order);
     }
   }
 

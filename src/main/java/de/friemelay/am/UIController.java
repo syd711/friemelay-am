@@ -1,26 +1,33 @@
 package de.friemelay.am;
 
+import de.friemelay.am.config.Config;
 import de.friemelay.am.model.Order;
 import de.friemelay.am.resources.ResourceLoader;
 import de.friemelay.am.ui.OrderTabPane;
 import de.friemelay.am.ui.OrderTreePane;
+import javafx.geometry.Insets;
+import javafx.geometry.Pos;
 import javafx.scene.Parent;
 import javafx.scene.control.*;
 import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.HBox;
 
 /**
  *
  */
-public class Control {
-  private static Control instance = new Control();
+public class UIController {
+  private static UIController instance = new UIController();
   
   private OrderTreePane treePane;
   private OrderTabPane tabPane;
-  
-  public static Control getInstance() {
-    return instance;    
+
+  private Label statusMessage = new Label("");
+
+  private UITaskThread uiTaskThread = new UITaskThread();
+  public static UIController getInstance() {
+    return instance;
   }
-  
+
   public Parent init() {
     BorderPane root = new BorderPane();
     this.tabPane = new OrderTabPane();
@@ -44,16 +51,35 @@ public class Control {
     menuBar.getMenus().addAll(menu, help);
     root.setTop(menuBar);
 
+    HBox footer = new HBox();
+    footer.setStyle("-fx-background-color:#DDD;");
+    footer.setAlignment(Pos.BASELINE_RIGHT);
+    statusMessage.setPadding(new Insets(0, 5, 2, 0));
+    footer.getChildren().addAll(statusMessage);
+    root.setBottom(footer);
+
     treePane.openFirst();
+
+    uiTaskThread.start();
+    setStatusMessage("Verbunden mit " + Config.getString("db.host"));
     return root;
   }
-  
+
+  public void setStatusMessage(String msg) {
+    statusMessage.setText(msg);
+    uiTaskThread.setDirty(true);
+  }
+
   public void openOrder(Order order) {
     tabPane.openOrder(order);
   }
 
   public void selectTreeNode(Order order) {
     treePane.selectOrder(order);
+  }
+
+  public Label getStatusMessage() {
+    return statusMessage;
   }
 
 }

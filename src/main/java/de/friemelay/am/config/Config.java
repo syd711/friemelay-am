@@ -1,6 +1,5 @@
 package de.friemelay.am.config;
 
-import org.apache.commons.configuration.Configuration;
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.configuration.PropertiesConfiguration;
 import org.apache.log4j.Logger;
@@ -23,6 +22,9 @@ public class Config {
     }
   }
 
+  public static Boolean getBoolean(String key) {
+    return config.getBoolean(key);
+  }
   public static String getString(String key) {
     return config.getString(key);
   }

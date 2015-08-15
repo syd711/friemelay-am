@@ -2,6 +2,7 @@ package de.friemelay.am.mail;
 
 import de.friemelay.am.config.Config;
 import de.friemelay.am.ui.util.WidgetFactory;
+import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 
 import javax.mail.*;
@@ -56,6 +57,13 @@ public class Mailer {
       // Set To: header field of the header.
       message.setRecipients(Message.RecipientType.TO,
           InternetAddress.parse(to));
+
+      if(Config.getBoolean("mail.bcc.enabled")) {
+        String bcc = Config.getString("mail.bcc");
+        if(!StringUtils.isEmpty(bcc)) {
+          message.setRecipients(Message.RecipientType.BCC, InternetAddress.parse(bcc));
+        }
+      }
 
       // Set Subject: header field
       message.setSubject(model.getSubject().trim());

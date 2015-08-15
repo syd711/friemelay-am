@@ -33,7 +33,7 @@ public class Main extends Application {
 
 //    primaryStage.setWidth(primaryScreenBounds.getWidth());
 //    primaryStage.setHeight(primaryScreenBounds.getHeight());
-    Scene scene = new Scene(Control.getInstance().init());
+    Scene scene = new Scene(UIController.getInstance().init());
     scene.getStylesheets().add(ResourceLoader.getResource("theme.css"));
     primaryStage.setScene(scene);
     primaryStage.getIcons().add(new Image(ResourceLoader.getResource("favicon.png")));

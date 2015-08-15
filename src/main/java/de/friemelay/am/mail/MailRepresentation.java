@@ -8,10 +8,12 @@ public class MailRepresentation {
   private String mailText;
   private String subject;
 
-  public MailRepresentation(String to, String subject, String mailText) {
+  private String name;
+  private String orderId;
+
+  public MailRepresentation(String to, String subject) {
     this.to = to;
     this.subject = subject;
-    this.mailText = mailText;
   }
 
 
@@ -37,5 +39,21 @@ public class MailRepresentation {
 
   public void setTo(String to) {
     this.to = to;
+  }
+
+  public String getOrderId() {
+    return orderId;
+  }
+
+  public void setOrderId(String orderId) {
+    this.orderId = orderId;
+  }
+
+  public String getName() {
+    return name;
+  }
+
+  public void setName(String name) {
+    this.name = name;
   }
 }
