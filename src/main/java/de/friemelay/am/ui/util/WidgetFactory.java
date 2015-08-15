@@ -5,6 +5,7 @@ import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.geometry.HPos;
 import javafx.geometry.Insets;
+import javafx.geometry.VPos;
 import javafx.scene.Node;
 import javafx.scene.control.*;
 import javafx.scene.layout.ColumnConstraints;
@@ -36,16 +37,30 @@ public class WidgetFactory {
     return condValue;
   }
 
-  public static TextField addFormTextfield(GridPane grid, String label, String text, int row) {
+  public static TextField addFormTextfield(GridPane grid, String label, String text, int row, boolean editable) {
     Label condLabel = new Label(label);
     GridPane.setHalignment(condLabel, HPos.RIGHT);
     GridPane.setConstraints(condLabel, 0, row);
     TextField textBox = new TextField(text);
-    textBox.setEditable(false);
+    textBox.setEditable(editable);
     GridPane.setMargin(textBox, new Insets(5, 5, 5, 10));
     GridPane.setConstraints(textBox, 1, row);
     grid.getChildren().addAll(condLabel, textBox);
     return textBox;
+  }
+
+  public static TextField addFormTextfield(GridPane grid, String label, String text, int row) {
+    return addFormTextfield(grid, label, text, row, false);
+  }
+
+  public static void addFormPane(GridPane grid, String label, Pane pane, int row) {
+    Label condLabel = new Label(label);
+    GridPane.setHalignment(condLabel, HPos.RIGHT);
+    GridPane.setValignment(condLabel, VPos.TOP);
+    GridPane.setConstraints(condLabel, 0, row);
+    GridPane.setMargin(pane, new Insets(5, 5, 5, 10));
+    GridPane.setConstraints(pane, 1, row);
+    grid.getChildren().addAll(condLabel, pane);
   }
 
   public static GridPane createFormGrid() {
@@ -57,6 +72,17 @@ public class WidgetFactory {
     colInfo3.setPercentWidth(80);
     grid.getColumnConstraints().add(colInfo2); //25 percent
     grid.getColumnConstraints().add(colInfo3); //50 percent
+    return grid;
+  }
+
+  public static GridPane createFormGrid(int... percentages) {
+    GridPane grid = new GridPane();
+    grid.setPadding(new Insets(10, 10, 10, 10));
+    for(int percentage : percentages) {
+      ColumnConstraints colInfo2 = new ColumnConstraints();
+      colInfo2.setPercentWidth(percentage);
+      grid.getColumnConstraints().add(colInfo2);
+    }
     return grid;
   }
 

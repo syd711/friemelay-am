@@ -1,10 +1,14 @@
 package de.friemelay.am.ui;
 
+import de.friemelay.am.config.Config;
 import de.friemelay.am.model.Order;
 import de.friemelay.am.model.OrderItem;
 import de.friemelay.am.resources.ResourceLoader;
 import de.friemelay.am.ui.util.MailDialog;
+import de.friemelay.am.ui.util.OrderConfirmationMailDialog;
 import de.friemelay.am.ui.util.WidgetFactory;
+import javafx.beans.value.ChangeListener;
+import javafx.beans.value.ObservableValue;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.geometry.HPos;
@@ -26,6 +30,8 @@ public class OrderTab extends Tab implements EventHandler<ActionEvent> {
   private Button contactButton;
   private Button orderConfirmButton;
   private Button deliveryConfirmButton;
+  private Button saveButton;
+  private Button resetButton;
 
   public OrderTab(Order order) {
     super(order.toString());
@@ -39,7 +45,13 @@ public class OrderTab extends Tab implements EventHandler<ActionEvent> {
     ToolBar toolbar = new ToolBar();
     contactButton = new Button("Käufer kontaktieren", ResourceLoader.getImageView("email.png"));
     contactButton.setOnAction(this);
-    toolbar.getItems().add(contactButton);
+    saveButton = new Button("Änderungen speichern", ResourceLoader.getImageView("save.png"));
+    saveButton.setOnAction(this);
+    saveButton.setDisable(true);
+    resetButton = new Button("Änderungen zurücksetzen", ResourceLoader.getImageView("revert.png"));
+    resetButton.setOnAction(this);
+    resetButton.setDisable(true);
+    toolbar.getItems().addAll(contactButton, saveButton, resetButton);
     root.setTop(toolbar);
 
     VBox center = new VBox();
@@ -63,7 +75,8 @@ public class OrderTab extends Tab implements EventHandler<ActionEvent> {
     WidgetFactory.addFormLabel(orderForm, "Bestellnummer:", String.valueOf(order.getId()), index++);
     WidgetFactory.addFormLabel(orderForm, "Eingang:", String.valueOf(order.getFormattedCreationDate()), index++);
     WidgetFactory.addFormLabel(orderForm, "Kundenname:", order.getCustomer().getAddress().getFirstname() + " " + order.getCustomer().getAddress().getLastname(), index++);
-    WidgetFactory.addFormLabel(orderForm, "Preis inkl. Versandkosten:", String.valueOf(order.getFormattedTotalPrice()), index++);
+    WidgetFactory.addFormLabel(orderForm, "Preis:", String.valueOf(order.getFormattedTotalPrice()), index++);
+    WidgetFactory.addFormLabel(orderForm, "Preis inkl. Versandkosten:", String.valueOf(order.getFormattedTotalPriceWithShipping()), index++);
     WidgetFactory.addFormLabel(orderForm, "Zahlungsweise:", order.getFormattedPaymentType(), index++);
     WidgetFactory.addFormLabel(orderForm, "Anmerkungen vom Kunden:", order.getComments(), index++);
     WidgetFactory.createSection(center, orderForm, "Details der Bestellung");
@@ -92,7 +105,8 @@ public class OrderTab extends Tab implements EventHandler<ActionEvent> {
     WidgetFactory.addFormTextfield(billingAddressForm, "Ort:", order.getCustomer().getBillingAddress().getCity(), index++);
     WidgetFactory.createSection(center, billingAddressForm, "Rechnungsadresse", true);
 
-    GridPane itemsForm = WidgetFactory.createFormGrid();
+    GridPane itemsForm = WidgetFactory.createFormGrid(15, 40, 10, 10, 10, 15);
+    itemsForm.setGridLinesVisible(true);
     index = 0;
     WidgetFactory.createSection(center, itemsForm, "Bestellung", false);
     List<OrderItem> orderItems = getOrder().getOrderItems();
@@ -125,18 +139,75 @@ public class OrderTab extends Tab implements EventHandler<ActionEvent> {
 
   public void handle(javafx.event.ActionEvent event) {
     if(event.getSource() == contactButton) {
-      MailDialog dialog = new MailDialog("Ihre Bestellung bei friemlay.de (Bestellnummer " + order.getId() + ")");
+      String to = order.getCustomer().getEmail();
+      String bcc = Config.getString("mail.bcc");
+      MailDialog dialog = new MailDialog("Ihre Bestellung bei friemlay.de (Bestellnummer " + order.getId() + ")", to, bcc);
+      dialog.open(event);
+    }
+    else if(event.getSource() == orderConfirmButton) {
+      String to = order.getCustomer().getEmail();
+      String bcc = Config.getString("mail.bcc");
+      OrderConfirmationMailDialog dialog = new OrderConfirmationMailDialog("Bestellbestätigung (Bestellnummer " + order.getId() + ")", to, bcc, order);
       dialog.open(event);
     }
   }
 
-  private void createOrderItem(GridPane grid, OrderItem item, int row) {
+  private void createOrderItem(GridPane grid, final OrderItem item, int row) {
     ImageView imageView = ResourceLoader.getWebImageView(item.getImageUrl());
-    GridPane.setHalignment(imageView, HPos.RIGHT);
-    GridPane.setConstraints(imageView, 0, row);
-    Label productLabel = new Label(item.getProductDescription());
-    GridPane.setMargin(productLabel, new Insets(5, 5, 5, 10));
-    GridPane.setConstraints(productLabel, 1, row);
-    grid.getChildren().addAll(imageView, productLabel);
+    HBox imageWrapper = new HBox();
+    GridPane.setHalignment(imageWrapper, HPos.CENTER);
+    GridPane.setConstraints(imageWrapper, 0, row);
+    imageWrapper.setPadding(new Insets(10, 10, 10, 10));
+    imageWrapper.getChildren().add(imageView);
+    grid.getChildren().addAll(imageWrapper);
+
+    Label label = new Label(item.getProductDescription());
+    GridPane.setMargin(label, new Insets(5, 5, 5, 10));
+    GridPane.setConstraints(label, 1, row);
+    grid.getChildren().addAll(label);
+
+    final Label totalPriceLabel = new Label(String.valueOf(item.getFormattedTotalPrice()));
+    final Spinner amount = new Spinner(0, 100, item.getAmount());
+    amount.setMaxWidth(70);
+    amount.valueProperty().addListener(new ChangeListener() {
+      public void changed(ObservableValue observable, Object oldValue, Object newValue) {
+        item.setAmount(Integer.parseInt(String.valueOf(newValue)));
+        totalPriceLabel.setText(item.getFormattedTotalPrice());
+        setDirty(true);
+        refreshView();
+      }
+    });
+    GridPane.setMargin(amount, new Insets(5, 5, 5, 10));
+    GridPane.setConstraints(amount, 2, row);
+    grid.getChildren().addAll(amount);
+
+    label = new Label(String.valueOf(item.getFormattedPrice()));
+    GridPane.setMargin(label, new Insets(5, 5, 5, 10));
+    GridPane.setConstraints(label, 3, row);
+    grid.getChildren().addAll(label);
+
+    GridPane.setMargin(totalPriceLabel, new Insets(5, 5, 5, 10));
+    GridPane.setConstraints(totalPriceLabel, 4, row);
+    grid.getChildren().addAll(totalPriceLabel);
+
+    Button removeButton = new Button("Löschen", ResourceLoader.getImageView("remove.gif"));
+    removeButton.setOnAction(new EventHandler<ActionEvent>() {
+      public void handle(ActionEvent event) {
+        order.getOrderItems().remove(item);
+        setDirty(true);
+      }
+    });
+    GridPane.setMargin(removeButton, new Insets(5, 5, 5, 10));
+    GridPane.setConstraints(removeButton, 5, row);
+    grid.getChildren().addAll(removeButton);
+
+  }
+
+  private void setDirty(boolean dirty) {
+    saveButton.setDisable(!dirty);
+    resetButton.setDisable(!dirty);
+  }
+
+  public void refreshView() {
   }
 }

@@ -5,6 +5,8 @@ import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import org.apache.log4j.Logger;
 
+import java.io.File;
+
 /**
  * Used for load resources and stuff.
  */
@@ -29,5 +31,9 @@ public class ResourceLoader {
     imageView.setFitWidth(100);
     imageView.setFitHeight(80);
     return imageView;
+  }
+
+  public static String getTemplate(String s) {
+    return new File("mail-templates/", s).toURI().toString();
   }
 }

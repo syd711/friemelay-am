@@ -1,5 +1,7 @@
 package de.friemelay.am.model;
 
+import java.text.DecimalFormat;
+
 /**
  * 
  */
@@ -71,5 +73,15 @@ public class OrderItem {
 
   public void setUrl(String url) {
     this.url = url;
+  }
+
+  public String getFormattedPrice() {
+    DecimalFormat df = new DecimalFormat("#.00");
+    return df.format(getPrice()) + " Euro";
+  }
+
+  public String getFormattedTotalPrice() {
+    DecimalFormat df = new DecimalFormat("#.00");
+    return df.format(getAmount()*getPrice()) + " Euro";
   }
 }

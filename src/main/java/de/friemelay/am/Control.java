@@ -28,7 +28,7 @@ public class Control {
 
     SplitPane splitPane = new SplitPane();
     splitPane.getItems().addAll(treePane, tabPane);
-    splitPane.setDividerPositions(0.25);
+    splitPane.setDividerPositions(0.20);
     root.setCenter(splitPane);
 
     final MenuBar menuBar = new MenuBar();

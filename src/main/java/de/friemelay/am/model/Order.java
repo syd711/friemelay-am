@@ -134,4 +134,8 @@ public class Order {
     return df.format(getTotalPrice()) + " Euro";
   }
 
+  public String getFormattedTotalPriceWithShipping() {
+    DecimalFormat df = new DecimalFormat("#.00");
+    return df.format(getShippingCosts()) + " Euro";
+  }
 }

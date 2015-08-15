@@ -4,8 +4,8 @@
 }
 
 .email {
-  -fx-border-width: 2;
-  -fx-border-color: black;
+  -fx-border-width: 1px;
+  -fx-border-color: #AAA;
 }
 
 .text-area {
