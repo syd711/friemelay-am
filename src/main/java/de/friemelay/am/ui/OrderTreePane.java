@@ -68,7 +68,7 @@ public class OrderTreePane extends BorderPane implements EventHandler<MouseEvent
 
     orders = DB.getOrders();
     for(Order order : orders) {
-      TreeItem<Object> orderTreeItem = new TreeItem<Object>(order, ResourceLoader.getImageView("green.png"));
+      TreeItem<Object> orderTreeItem = new TreeItem<Object>(order, ResourceLoader.getImageView(order.getStatusIcon()));
       List<OrderItem> orderItems = order.getOrderItems();
       for(OrderItem orderItem : orderItems) {
         TreeItem<Object> orderItemTreeItem = new TreeItem<Object>(orderItem, ResourceLoader.getImageView("item.png"));
@@ -93,5 +93,16 @@ public class OrderTreePane extends BorderPane implements EventHandler<MouseEvent
   public void selectOrder(Order order) {
     int i = orders.indexOf(order);
     treeView.getSelectionModel().select(i);
+  }
+
+  public void updateOrderStatus(Order order) {
+    ObservableList<TreeItem<Object>> children = treeRoot.getChildren();
+    if(!children.isEmpty()) {
+      TreeItem<Object> treeItem = children.get(0);
+      Order orderChild = (Order) treeItem.getValue();
+      if(orderChild.getId() == order.getId()) {
+        treeItem.setGraphic(ResourceLoader.getImageView(order.getStatusIcon()));
+      }
+    }
   }
 }

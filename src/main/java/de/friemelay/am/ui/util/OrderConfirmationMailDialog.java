@@ -50,7 +50,7 @@ public class OrderConfirmationMailDialog extends MailDialog {
   @Override
   protected void updateStatus() {
     if(getReturnCode() == 0) {
-      UIController.getInstance().setStatusMessage("Bestellbestätigung versendet");
+      UIController.getInstance().orderConfirmationSend(order);
     }
   }
 }

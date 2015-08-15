@@ -10,6 +10,12 @@ import java.util.List;
  *
  */
 public class Order {
+  public final static int ORDER_STATUS_NEW = 0;
+  public final static int ORDER_STATUS_CONFIRMED = 1;
+  public final static int ORDER_STATUS_DELIVERED = 2;
+  public final static int ORDER_STATUS_CANCELED = 3;
+
+
   private int id;
   private Date creationDate;
   private int orderStatus;
@@ -21,6 +27,7 @@ public class Order {
   private String comments;
   private List<OrderItem> orderItems = new ArrayList<OrderItem>();
   private Customer customer;
+  private String statusIcon;
 
   public int getId() {
     return id;
@@ -137,5 +144,25 @@ public class Order {
   public String getFormattedTotalPriceWithShipping() {
     DecimalFormat df = new DecimalFormat("#.00");
     return df.format(getShippingCosts()) + " Euro";
+  }
+
+  public String getStatusIcon() {
+    switch(orderStatus) {
+      case ORDER_STATUS_NEW: {
+        return "green.png";
+      }
+      case ORDER_STATUS_CONFIRMED: {
+        return "check-green.png";
+      }
+      case ORDER_STATUS_DELIVERED: {
+        return "check-grey.png";
+      }
+      case ORDER_STATUS_CANCELED: {
+        return "check-grey.png";
+      }
+      default: {
+        return "green.png";
+      }
+    }
   }
 }

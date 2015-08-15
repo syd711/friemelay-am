@@ -82,4 +82,11 @@ public class UIController {
     return statusMessage;
   }
 
+  public void orderConfirmationSend(Order order) {
+    setStatusMessage("Bestellbestätigung versendet");
+    order.setOrderStatus(Order.ORDER_STATUS_CONFIRMED);
+    treePane.updateOrderStatus(order);
+    //DB.updateOrder(order);
+    tabPane.openOrder(order).refreshView();
+  }
 }

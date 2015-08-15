@@ -7,8 +7,11 @@ import de.friemelay.am.resources.ResourceLoader;
 import de.friemelay.am.ui.util.MailDialog;
 import de.friemelay.am.ui.util.OrderConfirmationMailDialog;
 import de.friemelay.am.ui.util.WidgetFactory;
+import javafx.application.Platform;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
+import javafx.concurrent.Task;
+import javafx.concurrent.WorkerStateEvent;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.geometry.HPos;
@@ -32,6 +35,7 @@ public class OrderTab extends Tab implements EventHandler<ActionEvent> {
   private Button deliveryConfirmButton;
   private Button saveButton;
   private Button resetButton;
+  private Button orderCancelButton;
 
   public OrderTab(Order order) {
     super(order.toString());
@@ -54,7 +58,7 @@ public class OrderTab extends Tab implements EventHandler<ActionEvent> {
     toolbar.getItems().addAll(contactButton, saveButton, resetButton);
     root.setTop(toolbar);
 
-    VBox center = new VBox();
+    final VBox center = new VBox();
     center.setAlignment(Pos.TOP_CENTER);
     center.setFillWidth(true);
 
@@ -105,14 +109,49 @@ public class OrderTab extends Tab implements EventHandler<ActionEvent> {
     WidgetFactory.addFormTextfield(billingAddressForm, "Ort:", order.getCustomer().getBillingAddress().getCity(), index++);
     WidgetFactory.createSection(center, billingAddressForm, "Rechnungsadresse", true);
 
-    GridPane itemsForm = WidgetFactory.createFormGrid(15, 40, 10, 10, 10, 15);
+    final GridPane itemsForm = WidgetFactory.createFormGrid(15, 40, 10, 10, 10, 15);
     itemsForm.setGridLinesVisible(true);
-    index = 0;
-    WidgetFactory.createSection(center, itemsForm, "Bestellung", false);
-    List<OrderItem> orderItems = getOrder().getOrderItems();
-    for(OrderItem orderItem : orderItems) {
-      createOrderItem(itemsForm, orderItem, index++);
-    }
+
+    final HBox pg = new HBox(10);
+    pg.setAlignment(Pos.CENTER);
+    pg.setPadding(new Insets(10, 10, 10, 10));
+    ProgressIndicator loading = new ProgressIndicator();
+    pg.getChildren().addAll(loading);
+    center.getChildren().addAll(pg);
+
+    Task listLoader = new Task<Boolean>() {
+      {
+        setOnSucceeded(new EventHandler<WorkerStateEvent>() {
+          public void handle(WorkerStateEvent event) {
+
+          }
+        });
+      }
+
+      @Override
+      protected Boolean call() throws Exception {
+        List<OrderItem> orderItems = getOrder().getOrderItems();
+        int index = 0;
+        for(OrderItem orderItem : orderItems) {
+          createOrderItem(itemsForm, orderItem, index++);
+        }
+        Platform.runLater(new Runnable() {
+          public void run() {
+            center.getChildren().remove(pg);
+            WidgetFactory.createSection(center, itemsForm, "Bestellung", false);
+          }
+        });
+
+        return true;
+      }
+    };
+
+    Thread loadingThread = new Thread(listLoader, "item-list-loader");
+    loadingThread.setDaemon(true);
+    loadingThread.start();
+
+
+    refreshView();
   }
 
   private void createStatusGroup(Pane center) {
@@ -127,6 +166,8 @@ public class OrderTab extends Tab implements EventHandler<ActionEvent> {
     statusPanel.getChildren().addAll(imageWrapper);
     deliveryConfirmButton = WidgetFactory.createButton(statusPanel, "Versandbestätigung senden", "check-grey.png", this);
     deliveryConfirmButton.setDisable(true);
+
+    orderCancelButton = WidgetFactory.createButton(statusPanel, "Auftrag stornieren", "check-grey.png", this);
 
     TitledPane group = new TitledPane("Status", statusPanel);
     group.setPadding(new Insets(10, 10, 5, 10));
@@ -209,5 +250,26 @@ public class OrderTab extends Tab implements EventHandler<ActionEvent> {
   }
 
   public void refreshView() {
+    switch(order.getOrderStatus()) {
+      case Order.ORDER_STATUS_NEW: {
+        return;
+      }
+      case Order.ORDER_STATUS_CONFIRMED: {
+        orderConfirmButton.setDisable(true);
+        deliveryConfirmButton.setDisable(false);
+        return;
+      }
+      case Order.ORDER_STATUS_DELIVERED: {
+        orderConfirmButton.setDisable(true);
+        deliveryConfirmButton.setDisable(true);
+        return;
+      }
+      case Order.ORDER_STATUS_CANCELED: {
+        orderConfirmButton.setDisable(true);
+        deliveryConfirmButton.setDisable(false);
+        return;
+      }
+
+    }
   }
 }

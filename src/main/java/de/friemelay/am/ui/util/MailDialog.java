@@ -121,7 +121,7 @@ public class MailDialog implements EventHandler<ActionEvent> {
 
     textArea = new TextArea();
     textArea.getStyleClass().add("email-text");
-    textArea.setPadding(new Insets(0, 0, 0, 0));
+    textArea.setPadding(new Insets(5, 5, 5, 5));
 
     mailPane.getChildren().addAll(mailHeader, textArea, mailFooter);
   }

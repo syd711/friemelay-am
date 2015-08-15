@@ -27,13 +27,13 @@ public class OrderTabPane extends BorderPane implements ChangeListener<Tab> {
     setCenter(tabPane);
   }
 
-  public void openOrder(Order order) {
+  public OrderTab openOrder(Order order) {
     ObservableList<Tab> tabs = tabPane.getTabs();
     for(Tab tab : tabs) {
       OrderTab orderTab = (OrderTab) tab;
       if(orderTab.getOrder().equals(order)) {
         tabPane.getSelectionModel().select(tab);
-        return;
+        return orderTab;
       }
     }
 
@@ -44,6 +44,7 @@ public class OrderTabPane extends BorderPane implements ChangeListener<Tab> {
     OrderTab tab = new OrderTab(order);
     tabPane.getTabs().add(tab);
     tabPane.getSelectionModel().select(tab);
+    return tab;
   }
 
 
