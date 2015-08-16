@@ -120,7 +120,7 @@ public class OrderTreePane extends BorderPane implements EventHandler<MouseEvent
 
   private Order getSelection() {
     TreeItem selectedItem = (TreeItem) treeView.getSelectionModel().getSelectedItem();
-    if(selectedItem.getValue() instanceof Order) {
+    if(selectedItem != null && selectedItem.getValue() instanceof Order) {
       TreeItem<Order> item = (TreeItem<Order>)selectedItem;
       return item.getValue();
     }

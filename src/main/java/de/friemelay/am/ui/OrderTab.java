@@ -162,16 +162,18 @@ public class OrderTab extends Tab implements EventHandler<ActionEvent>, ChangeLi
     WidgetFactory.addBindingFormTextfield(addressForm, "Ort:", order.getCustomer().getAddress().getCity(), index++, !isReadonly(), this);
     WidgetFactory.createSection(orderForm, addressForm, "Kundendaten", true);
 
-    GridPane billingAddressForm = WidgetFactory.createFormGrid();
-    index = 0;
-    WidgetFactory.addBindingFormTextfield(billingAddressForm, "Name:", order.getCustomer().getBillingAddress().getLastname(), index++, !isReadonly(), this);
-    WidgetFactory.addBindingFormTextfield(billingAddressForm, "Vorname:", order.getCustomer().getBillingAddress().getFirstname(), index++, !isReadonly(), this);
-    WidgetFactory.addBindingFormTextfield(billingAddressForm, "Firma:", order.getCustomer().getBillingAddress().getCompany(), index++, !isReadonly(), this);
-    WidgetFactory.addBindingFormTextfield(billingAddressForm, "Straße:", order.getCustomer().getBillingAddress().getStreet(), index++, !isReadonly(), this);
-    WidgetFactory.addBindingFormTextfield(billingAddressForm, "Adresszusatz:", order.getCustomer().getBillingAddress().getAdditional(), index++, !isReadonly(), this);
-    WidgetFactory.addBindingFormTextfield(billingAddressForm, "PLZ:", order.getCustomer().getBillingAddress().getZip(), index++, !isReadonly(), this);
-    WidgetFactory.addBindingFormTextfield(billingAddressForm, "Ort:", order.getCustomer().getBillingAddress().getCity(), index++, !isReadonly(), this);
-    WidgetFactory.createSection(orderForm, billingAddressForm, "Rechnungsadresse", true);
+    if(order.getCustomer().getBillingAddress() != null) {
+      GridPane billingAddressForm = WidgetFactory.createFormGrid();
+      index = 0;
+      WidgetFactory.addBindingFormTextfield(billingAddressForm, "Name:", order.getCustomer().getBillingAddress().getLastname(), index++, !isReadonly(), this);
+      WidgetFactory.addBindingFormTextfield(billingAddressForm, "Vorname:", order.getCustomer().getBillingAddress().getFirstname(), index++, !isReadonly(), this);
+      WidgetFactory.addBindingFormTextfield(billingAddressForm, "Firma:", order.getCustomer().getBillingAddress().getCompany(), index++, !isReadonly(), this);
+      WidgetFactory.addBindingFormTextfield(billingAddressForm, "Straße:", order.getCustomer().getBillingAddress().getStreet(), index++, !isReadonly(), this);
+      WidgetFactory.addBindingFormTextfield(billingAddressForm, "Adresszusatz:", order.getCustomer().getBillingAddress().getAdditional(), index++, !isReadonly(), this);
+      WidgetFactory.addBindingFormTextfield(billingAddressForm, "PLZ:", order.getCustomer().getBillingAddress().getZip(), index++, !isReadonly(), this);
+      WidgetFactory.addBindingFormTextfield(billingAddressForm, "Ort:", order.getCustomer().getBillingAddress().getCity(), index++, !isReadonly(), this);
+      WidgetFactory.createSection(orderForm, billingAddressForm, "Rechnungsadresse", true);
+    }
 
     createOrderItemsGroup();
   }

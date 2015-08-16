@@ -108,6 +108,9 @@ public class DB {
   }
 
   public static void loadAddress(Customer customer) {
+    if(customer == null) {
+      return;
+    }
     try {
       Statement statement = connection.createStatement();
       ResultSet rs = statement.executeQuery("select * from addresses where id = " + customer.getAddressId());
@@ -125,6 +128,10 @@ public class DB {
   }
 
   public static void loadBillingAddress(Customer customer) {
+    if(customer == null) {
+      return;
+    }
+
     try {
       Statement statement = connection.createStatement();
       ResultSet rs = statement.executeQuery("select * from addresses where id = " + customer.getBillingAddressId());
@@ -141,16 +148,58 @@ public class DB {
     }
   }
 
-  public static void delete(Order selection) {
+  public static void delete(Order order) {
+    try {
+      //load full order
+      order = getOrder(order.getId());
 
+      if(order.getCustomer() != null) {
+        String query = "delete from addresses where id = ? or id = ?";
+        PreparedStatement preparedStmt = connection.prepareStatement(query);
+        preparedStmt.setInt(1, order.getCustomer().getAddressId());
+        preparedStmt.setInt(2, order.getCustomer().getBillingAddressId());
+        preparedStmt.executeUpdate();
+        preparedStmt.close();
+
+        query = "delete from customers where id = ?";
+        preparedStmt = connection.prepareStatement(query);
+        preparedStmt.setInt(1, order.getCustomer().getId());
+        preparedStmt.executeUpdate();
+        preparedStmt.close();
+      }
+
+      String query = "delete from orders where id = ?";
+      PreparedStatement preparedStmt = connection.prepareStatement(query);
+      preparedStmt.setInt(1, order.getId());
+      preparedStmt.executeUpdate();
+      preparedStmt.close();
+
+      query = "delete from order_items where order_id = ?";
+      preparedStmt = connection.prepareStatement(query);
+      preparedStmt.setInt(1, order.getId());
+      preparedStmt.executeUpdate();
+      preparedStmt.close();
+
+
+    } catch (SQLException e) {
+      Logger.getLogger(Connection.class.getName()).error("Failed to get address: " + e.getMessage(), e);
+      WidgetFactory.showError("Failed to get address: " + e.getMessage(), e);
+    }
   }
 
   public static void save(Order order) {
-    System.out.println(order.getCustomer().getEmail());
-    System.out.println(order.getComments().get());
-    for(OrderItem orderItem : order.getOrderItems()) {
-      System.out.println(orderItem);
-    }
-
+//    try {
+//      String query = "update users set num_points = ? where first_name = ?";
+//      PreparedStatement preparedStmt = connection.prepareStatement(query);
+//      preparedStmt.setInt(1, 6000);
+//      preparedStmt.setString(2, "Fred");
+//
+//      // execute the java preparedstatement
+//      preparedStmt.executeUpdate();
+//      preparedStmt.close();
+//    } catch (SQLException e) {
+//      Logger.getLogger(Connection.class.getName()).error("Failed to get address: " + e.getMessage(), e);
+//      WidgetFactory.showError("Failed to get address: " + e.getMessage(), e);
+//    }
   }
 }

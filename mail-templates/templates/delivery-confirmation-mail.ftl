@@ -59,7 +59,7 @@
             <td colspan="5" align="right"><hr></td>
             </tr>
             <tr>
-            <td colspan="5" align="right">Gesamt: ${order.formattedTotalPriceWithShipping} EUR</td>
+            <td colspan="5" align="right"><b>Gesamt: ${order.formattedTotalPriceWithShipping} EUR</b></td>
             </tr>
             <tr>
             <td colspan="5" align="right"><hr></td>
