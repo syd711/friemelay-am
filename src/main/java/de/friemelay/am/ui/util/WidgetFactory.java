@@ -1,6 +1,11 @@
 package de.friemelay.am.ui.util;
 
 import de.friemelay.am.resources.ResourceLoader;
+import javafx.beans.binding.Bindings;
+import javafx.beans.property.DoubleProperty;
+import javafx.beans.property.IntegerProperty;
+import javafx.beans.property.StringProperty;
+import javafx.beans.value.ChangeListener;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.geometry.HPos;
@@ -11,6 +16,8 @@ import javafx.scene.control.*;
 import javafx.scene.layout.ColumnConstraints;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.Pane;
+import javafx.util.StringConverter;
+import javafx.util.converter.NumberStringConverter;
 
 import java.nio.charset.Charset;
 
@@ -22,7 +29,7 @@ public class WidgetFactory {
     Alert alert = new Alert(Alert.AlertType.INFORMATION);
     alert.setTitle("Fehler");
     alert.setHeaderText("Fehler");
-    alert.setContentText(new String(("Ups, das hätte nicht passieren dürfen: " + e.getMessage()).getBytes(), Charset.forName("utf-8")));
+    alert.setContentText(new String(("Ups, das hätte nicht passieren dürfen: " + message+ " [" + e.getMessage() + "]").getBytes(), Charset.forName("utf-8")));
     alert.showAndWait();
   }
 
@@ -36,6 +43,23 @@ public class WidgetFactory {
     return result.getButtonData().isDefaultButton();
   }
 
+  public static Label addBindingFormLabel(GridPane grid, String label, StringProperty property, int row, StringConverter<String> converter) {
+    Label condLabel = new Label(label);
+    GridPane.setHalignment(condLabel, HPos.RIGHT);
+    GridPane.setConstraints(condLabel, 0, row);
+    Label condValue = new Label(property.get());
+    if(converter != null) {
+      condValue.textProperty().bindBidirectional(property, converter);
+    }
+    else {
+      condValue.textProperty().bindBidirectional(property);
+    }
+    GridPane.setMargin(condValue, new Insets(5, 5, 5, 10));
+    GridPane.setConstraints(condValue, 1, row);
+    grid.getChildren().addAll(condLabel, condValue);
+    return condValue;
+  }
+
   public static Label addFormLabel(GridPane grid, String label, String text, int row) {
     Label condLabel = new Label(label);
     GridPane.setHalignment(condLabel, HPos.RIGHT);
@@ -47,13 +71,45 @@ public class WidgetFactory {
     return condValue;
   }
 
-  public static TextField addBindingFormTextfield(GridPane grid, String label, Object bean, String property, int row, boolean editable) {
+  public static Label addFormLabel(GridPane grid, String label, int row, DoubleProperty property, StringConverter<Number> converter) {
     Label condLabel = new Label(label);
     GridPane.setHalignment(condLabel, HPos.RIGHT);
     GridPane.setConstraints(condLabel, 0, row);
-//    BeanPathAdapter adapter = new BeanPathAdapter(bean);
-    TextField textBox = new TextField();
-//    adapter.bindBidirectional(property, textBox.textProperty());
+    Label condValue = new Label(String.valueOf(property.get()));
+    condValue.textProperty().bindBidirectional(property, converter);
+    GridPane.setMargin(condValue, new Insets(5, 5, 5, 10));
+    GridPane.setConstraints(condValue, 1, row);
+    grid.getChildren().addAll(condLabel, condValue);
+    return condValue;
+  }
+
+  public static Label addFormLabel(GridPane grid, String label, int row, StringProperty property, StringConverter<String> converter) {
+    Label condLabel = new Label(label);
+    GridPane.setHalignment(condLabel, HPos.RIGHT);
+    GridPane.setConstraints(condLabel, 0, row);
+    Label condValue = new Label(property.get());
+    if(converter != null) {
+      condLabel.textProperty().bindBidirectional(property, converter);
+    }
+    else {
+      condLabel.textProperty().bindBidirectional(property);
+    }
+
+    GridPane.setMargin(condValue, new Insets(5, 5, 5, 10));
+    GridPane.setConstraints(condValue, 1, row);
+    grid.getChildren().addAll(condLabel, condValue);
+    return condValue;
+  }
+
+  public static TextField addBindingFormTextfield(GridPane grid, String label, StringProperty property, int row, boolean editable, ChangeListener<String> listener) {
+    Label condLabel = new Label(label);
+    GridPane.setHalignment(condLabel, HPos.RIGHT);
+    GridPane.setConstraints(condLabel, 0, row);
+    TextField textBox = new TextField(property.get());
+    Bindings.bindBidirectional(property, textBox.textProperty());
+    if(listener != null) {
+      property.addListener(listener);
+    }
     textBox.setEditable(editable);
     GridPane.setMargin(textBox, new Insets(5, 5, 5, 10));
     GridPane.setConstraints(textBox, 1, row);
@@ -136,5 +192,23 @@ public class WidgetFactory {
     button.setOnAction(handler);
 
     return button;
+  }
+
+  public static Spinner createSpinner(int min, int max, boolean disabled, IntegerProperty property, ChangeListener<String> changeListener) {
+    final Spinner spinner = new Spinner(min, max, property.get());
+    spinner.setDisable(disabled);
+    spinner.setMaxWidth(70);
+    StringConverter<Number> converter = new NumberStringConverter();
+    Bindings.bindBidirectional(spinner.getEditor().textProperty(), property, converter);
+    if(changeListener != null) {
+      spinner.getEditor().textProperty().addListener(changeListener);
+    }
+    return spinner;
+  }
+
+  public static Label createLabel(String label, StringProperty property, StringConverter<String> converter) {
+    Label l = new Label(label);
+    l.textProperty().bindBidirectional(property, converter);
+    return l;
   }
 }

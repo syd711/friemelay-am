@@ -38,7 +38,7 @@ public class OrderConfirmationMailDialog extends MailDialog {
 
   @Override
   protected void updateModel(MailRepresentation model) {
-    model.setName(order.getCustomer().getAddress().getFirstname() + " " + order.getCustomer().getAddress().getLastname());
+    model.setName(order.getCustomer().getAddress().getFirstname().get() + " " + order.getCustomer().getAddress().getLastname().get());
     model.setOrderId(String.valueOf(order.getId()));
   }
 

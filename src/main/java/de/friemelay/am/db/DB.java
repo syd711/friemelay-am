@@ -119,7 +119,7 @@ public class DB {
 
       statement.close();
     } catch (SQLException e) {
-      Logger.getLogger(Connection.class.getName()).error("Failed to get address: " + e.getMessage(), e);
+      Logger.getLogger(Connection.class.getName()).error("Failed to get address [" + "select * from addresses where id = " + customer.getAddressId() + ": " + e.getMessage(), e);
       WidgetFactory.showError("Failed to get address: " + e.getMessage(), e);
     }
   }
@@ -147,5 +147,10 @@ public class DB {
 
   public static void save(Order order) {
     System.out.println(order.getCustomer().getEmail());
+    System.out.println(order.getComments().get());
+    for(OrderItem orderItem : order.getOrderItems()) {
+      System.out.println(orderItem);
+    }
+
   }
 }

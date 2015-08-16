@@ -1,18 +1,21 @@
 package de.friemelay.am.model;
 
+import javafx.beans.property.SimpleStringProperty;
+import javafx.beans.property.StringProperty;
+
 /**
  *
  */
 public class Address {
   private int id;
-  private String firstname;
-  private String lastname;
-  private String company;
-  private String additional;
-  private String street;
-  private String zip;
-  private String city;
-  private String country;
+  private StringProperty firstname = new SimpleStringProperty();
+  private StringProperty lastname = new SimpleStringProperty();
+  private StringProperty company = new SimpleStringProperty();
+  private StringProperty additional = new SimpleStringProperty();
+  private StringProperty street = new SimpleStringProperty();
+  private StringProperty zip = new SimpleStringProperty();
+  private StringProperty city = new SimpleStringProperty();
+  private StringProperty country = new SimpleStringProperty();
 
   public int getId() {
     return id;
@@ -22,67 +25,67 @@ public class Address {
     this.id = id;
   }
 
-  public String getFirstname() {
+  public StringProperty getFirstname() {
     return firstname;
   }
 
   public void setFirstname(String firstname) {
-    this.firstname = firstname;
+    this.firstname.setValue(firstname);
   }
 
-  public String getLastname() {
+  public StringProperty getLastname() {
     return lastname;
   }
 
   public void setLastname(String lastname) {
-    this.lastname = lastname;
+    this.lastname.setValue(lastname);
   }
 
-  public String getCompany() {
+  public StringProperty getCompany() {
     return company;
   }
 
   public void setCompany(String company) {
-    this.company = company;
+    this.company.setValue(company);
   }
 
-  public String getAdditional() {
+  public StringProperty getAdditional() {
     return additional;
   }
 
   public void setAdditional(String additional) {
-    this.additional = additional;
+    this.additional.setValue(additional);
   }
 
-  public String getZip() {
+  public StringProperty getZip() {
     return zip;
   }
 
   public void setZip(String zip) {
-    this.zip = zip;
+    this.zip.setValue(zip);
   }
 
-  public String getCity() {
+  public StringProperty getCity() {
     return city;
   }
 
   public void setCity(String city) {
-    this.city = city;
+    this.city.setValue(city);
   }
 
-  public String getCountry() {
+  public StringProperty getCountry() {
     return country;
   }
 
   public void setCountry(String country) {
-    this.country = country;
+    this.country.setValue(country);
   }
 
-  public String getStreet() {
+  public StringProperty getStreet() {
     return street;
   }
 
   public void setStreet(String street) {
-    this.street = street;
+    this.street.setValue(street);
   }
 }

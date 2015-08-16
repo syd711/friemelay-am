@@ -1,6 +1,7 @@
 package de.friemelay.am;
 
 import de.friemelay.am.config.Config;
+import de.friemelay.am.db.DB;
 import de.friemelay.am.model.Order;
 import de.friemelay.am.resources.ResourceLoader;
 import de.friemelay.am.ui.OrderTabPane;
@@ -86,7 +87,7 @@ public class UIController {
     setStatusMessage("Bestellbestätigung versendet");
     order.setOrderStatus(Order.ORDER_STATUS_CONFIRMED);
     treePane.updateOrderStatus(order);
-    //DB.updateOrder(order);
+    DB.save(order);
     tabPane.openOrder(order).refreshOrderStatus();
   }
 
@@ -94,7 +95,7 @@ public class UIController {
     setStatusMessage("Die Bestellung " + order + " wurde storniert");
     order.setOrderStatus(Order.ORDER_STATUS_CANCELED);
     treePane.updateOrderStatus(order);
-    //DB.updateOrder(order);
+    DB.save(order);
     tabPane.openOrder(order).refreshOrderStatus();
   }
 

@@ -28,7 +28,7 @@ import java.util.List;
 /**
  *
  */
-public class OrderTab extends Tab implements EventHandler<ActionEvent> {
+public class OrderTab extends Tab implements EventHandler<ActionEvent>, ChangeListener<String> {
   private Order order;
 
   private Button contactButton;
@@ -40,8 +40,7 @@ public class OrderTab extends Tab implements EventHandler<ActionEvent> {
   private final VBox orderForm = new VBox();
   private TitledPane orderItemsGroup;
 
-  private Label totalPriceLabel;
-  private Label totalPriceWithShippingLabel;
+  private boolean dirty;
 
   public OrderTab(Order order) {
     super(order.toString());
@@ -55,13 +54,13 @@ public class OrderTab extends Tab implements EventHandler<ActionEvent> {
    */
   public void handle(javafx.event.ActionEvent event) {
     if(event.getSource() == contactButton) {
-      String to = order.getCustomer().getEmail();
+      String to = order.getCustomer().getEmail().get();
       String bcc = Config.getString("mail.bcc");
       MailDialog dialog = new MailDialog("Ihre Bestellung bei friemlay.de (Bestellnummer " + order.getId() + ")", to, bcc);
       dialog.open(event);
     }
     else if(event.getSource() == orderConfirmButton) {
-      String to = order.getCustomer().getEmail();
+      String to = order.getCustomer().getEmail().get();
       String bcc = Config.getString("mail.bcc");
       OrderConfirmationMailDialog dialog = new OrderConfirmationMailDialog("Bestellbestätigung (Bestellnummer " + order.getId() + ")", to, bcc, order);
       dialog.open(event);
@@ -96,13 +95,13 @@ public class OrderTab extends Tab implements EventHandler<ActionEvent> {
     contactButton.setOnAction(this);
     saveButton = new Button("Änderungen speichern", ResourceLoader.getImageView("save.png"));
     saveButton.setOnAction(this);
-    saveButton.setDisable(order.getOrderStatus() == Order.ORDER_STATUS_CANCELED);
+    saveButton.setDisable(isCancelled() || !isDirty());
     resetButton = new Button("Änderungen zurücksetzen", ResourceLoader.getImageView("revert.png"));
     resetButton.setOnAction(this);
-    resetButton.setDisable(order.getOrderStatus() == Order.ORDER_STATUS_CANCELED);
+    resetButton.setDisable(isCancelled() || !isDirty());
     orderCancelButton = new Button("Bestellung stornieren", ResourceLoader.getImageView("remove.gif"));
     orderCancelButton.setOnAction(this);
-    orderCancelButton.setDisable(order.getOrderStatus() == Order.ORDER_STATUS_CANCELED);
+    orderCancelButton.setDisable(isCancelled());
     toolbar.getItems().addAll(contactButton, saveButton, resetButton, orderCancelButton);
     root.setTop(toolbar);
 
@@ -130,35 +129,36 @@ public class OrderTab extends Tab implements EventHandler<ActionEvent> {
     int index = 0;
     WidgetFactory.addFormLabel(orderDetailsForm, "Bestellnummer:", String.valueOf(order.getId()), index++);
     WidgetFactory.addFormLabel(orderDetailsForm, "Eingang:", String.valueOf(order.getFormattedCreationDate()), index++);
-    WidgetFactory.addFormLabel(orderDetailsForm, "Kundenname:", order.getCustomer().getAddress().getFirstname() + " " + order.getCustomer().getAddress().getLastname(), index++);
-    totalPriceLabel = WidgetFactory.addFormLabel(orderDetailsForm, "Preis:", String.valueOf(order.getFormattedTotalPrice()), index++);
-    totalPriceWithShippingLabel = WidgetFactory.addFormLabel(orderDetailsForm, "Preis inkl. Versandkosten:", String.valueOf(order.getFormattedTotalPriceWithShipping()), index++);
+    WidgetFactory.addBindingFormLabel(orderDetailsForm, "Name:", order.getCustomer().getAddress().getLastname(), index++, null);
+    WidgetFactory.addBindingFormLabel(orderDetailsForm, "Vorname:", order.getCustomer().getAddress().getFirstname(), index++, null);
+    WidgetFactory.addFormLabel(orderDetailsForm, "Preis:", index++, order.getTotalPrice(), new TotalPriceConverter(order));
+    WidgetFactory.addFormLabel(orderDetailsForm, "Preis inkl. Versandkosten:", index++, order.getTotalPrice(), new TotalPriceWithShippingConverter(order));
     WidgetFactory.addFormLabel(orderDetailsForm, "Zahlungsweise:", order.getFormattedPaymentType(), index++);
-    WidgetFactory.addFormLabel(orderDetailsForm, "Anmerkungen vom Kunden:", order.getComments(), index++);
+    WidgetFactory.addBindingFormTextfield(orderDetailsForm, "Anmerkungen vom Kunden:", order.getComments(), index++, !isCancelled(), this);
     WidgetFactory.createSection(orderForm, orderDetailsForm, "Details der Bestellung");
 
     GridPane addressForm = WidgetFactory.createFormGrid();
     index = 0;
-    WidgetFactory.addFormTextfield(addressForm, "Name:", order.getCustomer().getAddress().getLastname(), index++, !isCancelled());
-    WidgetFactory.addFormTextfield(addressForm, "Vorname:", order.getCustomer().getAddress().getFirstname(), index++, !isCancelled());
-    WidgetFactory.addBindingFormTextfield(addressForm, "E-Mail:", order.getCustomer(), "email", index++, !isCancelled());
-    WidgetFactory.addFormTextfield(addressForm, "Telefon:", order.getCustomer().getPhone(), index++, !isCancelled());
-    WidgetFactory.addFormTextfield(addressForm, "Firma:", order.getCustomer().getAddress().getCompany(), index++, !isCancelled());
-    WidgetFactory.addFormTextfield(addressForm, "Straße:", order.getCustomer().getAddress().getStreet(), index++, !isCancelled());
-    WidgetFactory.addFormTextfield(addressForm, "Adresszusatz:", order.getCustomer().getAddress().getAdditional(), index++, !isCancelled());
-    WidgetFactory.addFormTextfield(addressForm, "PLZ:", order.getCustomer().getAddress().getZip(), index++, !isCancelled());
-    WidgetFactory.addFormTextfield(addressForm, "Ort:", order.getCustomer().getAddress().getCity(), index++, !isCancelled());
+    WidgetFactory.addBindingFormTextfield(addressForm, "Name:", order.getCustomer().getAddress().getLastname(), index++, !isCancelled(), this);
+    WidgetFactory.addBindingFormTextfield(addressForm, "Vorname:", order.getCustomer().getAddress().getFirstname(), index++, !isCancelled(), this);
+    WidgetFactory.addBindingFormTextfield(addressForm, "E-Mail:", order.getCustomer().getEmail(), index++, !isCancelled(), this);
+    WidgetFactory.addBindingFormTextfield(addressForm, "Telefon:", order.getCustomer().getPhone(), index++, !isCancelled(), this);
+    WidgetFactory.addBindingFormTextfield(addressForm, "Firma:", order.getCustomer().getAddress().getCompany(), index++, !isCancelled(), this);
+    WidgetFactory.addBindingFormTextfield(addressForm, "Straße:", order.getCustomer().getAddress().getStreet(), index++, !isCancelled(), this);
+    WidgetFactory.addBindingFormTextfield(addressForm, "Adresszusatz:", order.getCustomer().getAddress().getAdditional(), index++, !isCancelled(), this);
+    WidgetFactory.addBindingFormTextfield(addressForm, "PLZ:", order.getCustomer().getAddress().getZip(), index++, !isCancelled(), this);
+    WidgetFactory.addBindingFormTextfield(addressForm, "Ort:", order.getCustomer().getAddress().getCity(), index++, !isCancelled(), this);
     WidgetFactory.createSection(orderForm, addressForm, "Kundendaten", true);
 
     GridPane billingAddressForm = WidgetFactory.createFormGrid();
     index = 0;
-    WidgetFactory.addFormTextfield(billingAddressForm, "Name:", order.getCustomer().getBillingAddress().getLastname(), index++, !isCancelled());
-    WidgetFactory.addFormTextfield(billingAddressForm, "Vorname:", order.getCustomer().getBillingAddress().getFirstname(), index++, !isCancelled());
-    WidgetFactory.addFormTextfield(billingAddressForm, "Firma:", order.getCustomer().getBillingAddress().getCompany(), index++, !isCancelled());
-    WidgetFactory.addFormTextfield(billingAddressForm, "Straße:", order.getCustomer().getBillingAddress().getStreet(), index++, !isCancelled());
-    WidgetFactory.addFormTextfield(billingAddressForm, "Adresszusatz:", order.getCustomer().getBillingAddress().getAdditional(), index++, !isCancelled());
-    WidgetFactory.addFormTextfield(billingAddressForm, "PLZ:", order.getCustomer().getBillingAddress().getZip(), index++, !isCancelled());
-    WidgetFactory.addFormTextfield(billingAddressForm, "Ort:", order.getCustomer().getBillingAddress().getCity(), index++, !isCancelled());
+    WidgetFactory.addBindingFormTextfield(billingAddressForm, "Name:", order.getCustomer().getBillingAddress().getLastname(), index++, !isCancelled(), this);
+    WidgetFactory.addBindingFormTextfield(billingAddressForm, "Vorname:", order.getCustomer().getBillingAddress().getFirstname(), index++, !isCancelled(), this);
+    WidgetFactory.addBindingFormTextfield(billingAddressForm, "Firma:", order.getCustomer().getBillingAddress().getCompany(), index++, !isCancelled(), this);
+    WidgetFactory.addBindingFormTextfield(billingAddressForm, "Straße:", order.getCustomer().getBillingAddress().getStreet(), index++, !isCancelled(), this);
+    WidgetFactory.addBindingFormTextfield(billingAddressForm, "Adresszusatz:", order.getCustomer().getBillingAddress().getAdditional(), index++, !isCancelled(), this);
+    WidgetFactory.addBindingFormTextfield(billingAddressForm, "PLZ:", order.getCustomer().getBillingAddress().getZip(), index++, !isCancelled(), this);
+    WidgetFactory.addBindingFormTextfield(billingAddressForm, "Ort:", order.getCustomer().getBillingAddress().getCity(), index++, !isCancelled(), this);
     WidgetFactory.createSection(orderForm, billingAddressForm, "Rechnungsadresse", true);
 
     createOrderItemsGroup();
@@ -244,17 +244,7 @@ public class OrderTab extends Tab implements EventHandler<ActionEvent> {
     GridPane.setConstraints(label, 1, row);
     grid.getChildren().addAll(label);
 
-    final Label totalPriceLabel = new Label(String.valueOf(item.getFormattedTotalPrice()));
-    final Spinner amount = new Spinner(0, 100, item.getAmount());
-    amount.setDisable(isCancelled());
-    amount.setMaxWidth(70);
-    amount.valueProperty().addListener(new ChangeListener() {
-      public void changed(ObservableValue observable, Object oldValue, Object newValue) {
-        item.setAmount(Integer.parseInt(String.valueOf(newValue)));
-        totalPriceLabel.setText(item.getFormattedTotalPrice());
-        setDirty(true);
-      }
-    });
+    Spinner amount = WidgetFactory.createSpinner(1, 100, isCancelled(), item.getAmount(), this);
     GridPane.setMargin(amount, new Insets(5, 5, 5, 10));
     GridPane.setConstraints(amount, 2, row);
     grid.getChildren().addAll(amount);
@@ -264,6 +254,13 @@ public class OrderTab extends Tab implements EventHandler<ActionEvent> {
     GridPane.setConstraints(label, 3, row);
     grid.getChildren().addAll(label);
 
+    Label totalPriceLabel = WidgetFactory.createLabel(String.valueOf(item.getFormattedTotalPrice()), amount.getEditor().textProperty(), new PriceStringConverter(item));
+    totalPriceLabel.textProperty().addListener(new ChangeListener<String>() {
+      @Override
+      public void changed(ObservableValue<? extends String> observable, String oldValue, String newValue) {
+        order.setTotalPrice(new TotalPriceConverter(order).fromString(null).doubleValue());
+      }
+    });
     GridPane.setMargin(totalPriceLabel, new Insets(5, 5, 5, 10));
     GridPane.setConstraints(totalPriceLabel, 4, row);
     grid.getChildren().addAll(totalPriceLabel);
@@ -284,16 +281,11 @@ public class OrderTab extends Tab implements EventHandler<ActionEvent> {
   }
 
   private boolean isCancelled() {
-    return order.getOrderStatus() == Order.ORDER_STATUS_CANCELED;
-  }
-
-  private void setDirty(boolean dirty) {
-    saveButton.setDisable(!dirty);
-    resetButton.setDisable(!dirty);
+    return order.getOrderStatus().get() == Order.ORDER_STATUS_CANCELED;
   }
 
   public void refreshOrderStatus() {
-    switch(order.getOrderStatus()) {
+    switch(order.getOrderStatus().getValue()) {
       case Order.ORDER_STATUS_NEW: {
         return;
       }
@@ -318,5 +310,20 @@ public class OrderTab extends Tab implements EventHandler<ActionEvent> {
       }
 
     }
+  }
+
+  private void setDirty(boolean dirty) {
+    this.dirty = dirty;
+    saveButton.setDisable(!dirty);
+    resetButton.setDisable(!dirty);
+  }
+
+  public boolean isDirty() {
+    return dirty;
+  }
+
+  @Override
+  public void changed(ObservableValue<? extends String> observable, String oldValue, String newValue) {
+    setDirty(true);
   }
 }

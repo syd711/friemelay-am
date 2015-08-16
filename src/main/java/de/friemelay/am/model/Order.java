@@ -1,5 +1,7 @@
 package de.friemelay.am.model;
 
+import javafx.beans.property.*;
+
 import java.sql.Date;
 import java.text.DecimalFormat;
 import java.text.SimpleDateFormat;
@@ -18,16 +20,15 @@ public class Order {
 
   private int id;
   private Date creationDate;
-  private int orderStatus;
+  private IntegerProperty orderStatus = new SimpleIntegerProperty();
   private int customerId;
-  private int paymentType;
-  private double totalPrice;
-  private double shippingCosts;
-  private String customerComments;
-  private String comments;
+  private IntegerProperty paymentType = new SimpleIntegerProperty();
+  private DoubleProperty totalPrice = new SimpleDoubleProperty();
+  private DoubleProperty shippingCosts = new SimpleDoubleProperty();
+  private StringProperty customerComments = new SimpleStringProperty();
+  private StringProperty comments = new SimpleStringProperty();
   private List<OrderItem> orderItems = new ArrayList<OrderItem>();
   private Customer customer;
-  private String statusIcon;
 
   public int getId() {
     return id;
@@ -45,12 +46,12 @@ public class Order {
     this.creationDate = creationDate;
   }
 
-  public int getOrderStatus() {
+  public IntegerProperty getOrderStatus() {
     return orderStatus;
   }
 
   public void setOrderStatus(int orderStatus) {
-    this.orderStatus = orderStatus;
+    this.orderStatus.setValue(orderStatus);
   }
 
   public int getCustomerId() {
@@ -61,51 +62,51 @@ public class Order {
     this.customerId = customerId;
   }
 
-  public int getPaymentType() {
+  public IntegerProperty getPaymentType() {
     return paymentType;
   }
 
   public String getFormattedPaymentType() {
-    if(paymentType == 0) {
+    if(paymentType.getValue() == 0) {
       return "Vorkasse";
     }
     return "Barzahlung bei Abholung";
   }
 
   public void setPaymentType(int paymentType) {
-    this.paymentType = paymentType;
+    this.paymentType.setValue(paymentType);
   }
 
-  public double getTotalPrice() {
+  public DoubleProperty getTotalPrice() {
     return totalPrice;
   }
 
   public void setTotalPrice(double totalPrice) {
-    this.totalPrice = totalPrice;
+    this.totalPrice.setValue(totalPrice);
   }
 
-  public double getShippingCosts() {
+  public DoubleProperty getShippingCosts() {
     return shippingCosts;
   }
 
   public void setShippingCosts(double shippingCosts) {
-    this.shippingCosts = shippingCosts;
+    this.shippingCosts.setValue(shippingCosts);
   }
 
-  public String getCustomerComments() {
+  public StringProperty getCustomerComments() {
     return customerComments;
   }
 
   public void setCustomerComments(String customerComments) {
-    this.customerComments = customerComments;
+    this.customerComments.setValue(customerComments);
   }
 
-  public String getComments() {
+  public StringProperty getComments() {
     return comments;
   }
 
   public void setComments(String comments) {
-    this.comments = comments;
+    this.comments.setValue(comments);
   }
 
   @Override
@@ -138,16 +139,16 @@ public class Order {
 
   public String getFormattedTotalPrice() {
     DecimalFormat df = new DecimalFormat("#.00");
-    return df.format(getTotalPrice()) + " Euro";
+    return df.format(getTotalPrice().get()) + " Euro";
   }
 
   public String getFormattedTotalPriceWithShipping() {
     DecimalFormat df = new DecimalFormat("#.00");
-    return df.format(getShippingCosts()) + " Euro";
+    return df.format(getShippingCosts().get()) + " Euro";
   }
 
   public String getStatusIcon() {
-    switch(orderStatus) {
+    switch(orderStatus.getValue()) {
       case ORDER_STATUS_NEW: {
         return "green.png";
       }

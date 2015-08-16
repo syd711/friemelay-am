@@ -1,5 +1,8 @@
 package de.friemelay.am.model;
 
+import javafx.beans.property.IntegerProperty;
+import javafx.beans.property.SimpleIntegerProperty;
+
 import java.text.DecimalFormat;
 
 /**
@@ -7,7 +10,7 @@ import java.text.DecimalFormat;
  */
 public class OrderItem {
   private int order_id;
-  private int amount;
+  private IntegerProperty amount = new SimpleIntegerProperty();
   private double price;
   private String product_id;
   private String productDescription;
@@ -22,12 +25,12 @@ public class OrderItem {
     this.order_id = order_id;
   }
 
-  public int getAmount() {
+  public IntegerProperty getAmount() {
     return amount;
   }
 
   public void setAmount(int amount) {
-    this.amount = amount;
+    this.amount.setValue(amount);
   }
 
   public double getPrice() {
@@ -82,6 +85,6 @@ public class OrderItem {
 
   public String getFormattedTotalPrice() {
     DecimalFormat df = new DecimalFormat("#.00");
-    return df.format(getAmount()*getPrice()) + " Euro";
+    return df.format(getAmount().get()*getPrice()) + " Euro";
   }
 }

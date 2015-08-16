@@ -1,5 +1,10 @@
 package de.friemelay.am.model;
 
+import javafx.beans.property.IntegerProperty;
+import javafx.beans.property.SimpleIntegerProperty;
+import javafx.beans.property.SimpleStringProperty;
+import javafx.beans.property.StringProperty;
+
 import java.sql.Date;
 
 /**
@@ -13,14 +18,14 @@ public class Customer {
   private int id;
   private Date creationDate;
   private Date lastLogin;
-  private String customerStatus;
+  private StringProperty customerStatus = new SimpleStringProperty();
   private int addressId;
   private int billingAddressId;
-  private String email;
-  private String customerPassword;
-  private String phone;
-  private int newsletter;
-  private String password;
+  private StringProperty email = new SimpleStringProperty();
+  private StringProperty customerPassword = new SimpleStringProperty();
+  private StringProperty phone = new SimpleStringProperty();
+  private IntegerProperty newsletter = new SimpleIntegerProperty();
+  private StringProperty password = new SimpleStringProperty();
 
   public int getId() {
     return id;
@@ -46,12 +51,12 @@ public class Customer {
     this.lastLogin = lastLogin;
   }
 
-  public String getCustomerStatus() {
+  public StringProperty getCustomerStatus() {
     return customerStatus;
   }
 
   public void setCustomerStatus(String customerStatus) {
-    this.customerStatus = customerStatus;
+    this.customerStatus.setValue(customerStatus);
   }
 
   public int getAddressId() {
@@ -70,43 +75,43 @@ public class Customer {
     this.billingAddressId = billingAddressId;
   }
 
-  public String getEmail() {
+  public StringProperty getEmail() {
     return email;
   }
 
   public void setEmail(String email) {
-    this.email = email;
+    this.email.setValue(email);
   }
 
-  public String getCustomerPassword() {
+  public StringProperty getCustomerPassword() {
     return customerPassword;
   }
 
   public void setCustomerPassword(String customerPassword) {
-    this.customerPassword = customerPassword;
+    this.customerPassword.setValue(customerPassword);
   }
 
-  public String getPhone() {
+  public StringProperty getPhone() {
     return phone;
   }
 
   public void setPhone(String phone) {
-    this.phone = phone;
+    this.phone.setValue(phone);
   }
 
-  public int getNewsletter() {
+  public IntegerProperty getNewsletter() {
     return newsletter;
   }
 
   public void setNewsletter(int newsletter) {
-    this.newsletter = newsletter;
+    this.newsletter.setValue(newsletter);
   }
 
   public void setPassword(String password) {
-    this.password = password;
+    this.password.setValue(password);
   }
 
-  public String getPassword() {
+  public StringProperty getPassword() {
     return password;
   }
 
