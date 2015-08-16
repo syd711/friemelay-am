@@ -95,6 +95,10 @@ public class OrderTab extends Tab implements EventHandler<ActionEvent>, ChangeLi
     }
   }
 
+  public void reload() {
+    createOrderForms();
+  }
+
   private void init() {
     BorderPane root = new BorderPane();
 
@@ -103,13 +107,13 @@ public class OrderTab extends Tab implements EventHandler<ActionEvent>, ChangeLi
     contactButton.setOnAction(this);
     saveButton = new Button("Änderungen speichern", ResourceLoader.getImageView("save.png"));
     saveButton.setOnAction(this);
-    saveButton.setDisable(isCancelled() || !isDirty());
+    saveButton.setDisable(isReadonly() || !isDirty());
     resetButton = new Button("Änderungen zurücksetzen", ResourceLoader.getImageView("revert.png"));
     resetButton.setOnAction(this);
-    resetButton.setDisable(isCancelled() || !isDirty());
+    resetButton.setDisable(isReadonly() || !isDirty());
     orderCancelButton = new Button("Bestellung stornieren", ResourceLoader.getImageView("remove.gif"));
     orderCancelButton.setOnAction(this);
-    orderCancelButton.setDisable(isCancelled());
+    orderCancelButton.setDisable(isReadonly());
     toolbar.getItems().addAll(contactButton, saveButton, resetButton, orderCancelButton);
     root.setTop(toolbar);
 
@@ -142,31 +146,31 @@ public class OrderTab extends Tab implements EventHandler<ActionEvent>, ChangeLi
     WidgetFactory.addFormLabel(orderDetailsForm, "Preis:", index++, order.getTotalPrice(), new TotalPriceConverter(order));
     WidgetFactory.addFormLabel(orderDetailsForm, "Preis inkl. Versandkosten:", index++, order.getTotalPrice(), new TotalPriceWithShippingConverter(order));
     WidgetFactory.addFormLabel(orderDetailsForm, "Zahlungsweise:", order.getFormattedPaymentType(), index++);
-    WidgetFactory.addBindingFormTextarea(orderDetailsForm, "Anmerkungen vom Kunden:", order.getComments(), index++, !isCancelled(), this);
+    WidgetFactory.addBindingFormTextarea(orderDetailsForm, "Anmerkungen vom Kunden:", order.getComments(), index++, !isReadonly(), this);
     WidgetFactory.createSection(orderForm, orderDetailsForm, "Details der Bestellung");
 
     GridPane addressForm = WidgetFactory.createFormGrid();
     index = 0;
-    WidgetFactory.addBindingFormTextfield(addressForm, "Name:", order.getCustomer().getAddress().getLastname(), index++, !isCancelled(), this);
-    WidgetFactory.addBindingFormTextfield(addressForm, "Vorname:", order.getCustomer().getAddress().getFirstname(), index++, !isCancelled(), this);
-    WidgetFactory.addBindingFormTextfield(addressForm, "E-Mail:", order.getCustomer().getEmail(), index++, !isCancelled(), this);
-    WidgetFactory.addBindingFormTextfield(addressForm, "Telefon:", order.getCustomer().getPhone(), index++, !isCancelled(), this);
-    WidgetFactory.addBindingFormTextfield(addressForm, "Firma:", order.getCustomer().getAddress().getCompany(), index++, !isCancelled(), this);
-    WidgetFactory.addBindingFormTextfield(addressForm, "Straße:", order.getCustomer().getAddress().getStreet(), index++, !isCancelled(), this);
-    WidgetFactory.addBindingFormTextfield(addressForm, "Adresszusatz:", order.getCustomer().getAddress().getAdditional(), index++, !isCancelled(), this);
-    WidgetFactory.addBindingFormTextfield(addressForm, "PLZ:", order.getCustomer().getAddress().getZip(), index++, !isCancelled(), this);
-    WidgetFactory.addBindingFormTextfield(addressForm, "Ort:", order.getCustomer().getAddress().getCity(), index++, !isCancelled(), this);
+    WidgetFactory.addBindingFormTextfield(addressForm, "Name:", order.getCustomer().getAddress().getLastname(), index++, !isReadonly(), this);
+    WidgetFactory.addBindingFormTextfield(addressForm, "Vorname:", order.getCustomer().getAddress().getFirstname(), index++, !isReadonly(), this);
+    WidgetFactory.addBindingFormTextfield(addressForm, "E-Mail:", order.getCustomer().getEmail(), index++, !isReadonly(), this);
+    WidgetFactory.addBindingFormTextfield(addressForm, "Telefon:", order.getCustomer().getPhone(), index++, !isReadonly(), this);
+    WidgetFactory.addBindingFormTextfield(addressForm, "Firma:", order.getCustomer().getAddress().getCompany(), index++, !isReadonly(), this);
+    WidgetFactory.addBindingFormTextfield(addressForm, "Straße:", order.getCustomer().getAddress().getStreet(), index++, !isReadonly(), this);
+    WidgetFactory.addBindingFormTextfield(addressForm, "Adresszusatz:", order.getCustomer().getAddress().getAdditional(), index++, !isReadonly(), this);
+    WidgetFactory.addBindingFormTextfield(addressForm, "PLZ:", order.getCustomer().getAddress().getZip(), index++, !isReadonly(), this);
+    WidgetFactory.addBindingFormTextfield(addressForm, "Ort:", order.getCustomer().getAddress().getCity(), index++, !isReadonly(), this);
     WidgetFactory.createSection(orderForm, addressForm, "Kundendaten", true);
 
     GridPane billingAddressForm = WidgetFactory.createFormGrid();
     index = 0;
-    WidgetFactory.addBindingFormTextfield(billingAddressForm, "Name:", order.getCustomer().getBillingAddress().getLastname(), index++, !isCancelled(), this);
-    WidgetFactory.addBindingFormTextfield(billingAddressForm, "Vorname:", order.getCustomer().getBillingAddress().getFirstname(), index++, !isCancelled(), this);
-    WidgetFactory.addBindingFormTextfield(billingAddressForm, "Firma:", order.getCustomer().getBillingAddress().getCompany(), index++, !isCancelled(), this);
-    WidgetFactory.addBindingFormTextfield(billingAddressForm, "Straße:", order.getCustomer().getBillingAddress().getStreet(), index++, !isCancelled(), this);
-    WidgetFactory.addBindingFormTextfield(billingAddressForm, "Adresszusatz:", order.getCustomer().getBillingAddress().getAdditional(), index++, !isCancelled(), this);
-    WidgetFactory.addBindingFormTextfield(billingAddressForm, "PLZ:", order.getCustomer().getBillingAddress().getZip(), index++, !isCancelled(), this);
-    WidgetFactory.addBindingFormTextfield(billingAddressForm, "Ort:", order.getCustomer().getBillingAddress().getCity(), index++, !isCancelled(), this);
+    WidgetFactory.addBindingFormTextfield(billingAddressForm, "Name:", order.getCustomer().getBillingAddress().getLastname(), index++, !isReadonly(), this);
+    WidgetFactory.addBindingFormTextfield(billingAddressForm, "Vorname:", order.getCustomer().getBillingAddress().getFirstname(), index++, !isReadonly(), this);
+    WidgetFactory.addBindingFormTextfield(billingAddressForm, "Firma:", order.getCustomer().getBillingAddress().getCompany(), index++, !isReadonly(), this);
+    WidgetFactory.addBindingFormTextfield(billingAddressForm, "Straße:", order.getCustomer().getBillingAddress().getStreet(), index++, !isReadonly(), this);
+    WidgetFactory.addBindingFormTextfield(billingAddressForm, "Adresszusatz:", order.getCustomer().getBillingAddress().getAdditional(), index++, !isReadonly(), this);
+    WidgetFactory.addBindingFormTextfield(billingAddressForm, "PLZ:", order.getCustomer().getBillingAddress().getZip(), index++, !isReadonly(), this);
+    WidgetFactory.addBindingFormTextfield(billingAddressForm, "Ort:", order.getCustomer().getBillingAddress().getCity(), index++, !isReadonly(), this);
     WidgetFactory.createSection(orderForm, billingAddressForm, "Rechnungsadresse", true);
 
     createOrderItemsGroup();
@@ -252,7 +256,7 @@ public class OrderTab extends Tab implements EventHandler<ActionEvent>, ChangeLi
     GridPane.setConstraints(label, 1, row);
     grid.getChildren().addAll(label);
 
-    Spinner amount = WidgetFactory.createSpinner(1, 100, isCancelled(), item.getAmount(), this);
+    Spinner amount = WidgetFactory.createSpinner(1, 100, isReadonly(), item.getAmount(), this);
     GridPane.setMargin(amount, new Insets(5, 5, 5, 10));
     GridPane.setConstraints(amount, 2, row);
     grid.getChildren().addAll(amount);
@@ -274,7 +278,7 @@ public class OrderTab extends Tab implements EventHandler<ActionEvent>, ChangeLi
     grid.getChildren().addAll(totalPriceLabel);
 
     Button removeButton = new Button("Löschen", ResourceLoader.getImageView("remove.gif"));
-    removeButton.setDisable(isCancelled());
+    removeButton.setDisable(isReadonly());
     removeButton.setOnAction(new EventHandler<ActionEvent>() {
       public void handle(ActionEvent event) {
         order.getOrderItems().remove(item);
@@ -288,8 +292,8 @@ public class OrderTab extends Tab implements EventHandler<ActionEvent>, ChangeLi
 
   }
 
-  private boolean isCancelled() {
-    return order.getOrderStatus().get() == Order.ORDER_STATUS_CANCELED;
+  private boolean isReadonly() {
+    return order.getOrderStatus().get() == Order.ORDER_STATUS_CANCELED || order.getOrderStatus().get() == Order.ORDER_STATUS_DELIVERED;
   }
 
   public void refreshOrderStatus() {
@@ -309,11 +313,12 @@ public class OrderTab extends Tab implements EventHandler<ActionEvent>, ChangeLi
       case Order.ORDER_STATUS_DELIVERED: {
         orderConfirmButton.setDisable(true);
         deliveryConfirmButton.setDisable(true);
+        orderCancelButton.setDisable(true);
         break;
       }
       case Order.ORDER_STATUS_CANCELED: {
         orderConfirmButton.setDisable(true);
-        deliveryConfirmButton.setDisable(false);
+        deliveryConfirmButton.setDisable(true);
         saveButton.setDisable(true);
         resetButton.setDisable(true);
         orderCancelButton.setDisable(true);

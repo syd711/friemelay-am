@@ -83,7 +83,7 @@ public class UIController {
     return statusMessage;
   }
 
-  public void orderConfirmationSend(Order order) {
+  public void orderConfirmationSent(Order order) {
     setStatusMessage("Bestellbestätigung versendet");
     order.setOrderStatus(Order.ORDER_STATUS_CONFIRMED);
     treePane.updateOrderStatus(order);
@@ -91,12 +91,20 @@ public class UIController {
     tabPane.openOrder(order).refreshOrderStatus();
   }
 
+  public void deliveryConfirmationSent(Order order) {
+    setStatusMessage("Versandbestätigung versendet");
+    order.setOrderStatus(Order.ORDER_STATUS_DELIVERED);
+    treePane.updateOrderStatus(order);
+    DB.save(order);
+    tabPane.openOrder(order).reload();
+  }
+
   public void cancelOrder(Order order) {
     setStatusMessage("Die Bestellung " + order + " wurde storniert");
     order.setOrderStatus(Order.ORDER_STATUS_CANCELED);
     treePane.updateOrderStatus(order);
     DB.save(order);
-    tabPane.openOrder(order).refreshOrderStatus();
+    tabPane.openOrder(order).reload();
   }
 
   public void closeTab(Order order) {
