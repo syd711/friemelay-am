@@ -42,14 +42,14 @@ public class UIController {
     final MenuBar menuBar = new MenuBar();
 
     Menu menu = new Menu("Verwaltung");
-    MenuItem menu1 = new MenuItem("Newsletter erstellen", ResourceLoader.getImageView("email.png"));
+    MenuItem menu1 = new MenuItem("Newsletter erstellen (TODO)", ResourceLoader.getImageView("email.png"));
     menu.getItems().addAll(menu1);
 
     Menu help = new Menu("Hilfe");
     MenuItem info = new MenuItem("Über Friemelay");
     help.getItems().addAll(info);
 
-    menuBar.getMenus().addAll(menu, help);
+    menuBar.getMenus().addAll(menu);
     root.setTop(menuBar);
 
     HBox footer = new HBox();

@@ -142,9 +142,14 @@ public class Order {
     return df.format(getTotalPrice().get()) + " Euro";
   }
 
-  public String getFormattedTotalPriceWithShipping() {
+  public String getFormattedShippingCosts() {
     DecimalFormat df = new DecimalFormat("#.00");
     return df.format(getShippingCosts().get()) + " Euro";
+  }
+
+  public String getFormattedTotalPriceWithShipping() {
+    DecimalFormat df = new DecimalFormat("#.00");
+    return df.format(getShippingCosts().get()+getTotalPrice().get()) + " Euro";
   }
 
   public String getStatusIcon() {

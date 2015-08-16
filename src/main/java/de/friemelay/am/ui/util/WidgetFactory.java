@@ -1,11 +1,14 @@
 package de.friemelay.am.ui.util;
 
+import de.friemelay.am.mail.TemplateService;
 import de.friemelay.am.resources.ResourceLoader;
 import javafx.beans.binding.Bindings;
 import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.StringProperty;
 import javafx.beans.value.ChangeListener;
+import javafx.beans.value.ObservableValue;
+import javafx.concurrent.Worker;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.geometry.HPos;
@@ -13,12 +16,24 @@ import javafx.geometry.Insets;
 import javafx.geometry.VPos;
 import javafx.scene.Node;
 import javafx.scene.control.*;
+import javafx.scene.control.Button;
+import javafx.scene.control.Label;
+import javafx.scene.control.TextArea;
+import javafx.scene.control.TextField;
 import javafx.scene.layout.ColumnConstraints;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.Pane;
+import javafx.scene.web.WebEngine;
+import javafx.scene.web.WebView;
 import javafx.util.StringConverter;
 import javafx.util.converter.NumberStringConverter;
+import org.w3c.dom.NodeList;
+import org.w3c.dom.events.EventListener;
+import org.w3c.dom.events.EventTarget;
+import org.w3c.dom.html.HTMLAnchorElement;
 
+import java.awt.*;
+import java.net.URI;
 import java.nio.charset.Charset;
 
 /**
@@ -106,6 +121,25 @@ public class WidgetFactory {
     GridPane.setHalignment(condLabel, HPos.RIGHT);
     GridPane.setConstraints(condLabel, 0, row);
     TextField textBox = new TextField(property.get());
+    Bindings.bindBidirectional(property, textBox.textProperty());
+    if(listener != null) {
+      property.addListener(listener);
+    }
+    textBox.setEditable(editable);
+    GridPane.setMargin(textBox, new Insets(5, 5, 5, 10));
+    GridPane.setConstraints(textBox, 1, row);
+    grid.getChildren().addAll(condLabel, textBox);
+    return textBox;
+  }
+
+  public static TextArea addBindingFormTextarea(GridPane grid, String label, StringProperty property, int row, boolean editable, ChangeListener<String> listener) {
+    Label condLabel = new Label(label);
+    GridPane.setHalignment(condLabel, HPos.RIGHT);
+    GridPane.setValignment(condLabel, VPos.TOP);
+    GridPane.setConstraints(condLabel, 0, row);
+    TextArea textBox = new TextArea(property.get());
+    textBox.setMaxHeight(70);
+    textBox.setStyle("-fx-border-color:#DDD; -fx-border-width:1px;");
     Bindings.bindBidirectional(property, textBox.textProperty());
     if(listener != null) {
       property.addListener(listener);
@@ -210,5 +244,48 @@ public class WidgetFactory {
     Label l = new Label(label);
     l.textProperty().bindBidirectional(property, converter);
     return l;
+  }
+
+  public static void openWebpage(String uri) {
+    Desktop desktop = Desktop.isDesktopSupported() ? Desktop.getDesktop() : null;
+    if (desktop != null && desktop.isSupported(Desktop.Action.BROWSE)) {
+      try {
+        desktop.browse(new URI(uri));
+      } catch (Exception e) {
+        e.printStackTrace();
+      }
+    }
+  }
+
+  public static WebView createTemplateWebView(Object model, String template) {
+    WebView mailHeader = new WebView();
+
+    WebEngine webEngine = mailHeader.getEngine();
+    String mailText = TemplateService.getTemplateSet().renderTemplate(template, model);
+    webEngine.loadContent(mailText);
+    mailHeader.setUserData(mailText);
+
+    webEngine.getLoadWorker().stateProperty().addListener(
+        new ChangeListener<Worker.State>() {
+          @Override
+          public void changed(ObservableValue<? extends Worker.State> observable, Worker.State oldValue, Worker.State newValue) {
+            NodeList nodeList = webEngine.getDocument().getElementsByTagName("a");
+            for(int i = 0; i < nodeList.getLength(); i++) {
+              org.w3c.dom.Node node = nodeList.item(i);
+              EventTarget eventTarget = (EventTarget) node;
+              eventTarget.addEventListener("click", new EventListener() {
+                @Override
+                public void handleEvent(org.w3c.dom.events.Event evt) {
+                  EventTarget target = evt.getCurrentTarget();
+                  HTMLAnchorElement anchorElement = (HTMLAnchorElement) target;
+                  String href = anchorElement.getHref();
+                  WidgetFactory.openWebpage(href);
+                  evt.preventDefault();
+                }
+              }, false);
+            }
+          }
+        });
+    return mailHeader;
   }
 }

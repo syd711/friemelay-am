@@ -18,10 +18,6 @@ public class TemplateService {
   private static TemplateSet templateSet;
 
   public static TemplateSet getTemplateSet() {
-    if(templateSet != null) {
-      return templateSet;
-    }
-
     try {
       Configuration cfg = new Configuration();
       cfg.setDirectoryForTemplateLoading(new File(Config.getString("template.directory")));

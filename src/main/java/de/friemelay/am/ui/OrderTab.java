@@ -8,6 +8,7 @@ import de.friemelay.am.model.OrderItem;
 import de.friemelay.am.resources.ResourceLoader;
 import de.friemelay.am.ui.util.MailDialog;
 import de.friemelay.am.ui.util.OrderConfirmationMailDialog;
+import de.friemelay.am.ui.util.OrderDeliveryConfirmationMailDialog;
 import de.friemelay.am.ui.util.WidgetFactory;
 import javafx.application.Platform;
 import javafx.beans.value.ChangeListener;
@@ -44,6 +45,7 @@ public class OrderTab extends Tab implements EventHandler<ActionEvent>, ChangeLi
 
   public OrderTab(Order order) {
     super(order.toString());
+    setGraphic(ResourceLoader.getImageView(order.getStatusIcon()));
     this.order = order;
     init();
   }
@@ -63,6 +65,12 @@ public class OrderTab extends Tab implements EventHandler<ActionEvent>, ChangeLi
       String to = order.getCustomer().getEmail().get();
       String bcc = Config.getString("mail.bcc");
       OrderConfirmationMailDialog dialog = new OrderConfirmationMailDialog("Bestellbestätigung (Bestellnummer " + order.getId() + ")", to, bcc, order);
+      dialog.open(event);
+    }
+    else if(event.getSource() == deliveryConfirmButton) {
+      String to = order.getCustomer().getEmail().get();
+      String bcc = Config.getString("mail.bcc");
+      OrderDeliveryConfirmationMailDialog dialog = new OrderDeliveryConfirmationMailDialog("Versandbestätigung (Bestellnummer " + order.getId() + ")", to, bcc, order);
       dialog.open(event);
     }
     else if(event.getSource() == resetButton) {
@@ -134,7 +142,7 @@ public class OrderTab extends Tab implements EventHandler<ActionEvent>, ChangeLi
     WidgetFactory.addFormLabel(orderDetailsForm, "Preis:", index++, order.getTotalPrice(), new TotalPriceConverter(order));
     WidgetFactory.addFormLabel(orderDetailsForm, "Preis inkl. Versandkosten:", index++, order.getTotalPrice(), new TotalPriceWithShippingConverter(order));
     WidgetFactory.addFormLabel(orderDetailsForm, "Zahlungsweise:", order.getFormattedPaymentType(), index++);
-    WidgetFactory.addBindingFormTextfield(orderDetailsForm, "Anmerkungen vom Kunden:", order.getComments(), index++, !isCancelled(), this);
+    WidgetFactory.addBindingFormTextarea(orderDetailsForm, "Anmerkungen vom Kunden:", order.getComments(), index++, !isCancelled(), this);
     WidgetFactory.createSection(orderForm, orderDetailsForm, "Details der Bestellung");
 
     GridPane addressForm = WidgetFactory.createFormGrid();
@@ -214,14 +222,14 @@ public class OrderTab extends Tab implements EventHandler<ActionEvent>, ChangeLi
     imageWrapper.getChildren().add(arrow);
 
     orderConfirmButton = WidgetFactory.createButton(statusPanel, "Auftragsbestätigung senden", "check-green.png", this);
-    orderConfirmButton.setDisable(isCancelled());
     statusPanel.getChildren().addAll(imageWrapper);
     deliveryConfirmButton = WidgetFactory.createButton(statusPanel, "Versandbestätigung senden", "check-grey.png", this);
-    deliveryConfirmButton.setDisable(isCancelled());
 
     TitledPane group = new TitledPane("Status", statusPanel);
     group.setPadding(new Insets(10, 10, 5, 10));
     center.getChildren().add(group);
+
+    refreshOrderStatus();
   }
 
   public Order getOrder() {
@@ -285,19 +293,23 @@ public class OrderTab extends Tab implements EventHandler<ActionEvent>, ChangeLi
   }
 
   public void refreshOrderStatus() {
+    setGraphic(ResourceLoader.getImageView(order.getStatusIcon()));
+
     switch(order.getOrderStatus().getValue()) {
       case Order.ORDER_STATUS_NEW: {
-        return;
+        orderConfirmButton.setDisable(false);
+        deliveryConfirmButton.setDisable(true);
+        break;
       }
       case Order.ORDER_STATUS_CONFIRMED: {
         orderConfirmButton.setDisable(true);
         deliveryConfirmButton.setDisable(false);
-        return;
+        break;
       }
       case Order.ORDER_STATUS_DELIVERED: {
         orderConfirmButton.setDisable(true);
         deliveryConfirmButton.setDisable(true);
-        return;
+        break;
       }
       case Order.ORDER_STATUS_CANCELED: {
         orderConfirmButton.setDisable(true);
@@ -306,9 +318,13 @@ public class OrderTab extends Tab implements EventHandler<ActionEvent>, ChangeLi
         resetButton.setDisable(true);
         orderCancelButton.setDisable(true);
         orderConfirmButton.setDisable(true);
-        return;
+        break;
       }
+    }
 
+    if(isDirty()) {
+      orderConfirmButton.setDisable(true);
+      deliveryConfirmButton.setDisable(true);
     }
   }
 
@@ -316,6 +332,7 @@ public class OrderTab extends Tab implements EventHandler<ActionEvent>, ChangeLi
     this.dirty = dirty;
     saveButton.setDisable(!dirty);
     resetButton.setDisable(!dirty);
+    refreshOrderStatus();
   }
 
   public boolean isDirty() {

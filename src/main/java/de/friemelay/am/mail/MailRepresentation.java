@@ -1,5 +1,7 @@
 package de.friemelay.am.mail;
 
+import de.friemelay.am.model.Order;
+
 /**
  * This model is used for the freemarker rendering
  */
@@ -10,6 +12,7 @@ public class MailRepresentation {
 
   private String name;
   private String orderId;
+  private Order order;
 
   public MailRepresentation(String to, String subject) {
     this.to = to;
@@ -55,5 +58,13 @@ public class MailRepresentation {
 
   public void setName(String name) {
     this.name = name;
+  }
+
+  public Order getOrder() {
+    return order;
+  }
+
+  public void setOrder(Order order) {
+    this.order = order;
   }
 }

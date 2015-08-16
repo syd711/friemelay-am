@@ -8,6 +8,7 @@ import javafx.scene.Scene;
 import javafx.scene.image.Image;
 import javafx.stage.Screen;
 import javafx.stage.Stage;
+import org.apache.log4j.PropertyConfigurator;
 
 /**
  *
@@ -20,6 +21,8 @@ public class Main extends Application {
 
   @Override
   public void start(Stage primaryStage) throws Exception {
+    PropertyConfigurator.configure("conf/log4j.properties");
+
     DB.connect();
     
     primaryStage.setTitle("Friemelay Auftragsverwaltung");

@@ -82,9 +82,9 @@ public class MailDialog implements EventHandler<ActionEvent> {
 
     GridPane mailForm = WidgetFactory.createFormGrid(6, 94);
     int index = 0;
-    subjectText = WidgetFactory.addFormTextfield(mailForm, "Subject:", this.subject, index++);
-    toText = WidgetFactory.addFormTextfield(mailForm, "To:", to, index++);
-    WidgetFactory.addFormTextfield(mailForm, "Bcc:", bcc, index++, false);
+    subjectText = WidgetFactory.addFormTextfield(mailForm, "Betreff:", this.subject, index++);
+    toText = WidgetFactory.addFormTextfield(mailForm, "An:", to, index++);
+    WidgetFactory.addFormTextfield(mailForm, "Kopie an:", bcc, index++, false);
     center.getChildren().add(mailForm);
 
     VBox mailPane = new VBox();

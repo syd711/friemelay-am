@@ -72,12 +72,10 @@ public class Mailer {
       message.setContent(model.getMailText().trim(), "text/html");
 
       // Send message
-      Transport.send(message);
-
-      System.out.println("Sent message successfully....");
-
+      if(Config.getBoolean("mail.enabled")) {
+        Transport.send(message);
+      }
     } catch (MessagingException e) {
-      e.printStackTrace();
       Logger.getLogger(Mailer.class.getName()).error("Failed mailing: " + e.getMessage(), e);
       WidgetFactory.showError("Failed to send email: " + e.getMessage(), e);
     }
