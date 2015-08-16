@@ -56,4 +56,14 @@ public class OrderTabPane extends BorderPane implements ChangeListener<Tab> {
     }
   }
 
+  public void closeTab(Order order) {
+    ObservableList<Tab> tabs = tabPane.getTabs();
+    for(Tab tab : tabs) {
+      OrderTab orderTab = (OrderTab) tab;
+      if(orderTab.getOrder().equals(order)) {
+        tabPane.getTabs().removeAll(orderTab);
+        return;
+      }
+    }
+  }
 }

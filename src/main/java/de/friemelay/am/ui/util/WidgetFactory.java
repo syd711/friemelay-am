@@ -26,6 +26,16 @@ public class WidgetFactory {
     alert.showAndWait();
   }
 
+  public static boolean showConfirmation(String header, String message) {
+    Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
+    alert.setTitle("");
+    alert.setHeaderText(header);
+    alert.setContentText(new String((message).getBytes(), Charset.forName("utf-8")));
+    alert.showAndWait();
+    ButtonType result = alert.getResult();
+    return result.getButtonData().isDefaultButton();
+  }
+
   public static Label addFormLabel(GridPane grid, String label, String text, int row) {
     Label condLabel = new Label(label);
     GridPane.setHalignment(condLabel, HPos.RIGHT);
@@ -36,6 +46,21 @@ public class WidgetFactory {
     grid.getChildren().addAll(condLabel, condValue);
     return condValue;
   }
+
+  public static TextField addBindingFormTextfield(GridPane grid, String label, Object bean, String property, int row, boolean editable) {
+    Label condLabel = new Label(label);
+    GridPane.setHalignment(condLabel, HPos.RIGHT);
+    GridPane.setConstraints(condLabel, 0, row);
+//    BeanPathAdapter adapter = new BeanPathAdapter(bean);
+    TextField textBox = new TextField();
+//    adapter.bindBidirectional(property, textBox.textProperty());
+    textBox.setEditable(editable);
+    GridPane.setMargin(textBox, new Insets(5, 5, 5, 10));
+    GridPane.setConstraints(textBox, 1, row);
+    grid.getChildren().addAll(condLabel, textBox);
+    return textBox;
+  }
+
 
   public static TextField addFormTextfield(GridPane grid, String label, String text, int row, boolean editable) {
     Label condLabel = new Label(label);

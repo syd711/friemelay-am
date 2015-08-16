@@ -3,8 +3,8 @@ package de.friemelay.am.ui;
 import de.friemelay.am.UIController;
 import de.friemelay.am.db.DB;
 import de.friemelay.am.model.Order;
-import de.friemelay.am.model.OrderItem;
 import de.friemelay.am.resources.ResourceLoader;
+import de.friemelay.am.ui.util.WidgetFactory;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
@@ -39,15 +39,28 @@ public class OrderTreePane extends BorderPane implements EventHandler<MouseEvent
         reload();
       }
     });
-    //refreshButton.setTooltip(Tooltip.);
+    refreshButton.setTooltip(new Tooltip("Bestellungen neu laden"));
     toolbar.getItems().add(refreshButton);
-    toolbar.getItems().add(new Button("", ResourceLoader.getImageView("remove.gif")));
-    TextField searchField = new TextField();
-    toolbar.getItems().add(searchField);
-    Button searchButton = new Button("", ResourceLoader.getImageView("search.png"));
-    toolbar.getItems().add(searchButton);
-    setTop(toolbar);
 
+    Button trashButton = new Button("", ResourceLoader.getImageView("trash.png"));
+    trashButton.setTooltip(new Tooltip("Bestellung löschen"));
+    trashButton.setOnAction(new EventHandler<ActionEvent>() {
+      public void handle(ActionEvent event) {
+        Order selection = getSelection();
+        if(selection != null) {
+          boolean confirmation = WidgetFactory.showConfirmation("Bestellung löschen?", "Soll die Bestellung '" + selection + "' wirklich gelöscht werden?" +
+              "\nAlternativ kann die Bestellung storniert werden und bleibt so in der Bestellhistorie erhalten.");
+          if(confirmation) {
+            DB.delete(selection);
+            UIController.getInstance().closeTab(selection);
+            reload();
+          }
+        }
+      }
+    });
+    toolbar.getItems().add(trashButton);
+
+    setTop(toolbar);
     reload();
   }
 
@@ -69,12 +82,11 @@ public class OrderTreePane extends BorderPane implements EventHandler<MouseEvent
     orders = DB.getOrders();
     for(Order order : orders) {
       TreeItem<Object> orderTreeItem = new TreeItem<Object>(order, ResourceLoader.getImageView(order.getStatusIcon()));
-      List<OrderItem> orderItems = order.getOrderItems();
-      for(OrderItem orderItem : orderItems) {
-        TreeItem<Object> orderItemTreeItem = new TreeItem<Object>(orderItem, ResourceLoader.getImageView("item.png"));
-        orderTreeItem.getChildren().add(orderItemTreeItem);
-      }
-
+//      List<OrderItem> orderItems = order.getOrderItems();
+//      for(OrderItem orderItem : orderItems) {
+//        TreeItem<Object> orderItemTreeItem = new TreeItem<Object>(orderItem, ResourceLoader.getImageView("item.png"));
+//        orderTreeItem.getChildren().add(orderItemTreeItem);
+//      }
       treeRoot.getChildren().add(orderTreeItem);
     }
 
@@ -104,5 +116,14 @@ public class OrderTreePane extends BorderPane implements EventHandler<MouseEvent
         treeItem.setGraphic(ResourceLoader.getImageView(order.getStatusIcon()));
       }
     }
+  }
+
+  private Order getSelection() {
+    TreeItem selectedItem = (TreeItem) treeView.getSelectionModel().getSelectedItem();
+    if(selectedItem.getValue() instanceof Order) {
+      TreeItem<Order> item = (TreeItem<Order>)selectedItem;
+      return item.getValue();
+    }
+    return null;
   }
 }

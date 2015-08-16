@@ -87,6 +87,18 @@ public class UIController {
     order.setOrderStatus(Order.ORDER_STATUS_CONFIRMED);
     treePane.updateOrderStatus(order);
     //DB.updateOrder(order);
-    tabPane.openOrder(order).refreshView();
+    tabPane.openOrder(order).refreshOrderStatus();
+  }
+
+  public void cancelOrder(Order order) {
+    setStatusMessage("Die Bestellung " + order + " wurde storniert");
+    order.setOrderStatus(Order.ORDER_STATUS_CANCELED);
+    treePane.updateOrderStatus(order);
+    //DB.updateOrder(order);
+    tabPane.openOrder(order).refreshOrderStatus();
+  }
+
+  public void closeTab(Order order) {
+    tabPane.closeTab(order);
   }
 }

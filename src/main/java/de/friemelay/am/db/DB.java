@@ -52,6 +52,28 @@ public class DB {
     return orders;
   }
 
+  public static Order getOrder(int id) {
+    List<Order> orders = new ArrayList<Order>();
+    try {
+      Statement statement = connection.createStatement();
+      ResultSet rs = statement.executeQuery("select * from orders where id = " + id);
+      while (rs.next()) {
+        Order order = ModelFactory.createOrder(rs);
+        DB.loadOrderItems(order);
+        DB.loadCustomer(order);
+        DB.loadAddress(order.getCustomer());
+        DB.loadBillingAddress(order.getCustomer());
+        return order;
+      }
+
+      statement.close();
+    } catch (SQLException e) {
+      Logger.getLogger(Connection.class.getName()).error("Failed to get orders: " + e.getMessage(), e);
+      WidgetFactory.showError("Failed to get orders: " + e.getMessage(), e);
+    }
+    return null;
+  }
+
   private static void loadOrderItems(Order order) {
     try {
       Statement statement = connection.createStatement();
@@ -117,5 +139,13 @@ public class DB {
       Logger.getLogger(Connection.class.getName()).error("Failed to get address: " + e.getMessage(), e);
       WidgetFactory.showError("Failed to get address: " + e.getMessage(), e);
     }
+  }
+
+  public static void delete(Order selection) {
+
+  }
+
+  public static void save(Order order) {
+    System.out.println(order.getCustomer().getEmail());
   }
 }

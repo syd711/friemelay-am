@@ -1,6 +1,8 @@
 package de.friemelay.am.ui;
 
+import de.friemelay.am.UIController;
 import de.friemelay.am.config.Config;
+import de.friemelay.am.db.DB;
 import de.friemelay.am.model.Order;
 import de.friemelay.am.model.OrderItem;
 import de.friemelay.am.resources.ResourceLoader;
@@ -11,7 +13,6 @@ import javafx.application.Platform;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.concurrent.Task;
-import javafx.concurrent.WorkerStateEvent;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.geometry.HPos;
@@ -36,6 +37,11 @@ public class OrderTab extends Tab implements EventHandler<ActionEvent> {
   private Button saveButton;
   private Button resetButton;
   private Button orderCancelButton;
+  private final VBox orderForm = new VBox();
+  private TitledPane orderItemsGroup;
+
+  private Label totalPriceLabel;
+  private Label totalPriceWithShippingLabel;
 
   public OrderTab(Order order) {
     super(order.toString());
@@ -43,141 +49,10 @@ public class OrderTab extends Tab implements EventHandler<ActionEvent> {
     init();
   }
 
-  private void init() {
-    BorderPane root = new BorderPane();
-
-    ToolBar toolbar = new ToolBar();
-    contactButton = new Button("Käufer kontaktieren", ResourceLoader.getImageView("email.png"));
-    contactButton.setOnAction(this);
-    saveButton = new Button("Änderungen speichern", ResourceLoader.getImageView("save.png"));
-    saveButton.setOnAction(this);
-    saveButton.setDisable(true);
-    resetButton = new Button("Änderungen zurücksetzen", ResourceLoader.getImageView("revert.png"));
-    resetButton.setOnAction(this);
-    resetButton.setDisable(true);
-    toolbar.getItems().addAll(contactButton, saveButton, resetButton);
-    root.setTop(toolbar);
-
-    final VBox center = new VBox();
-    center.setAlignment(Pos.TOP_CENTER);
-    center.setFillWidth(true);
-
-    ScrollPane centerScroller = new ScrollPane();
-    centerScroller.setFitToWidth(true);
-    centerScroller.setContent(center);
-
-    center.setPadding(new Insets(5, 10, 5, 0));
-    root.setCenter(centerScroller);
-
-    setContent(root);
-
-    createStatusGroup(center);
-
-    GridPane orderForm = WidgetFactory.createFormGrid();
-    orderForm.getStyleClass().add("root");
-    int index = 0;
-    WidgetFactory.addFormLabel(orderForm, "Bestellnummer:", String.valueOf(order.getId()), index++);
-    WidgetFactory.addFormLabel(orderForm, "Eingang:", String.valueOf(order.getFormattedCreationDate()), index++);
-    WidgetFactory.addFormLabel(orderForm, "Kundenname:", order.getCustomer().getAddress().getFirstname() + " " + order.getCustomer().getAddress().getLastname(), index++);
-    WidgetFactory.addFormLabel(orderForm, "Preis:", String.valueOf(order.getFormattedTotalPrice()), index++);
-    WidgetFactory.addFormLabel(orderForm, "Preis inkl. Versandkosten:", String.valueOf(order.getFormattedTotalPriceWithShipping()), index++);
-    WidgetFactory.addFormLabel(orderForm, "Zahlungsweise:", order.getFormattedPaymentType(), index++);
-    WidgetFactory.addFormLabel(orderForm, "Anmerkungen vom Kunden:", order.getComments(), index++);
-    WidgetFactory.createSection(center, orderForm, "Details der Bestellung");
-
-    GridPane addressForm = WidgetFactory.createFormGrid();
-    index = 0;
-    WidgetFactory.addFormTextfield(addressForm, "Name:", order.getCustomer().getAddress().getLastname(), index++);
-    WidgetFactory.addFormTextfield(addressForm, "Vorname:", order.getCustomer().getAddress().getFirstname(), index++);
-    WidgetFactory.addFormTextfield(addressForm, "E-Mail:", order.getCustomer().getEmail(), index++);
-    WidgetFactory.addFormTextfield(addressForm, "Telefon:", order.getCustomer().getPhone(), index++);
-    WidgetFactory.addFormTextfield(addressForm, "Firma:", order.getCustomer().getAddress().getCompany(), index++);
-    WidgetFactory.addFormTextfield(addressForm, "Straße:", order.getCustomer().getAddress().getStreet(), index++);
-    WidgetFactory.addFormTextfield(addressForm, "Adresszusatz:", order.getCustomer().getAddress().getAdditional(), index++);
-    WidgetFactory.addFormTextfield(addressForm, "PLZ:", order.getCustomer().getAddress().getZip(), index++);
-    WidgetFactory.addFormTextfield(addressForm, "Ort:", order.getCustomer().getAddress().getCity(), index++);
-    WidgetFactory.createSection(center, addressForm, "Kundendaten", true);
-
-    GridPane billingAddressForm = WidgetFactory.createFormGrid();
-    index = 0;
-    WidgetFactory.addFormTextfield(billingAddressForm, "Name:", order.getCustomer().getBillingAddress().getLastname(), index++);
-    WidgetFactory.addFormTextfield(billingAddressForm, "Vorname:", order.getCustomer().getBillingAddress().getFirstname(), index++);
-    WidgetFactory.addFormTextfield(billingAddressForm, "Firma:", order.getCustomer().getBillingAddress().getCompany(), index++);
-    WidgetFactory.addFormTextfield(billingAddressForm, "Straße:", order.getCustomer().getBillingAddress().getStreet(), index++);
-    WidgetFactory.addFormTextfield(billingAddressForm, "Adresszusatz:", order.getCustomer().getBillingAddress().getAdditional(), index++);
-    WidgetFactory.addFormTextfield(billingAddressForm, "PLZ:", order.getCustomer().getBillingAddress().getZip(), index++);
-    WidgetFactory.addFormTextfield(billingAddressForm, "Ort:", order.getCustomer().getBillingAddress().getCity(), index++);
-    WidgetFactory.createSection(center, billingAddressForm, "Rechnungsadresse", true);
-
-    final GridPane itemsForm = WidgetFactory.createFormGrid(15, 40, 10, 10, 10, 15);
-    itemsForm.setGridLinesVisible(true);
-
-    final HBox pg = new HBox(10);
-    pg.setAlignment(Pos.CENTER);
-    pg.setPadding(new Insets(10, 10, 10, 10));
-    ProgressIndicator loading = new ProgressIndicator();
-    pg.getChildren().addAll(loading);
-    center.getChildren().addAll(pg);
-
-    Task listLoader = new Task<Boolean>() {
-      {
-        setOnSucceeded(new EventHandler<WorkerStateEvent>() {
-          public void handle(WorkerStateEvent event) {
-
-          }
-        });
-      }
-
-      @Override
-      protected Boolean call() throws Exception {
-        List<OrderItem> orderItems = getOrder().getOrderItems();
-        int index = 0;
-        for(OrderItem orderItem : orderItems) {
-          createOrderItem(itemsForm, orderItem, index++);
-        }
-        Platform.runLater(new Runnable() {
-          public void run() {
-            center.getChildren().remove(pg);
-            WidgetFactory.createSection(center, itemsForm, "Bestellung", false);
-          }
-        });
-
-        return true;
-      }
-    };
-
-    Thread loadingThread = new Thread(listLoader, "item-list-loader");
-    loadingThread.setDaemon(true);
-    loadingThread.start();
-
-
-    refreshView();
-  }
-
-  private void createStatusGroup(Pane center) {
-    HBox statusPanel = new HBox(10);
-    statusPanel.getStyleClass().add("root");
-    statusPanel.setAlignment(Pos.BASELINE_LEFT);
-    ImageView arrow = ResourceLoader.getImageView("right-arrow.png");
-    VBox imageWrapper = new VBox();
-    imageWrapper.getChildren().add(arrow);
-
-    orderConfirmButton = WidgetFactory.createButton(statusPanel, "Auftragsbestätigung senden", "check-green.png", this);
-    statusPanel.getChildren().addAll(imageWrapper);
-    deliveryConfirmButton = WidgetFactory.createButton(statusPanel, "Versandbestätigung senden", "check-grey.png", this);
-    deliveryConfirmButton.setDisable(true);
-
-    orderCancelButton = WidgetFactory.createButton(statusPanel, "Auftrag stornieren", "check-grey.png", this);
-
-    TitledPane group = new TitledPane("Status", statusPanel);
-    group.setPadding(new Insets(10, 10, 5, 10));
-    center.getChildren().add(group);
-  }
-
-  public Order getOrder() {
-    return order;
-  }
-
+  /**
+   * Action handling for all buttons on the pane
+   * @param event
+   */
   public void handle(javafx.event.ActionEvent event) {
     if(event.getSource() == contactButton) {
       String to = order.getCustomer().getEmail();
@@ -191,7 +66,169 @@ public class OrderTab extends Tab implements EventHandler<ActionEvent> {
       OrderConfirmationMailDialog dialog = new OrderConfirmationMailDialog("Bestellbestätigung (Bestellnummer " + order.getId() + ")", to, bcc, order);
       dialog.open(event);
     }
+    else if(event.getSource() == resetButton) {
+      order = DB.getOrder(order.getId());
+      createOrderForms();
+      setDirty(false);
+    }
+    else if(event.getSource() == saveButton) {
+      boolean confirmed = WidgetFactory.showConfirmation("Bestellung überschreiben", "Soll die Bestellung mit den Änderungen überschrieben werden?");
+      if(confirmed) {
+        DB.save(order);
+      }
+      setDirty(!confirmed);
+    }
+    else if(event.getSource() == orderCancelButton) {
+      boolean confirmed = WidgetFactory.showConfirmation("Bestellung stornieren?", "Soll die Bestellung storniert werden? Ein Statusaktualisierung ist danach nicht mehr möglich!");
+      if(confirmed) {
+        UIController.getInstance().cancelOrder(order);
+        createOrderForms();
+      }
+
+    }
   }
+
+  private void init() {
+    BorderPane root = new BorderPane();
+
+    ToolBar toolbar = new ToolBar();
+    contactButton = new Button("Käufer kontaktieren", ResourceLoader.getImageView("email.png"));
+    contactButton.setOnAction(this);
+    saveButton = new Button("Änderungen speichern", ResourceLoader.getImageView("save.png"));
+    saveButton.setOnAction(this);
+    saveButton.setDisable(order.getOrderStatus() == Order.ORDER_STATUS_CANCELED);
+    resetButton = new Button("Änderungen zurücksetzen", ResourceLoader.getImageView("revert.png"));
+    resetButton.setOnAction(this);
+    resetButton.setDisable(order.getOrderStatus() == Order.ORDER_STATUS_CANCELED);
+    orderCancelButton = new Button("Bestellung stornieren", ResourceLoader.getImageView("remove.gif"));
+    orderCancelButton.setOnAction(this);
+    orderCancelButton.setDisable(order.getOrderStatus() == Order.ORDER_STATUS_CANCELED);
+    toolbar.getItems().addAll(contactButton, saveButton, resetButton, orderCancelButton);
+    root.setTop(toolbar);
+
+    orderForm.setAlignment(Pos.TOP_CENTER);
+    orderForm.setFillWidth(true);
+
+    ScrollPane centerScroller = new ScrollPane();
+    centerScroller.setFitToWidth(true);
+    centerScroller.setContent(orderForm);
+
+    orderForm.setPadding(new Insets(5, 10, 5, 0));
+    root.setCenter(centerScroller);
+
+    setContent(root);
+
+    createOrderForms();
+  }
+
+  private void createOrderForms() {
+    orderForm.getChildren().clear();
+    createStatusGroup(orderForm);
+
+    GridPane orderDetailsForm = WidgetFactory.createFormGrid();
+    orderForm.getStyleClass().add("root");
+    int index = 0;
+    WidgetFactory.addFormLabel(orderDetailsForm, "Bestellnummer:", String.valueOf(order.getId()), index++);
+    WidgetFactory.addFormLabel(orderDetailsForm, "Eingang:", String.valueOf(order.getFormattedCreationDate()), index++);
+    WidgetFactory.addFormLabel(orderDetailsForm, "Kundenname:", order.getCustomer().getAddress().getFirstname() + " " + order.getCustomer().getAddress().getLastname(), index++);
+    totalPriceLabel = WidgetFactory.addFormLabel(orderDetailsForm, "Preis:", String.valueOf(order.getFormattedTotalPrice()), index++);
+    totalPriceWithShippingLabel = WidgetFactory.addFormLabel(orderDetailsForm, "Preis inkl. Versandkosten:", String.valueOf(order.getFormattedTotalPriceWithShipping()), index++);
+    WidgetFactory.addFormLabel(orderDetailsForm, "Zahlungsweise:", order.getFormattedPaymentType(), index++);
+    WidgetFactory.addFormLabel(orderDetailsForm, "Anmerkungen vom Kunden:", order.getComments(), index++);
+    WidgetFactory.createSection(orderForm, orderDetailsForm, "Details der Bestellung");
+
+    GridPane addressForm = WidgetFactory.createFormGrid();
+    index = 0;
+    WidgetFactory.addFormTextfield(addressForm, "Name:", order.getCustomer().getAddress().getLastname(), index++, !isCancelled());
+    WidgetFactory.addFormTextfield(addressForm, "Vorname:", order.getCustomer().getAddress().getFirstname(), index++, !isCancelled());
+    WidgetFactory.addBindingFormTextfield(addressForm, "E-Mail:", order.getCustomer(), "email", index++, !isCancelled());
+    WidgetFactory.addFormTextfield(addressForm, "Telefon:", order.getCustomer().getPhone(), index++, !isCancelled());
+    WidgetFactory.addFormTextfield(addressForm, "Firma:", order.getCustomer().getAddress().getCompany(), index++, !isCancelled());
+    WidgetFactory.addFormTextfield(addressForm, "Straße:", order.getCustomer().getAddress().getStreet(), index++, !isCancelled());
+    WidgetFactory.addFormTextfield(addressForm, "Adresszusatz:", order.getCustomer().getAddress().getAdditional(), index++, !isCancelled());
+    WidgetFactory.addFormTextfield(addressForm, "PLZ:", order.getCustomer().getAddress().getZip(), index++, !isCancelled());
+    WidgetFactory.addFormTextfield(addressForm, "Ort:", order.getCustomer().getAddress().getCity(), index++, !isCancelled());
+    WidgetFactory.createSection(orderForm, addressForm, "Kundendaten", true);
+
+    GridPane billingAddressForm = WidgetFactory.createFormGrid();
+    index = 0;
+    WidgetFactory.addFormTextfield(billingAddressForm, "Name:", order.getCustomer().getBillingAddress().getLastname(), index++, !isCancelled());
+    WidgetFactory.addFormTextfield(billingAddressForm, "Vorname:", order.getCustomer().getBillingAddress().getFirstname(), index++, !isCancelled());
+    WidgetFactory.addFormTextfield(billingAddressForm, "Firma:", order.getCustomer().getBillingAddress().getCompany(), index++, !isCancelled());
+    WidgetFactory.addFormTextfield(billingAddressForm, "Straße:", order.getCustomer().getBillingAddress().getStreet(), index++, !isCancelled());
+    WidgetFactory.addFormTextfield(billingAddressForm, "Adresszusatz:", order.getCustomer().getBillingAddress().getAdditional(), index++, !isCancelled());
+    WidgetFactory.addFormTextfield(billingAddressForm, "PLZ:", order.getCustomer().getBillingAddress().getZip(), index++, !isCancelled());
+    WidgetFactory.addFormTextfield(billingAddressForm, "Ort:", order.getCustomer().getBillingAddress().getCity(), index++, !isCancelled());
+    WidgetFactory.createSection(orderForm, billingAddressForm, "Rechnungsadresse", true);
+
+    createOrderItemsGroup();
+  }
+
+  private void createOrderItemsGroup() {
+    if(orderItemsGroup != null) {
+      orderForm.getChildren().removeAll(orderItemsGroup);
+    }
+    final GridPane itemsForm = WidgetFactory.createFormGrid(15, 40, 10, 10, 10, 15);
+    itemsForm.setPadding(new Insets(0, 0, 0, 0));
+    itemsForm.setGridLinesVisible(true);
+
+    final HBox pg = new HBox(10);
+    pg.setAlignment(Pos.CENTER);
+    pg.setPadding(new Insets(10, 10, 10, 10));
+    ProgressIndicator loading = new ProgressIndicator();
+    pg.getChildren().addAll(loading);
+    orderForm.getChildren().addAll(pg);
+
+    Task listLoader = new Task<Boolean>() {{
+      }
+
+      @Override
+      protected Boolean call() throws Exception {
+        List<OrderItem> orderItems = getOrder().getOrderItems();
+        int index = 0;
+        for(OrderItem orderItem : orderItems) {
+          createOrderItem(itemsForm, orderItem, index++);
+        }
+        Platform.runLater(new Runnable() {
+          public void run() {
+            orderForm.getChildren().remove(pg);
+            orderItemsGroup = WidgetFactory.createSection(orderForm, itemsForm, "Bestellung", false);
+          }
+        });
+
+        return true;
+      }
+    };
+
+    Thread loadingThread = new Thread(listLoader, "item-list-loader");
+    loadingThread.setDaemon(true);
+    loadingThread.start();
+  }
+
+  private void createStatusGroup(Pane center) {
+    HBox statusPanel = new HBox(10);
+    statusPanel.getStyleClass().add("root");
+    statusPanel.setAlignment(Pos.BASELINE_LEFT);
+    ImageView arrow = ResourceLoader.getImageView("right-arrow.png");
+    VBox imageWrapper = new VBox();
+    imageWrapper.getChildren().add(arrow);
+
+    orderConfirmButton = WidgetFactory.createButton(statusPanel, "Auftragsbestätigung senden", "check-green.png", this);
+    orderConfirmButton.setDisable(isCancelled());
+    statusPanel.getChildren().addAll(imageWrapper);
+    deliveryConfirmButton = WidgetFactory.createButton(statusPanel, "Versandbestätigung senden", "check-grey.png", this);
+    deliveryConfirmButton.setDisable(isCancelled());
+
+    TitledPane group = new TitledPane("Status", statusPanel);
+    group.setPadding(new Insets(10, 10, 5, 10));
+    center.getChildren().add(group);
+  }
+
+  public Order getOrder() {
+    return order;
+  }
+
+
 
   private void createOrderItem(GridPane grid, final OrderItem item, int row) {
     ImageView imageView = ResourceLoader.getWebImageView(item.getImageUrl());
@@ -209,13 +246,13 @@ public class OrderTab extends Tab implements EventHandler<ActionEvent> {
 
     final Label totalPriceLabel = new Label(String.valueOf(item.getFormattedTotalPrice()));
     final Spinner amount = new Spinner(0, 100, item.getAmount());
+    amount.setDisable(isCancelled());
     amount.setMaxWidth(70);
     amount.valueProperty().addListener(new ChangeListener() {
       public void changed(ObservableValue observable, Object oldValue, Object newValue) {
         item.setAmount(Integer.parseInt(String.valueOf(newValue)));
         totalPriceLabel.setText(item.getFormattedTotalPrice());
         setDirty(true);
-        refreshView();
       }
     });
     GridPane.setMargin(amount, new Insets(5, 5, 5, 10));
@@ -232,9 +269,11 @@ public class OrderTab extends Tab implements EventHandler<ActionEvent> {
     grid.getChildren().addAll(totalPriceLabel);
 
     Button removeButton = new Button("Löschen", ResourceLoader.getImageView("remove.gif"));
+    removeButton.setDisable(isCancelled());
     removeButton.setOnAction(new EventHandler<ActionEvent>() {
       public void handle(ActionEvent event) {
         order.getOrderItems().remove(item);
+        createOrderItemsGroup();
         setDirty(true);
       }
     });
@@ -244,12 +283,16 @@ public class OrderTab extends Tab implements EventHandler<ActionEvent> {
 
   }
 
+  private boolean isCancelled() {
+    return order.getOrderStatus() == Order.ORDER_STATUS_CANCELED;
+  }
+
   private void setDirty(boolean dirty) {
     saveButton.setDisable(!dirty);
     resetButton.setDisable(!dirty);
   }
 
-  public void refreshView() {
+  public void refreshOrderStatus() {
     switch(order.getOrderStatus()) {
       case Order.ORDER_STATUS_NEW: {
         return;
@@ -267,6 +310,10 @@ public class OrderTab extends Tab implements EventHandler<ActionEvent> {
       case Order.ORDER_STATUS_CANCELED: {
         orderConfirmButton.setDisable(true);
         deliveryConfirmButton.setDisable(false);
+        saveButton.setDisable(true);
+        resetButton.setDisable(true);
+        orderCancelButton.setDisable(true);
+        orderConfirmButton.setDisable(true);
         return;
       }
 
