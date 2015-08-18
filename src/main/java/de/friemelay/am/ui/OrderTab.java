@@ -58,19 +58,19 @@ public class OrderTab extends Tab implements EventHandler<ActionEvent>, ChangeLi
     if(event.getSource() == contactButton) {
       String to = order.getCustomer().getEmail().get();
       String bcc = Config.getString("mail.bcc");
-      MailDialog dialog = new MailDialog("Ihre Bestellung bei friemlay.de (Bestellnummer " + order.getId() + ")", to, bcc);
+      MailDialog dialog = new MailDialog("Ihre Bestellung bei friemlay.de (Bestellnummer " + order.getFormattedId() + ")", to, bcc);
       dialog.open(event);
     }
     else if(event.getSource() == orderConfirmButton) {
       String to = order.getCustomer().getEmail().get();
       String bcc = Config.getString("mail.bcc");
-      OrderConfirmationMailDialog dialog = new OrderConfirmationMailDialog("Bestellbestätigung (Bestellnummer " + order.getId() + ")", to, bcc, order);
+      OrderConfirmationMailDialog dialog = new OrderConfirmationMailDialog("Bestellbestätigung (Bestellnummer " + order.getFormattedId() + ")", to, bcc, order);
       dialog.open(event);
     }
     else if(event.getSource() == deliveryConfirmButton) {
       String to = order.getCustomer().getEmail().get();
       String bcc = Config.getString("mail.bcc");
-      OrderDeliveryConfirmationMailDialog dialog = new OrderDeliveryConfirmationMailDialog("Versandbestätigung (Bestellnummer " + order.getId() + ")", to, bcc, order);
+      OrderDeliveryConfirmationMailDialog dialog = new OrderDeliveryConfirmationMailDialog("Versandbestätigung (Bestellnummer " + order.getFormattedId() + ")", to, bcc, order);
       dialog.open(event);
     }
     else if(event.getSource() == resetButton) {

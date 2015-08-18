@@ -26,6 +26,9 @@ import javafx.scene.web.WebEngine;
 import javafx.scene.web.WebView;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
+import org.apache.log4j.Logger;
+
+import javax.mail.MessagingException;
 
 public class MailDialog implements EventHandler<ActionEvent> {
 
@@ -74,7 +77,7 @@ public class MailDialog implements EventHandler<ActionEvent> {
   }
 
   private Parent createMailDialog() {
-    BorderPane root= new BorderPane();
+    BorderPane root = new BorderPane();
     VBox center = new VBox();
 
     center.setPadding(new Insets(5, 5, 5, 5));
@@ -138,13 +141,18 @@ public class MailDialog implements EventHandler<ActionEvent> {
       model.setMailText(mailText);
 
       Mailer mailer = new Mailer(model);
-      mailer.mail();
-      returnCode = 0;
-      updateStatus();
+      try {
+        mailer.mail();
+        returnCode = 0;
+        updateStatus();
+      } catch (MessagingException e) {
+        Logger.getLogger(Mailer.class.getName()).error("Failed mailing: " + e.getMessage(), e);
+        WidgetFactory.showError("Failed to send email: " + e.getMessage(), e);
+      }
+
       stage.close();
     }
   }
-
   protected void updateStatus() {
     if(getReturnCode() == 0) {
       UIController.getInstance().setStatusMessage("Kontaktmail versendet");

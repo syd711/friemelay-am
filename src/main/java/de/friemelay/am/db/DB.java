@@ -41,6 +41,7 @@ public class DB {
 
         Order order = ModelFactory.createOrder(rs);
         DB.loadOrderItems(order);
+        DB.loadCustomer(order);
         orders.add(order);
       }
       
@@ -53,7 +54,6 @@ public class DB {
   }
 
   public static Order getOrder(int id) {
-    List<Order> orders = new ArrayList<Order>();
     try {
       Statement statement = connection.createStatement();
       ResultSet rs = statement.executeQuery("select * from orders where id = " + id);
@@ -188,18 +188,62 @@ public class DB {
   }
 
   public static void save(Order order) {
-//    try {
-//      String query = "update users set num_points = ? where first_name = ?";
-//      PreparedStatement preparedStmt = connection.prepareStatement(query);
-//      preparedStmt.setInt(1, 6000);
-//      preparedStmt.setString(2, "Fred");
-//
-//      // execute the java preparedstatement
-//      preparedStmt.executeUpdate();
-//      preparedStmt.close();
-//    } catch (SQLException e) {
-//      Logger.getLogger(Connection.class.getName()).error("Failed to get address: " + e.getMessage(), e);
-//      WidgetFactory.showError("Failed to get address: " + e.getMessage(), e);
-//    }
+    try {
+      String query = "update customers set customer_status = ?, email = ?, phone = ?, newsletter =? where id = ?";
+      PreparedStatement preparedStmt = connection.prepareStatement(query);
+      preparedStmt.setString(1, String.valueOf(order.getCustomer().getId()));
+      preparedStmt.setString(2, order.getCustomer().getEmail().get());
+      preparedStmt.setString(3, order.getCustomer().getPhone().get());
+      preparedStmt.setInt(4, order.getCustomer().getNewsletter().get());
+      preparedStmt.setInt(5, order.getCustomer().getId());
+      preparedStmt.executeUpdate();
+      preparedStmt.close();
+
+      query = "update orders set order_status = ?, total_price = ?, comments = ? where id = ?";
+      preparedStmt = connection.prepareStatement(query);
+      preparedStmt.setInt(1, order.getOrderStatus().get());
+      preparedStmt.setDouble(2, order.getTotalPrice().get());
+      preparedStmt.setString(3, order.getComments().get());
+      preparedStmt.setInt(4, order.getId());
+      preparedStmt.executeUpdate();
+      preparedStmt.close();
+
+      query = "update addresses set firstname = ?, lastname = ?, company = ?, additional =?, street =?, zip = ?, city = ?, country = ? where id = ?";
+      preparedStmt = connection.prepareStatement(query);
+      Address address = order.getCustomer().getAddress();
+      preparedStmt.setString(1, address.getFirstname().get());
+      preparedStmt.setString(2, address.getLastname().get());
+      preparedStmt.setString(3, address.getCompany().get());
+      preparedStmt.setString(4, address.getAdditional().get());
+      preparedStmt.setString(5, address.getStreet().get());
+      preparedStmt.setString(6, address.getZip().get());
+      preparedStmt.setString(7, address.getCity().get());
+      preparedStmt.setString(8, address.getCountry().get());
+      preparedStmt.setInt(9, address.getId());
+      preparedStmt.executeUpdate();
+      preparedStmt.close();
+
+      if(order.getCustomer().getBillingAddress() != null) {
+        query = "update addresses set firstname = ?, lastname = ?, company = ?, additional =?, street =?, zip = ?, city = ?, country = ? where id = ?";
+        preparedStmt = connection.prepareStatement(query);
+        address = order.getCustomer().getBillingAddress();
+        preparedStmt.setString(1, address.getFirstname().get());
+        preparedStmt.setString(2, address.getLastname().get());
+        preparedStmt.setString(3, address.getCompany().get());
+        preparedStmt.setString(4, address.getAdditional().get());
+        preparedStmt.setString(5, address.getStreet().get());
+        preparedStmt.setString(6, address.getZip().get());
+        preparedStmt.setString(7, address.getCity().get());
+        preparedStmt.setString(8, address.getCountry().get());
+        preparedStmt.setInt(9, address.getId());
+        preparedStmt.executeUpdate();
+        preparedStmt.close();
+      }
+
+
+    } catch (SQLException e) {
+      Logger.getLogger(Connection.class.getName()).error("Failed to get address: " + e.getMessage(), e);
+      WidgetFactory.showError("Failed to get address: " + e.getMessage(), e);
+    }
   }
 }

@@ -171,4 +171,12 @@ public class Order {
       }
     }
   }
+
+  public String getFormattedId() {
+    String orderId = String.valueOf(getId());
+    while(orderId.length() < 6) {
+      orderId = "0" + orderId;
+    }
+    return orderId;
+  }
 }

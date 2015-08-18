@@ -1,9 +1,7 @@
 package de.friemelay.am.mail;
 
 import de.friemelay.am.config.Config;
-import de.friemelay.am.ui.util.WidgetFactory;
 import org.apache.commons.lang.StringUtils;
-import org.apache.log4j.Logger;
 
 import javax.mail.*;
 import javax.mail.internet.InternetAddress;
@@ -21,7 +19,7 @@ public class Mailer {
     this.model = model;
   }
 
-  public void mail() {
+  public void mail() throws MessagingException {
     // Recipient's email ID needs to be mentioned.
     String to = model.getTo().trim();
 
@@ -46,38 +44,32 @@ public class Mailer {
             return new PasswordAuthentication(username, password);
           }
         });
+    // Create a default MimeMessage object.
+    Message message = new MimeMessage(session);
 
-    try {
-      // Create a default MimeMessage object.
-      Message message = new MimeMessage(session);
+    // Set From: header field of the header.
+    message.setFrom(new InternetAddress(from));
 
-      // Set From: header field of the header.
-      message.setFrom(new InternetAddress(from));
+    // Set To: header field of the header.
+    message.setRecipients(Message.RecipientType.TO,
+        InternetAddress.parse(to));
 
-      // Set To: header field of the header.
-      message.setRecipients(Message.RecipientType.TO,
-          InternetAddress.parse(to));
-
-      if(Config.getBoolean("mail.bcc.enabled")) {
-        String bcc = Config.getString("mail.bcc");
-        if(!StringUtils.isEmpty(bcc)) {
-          message.setRecipients(Message.RecipientType.BCC, InternetAddress.parse(bcc));
-        }
+    if(Config.getBoolean("mail.bcc.enabled")) {
+      String bcc = Config.getString("mail.bcc");
+      if(!StringUtils.isEmpty(bcc)) {
+        message.setRecipients(Message.RecipientType.BCC, InternetAddress.parse(bcc));
       }
+    }
 
-      // Set Subject: header field
-      message.setSubject(model.getSubject().trim());
+    // Set Subject: header field
+    message.setSubject(model.getSubject().trim());
 
-      // Now set the actual message
-      message.setContent(model.getMailText().trim(), "text/html");
+    // Now set the actual message
+    message.setContent(model.getMailText().trim(), "text/html");
 
-      // Send message
-      if(Config.getBoolean("mail.enabled")) {
-        Transport.send(message);
-      }
-    } catch (MessagingException e) {
-      Logger.getLogger(Mailer.class.getName()).error("Failed mailing: " + e.getMessage(), e);
-      WidgetFactory.showError("Failed to send email: " + e.getMessage(), e);
+    // Send message
+    if(Config.getBoolean("mail.enabled")) {
+      Transport.send(message);
     }
   }
 }

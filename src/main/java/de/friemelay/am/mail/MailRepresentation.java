@@ -49,6 +49,9 @@ public class MailRepresentation {
   }
 
   public void setOrderId(String orderId) {
+    while(orderId.length() < 6) {
+      orderId = "0" + orderId;
+    }
     this.orderId = orderId;
   }
 
