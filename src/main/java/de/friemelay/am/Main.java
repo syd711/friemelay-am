@@ -30,12 +30,13 @@ public class Main extends Application {
     Rectangle2D primaryScreenBounds = Screen.getPrimary().getVisualBounds();
     primaryStage.setMaxWidth(primaryScreenBounds.getWidth());
     primaryStage.setMaxHeight(primaryScreenBounds.getHeight());
-    primaryStage.setHeight(700);
-    primaryStage.setWidth(1200);
+//    primaryStage.setFullScreen(true);
+//    primaryStage.setHeight(700);
+//    primaryStage.setWidth(1200);
     primaryStage.addEventFilter(KeyEvent.KEY_PRESSED, new MainKeyEventFilter());
 
-//    primaryStage.setWidth(primaryScreenBounds.getWidth());
-//    primaryStage.setHeight(primaryScreenBounds.getHeight());
+    primaryStage.setWidth(primaryScreenBounds.getWidth());
+    primaryStage.setHeight(primaryScreenBounds.getHeight());
     Scene scene = new Scene(UIController.getInstance().init());
     scene.getStylesheets().add(ResourceLoader.getResource("theme.css"));
     primaryStage.setScene(scene);

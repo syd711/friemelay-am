@@ -134,7 +134,7 @@ public class MailDialog implements EventHandler<ActionEvent> {
     mailHeader.getStyleClass().add("email");
 
     WebView mailFooter = new WebView();
-    mailFooter.setMaxHeight(120);
+    mailFooter.setMaxHeight(220);
     webEngine = mailFooter.getEngine();
     webEngine.load(ResourceLoader.getTemplate("contact-footer.html"));
     mailFooter.getStyleClass().add("email");
@@ -158,20 +158,25 @@ public class MailDialog implements EventHandler<ActionEvent> {
       Task<Void> task = new Task<Void>() {
         @Override
         public Void call() throws InterruptedException {
-          MailRepresentation model = getModel();
-          updateModel(model);
-
-          String mailText = TemplateService.getTemplateSet().renderTemplate(getTemplateName(), model);
-          model.setMailText(mailText);
-          model.setAttachments(attachments);
-
-          Mailer mailer = new Mailer(model);
           try {
-            mailer.mail();
-            returnCode = 0;
-          } catch (MessagingException e) {
-            Logger.getLogger(Mailer.class.getName()).error("Failed mailing: " + e.getMessage(), e);
-            WidgetFactory.showError("Failed to send email: " + e.getMessage(), e);
+            MailRepresentation model = getModel();
+            updateModel(model);
+
+            String mailText = TemplateService.getTemplateSet().renderTemplate(getTemplateName(), model);
+            model.setMailText(mailText);
+            model.setAttachments(attachments);
+
+            Mailer mailer = new Mailer(model);
+            try {
+              mailer.mail();
+              returnCode = 0;
+            } catch (MessagingException e) {
+              Logger.getLogger(Mailer.class.getName()).error("Failed mailing: " + e.getMessage(), e);
+              WidgetFactory.showError("Failed to send email: " + e.getMessage(), e);
+            }
+            return null;
+          } catch (Exception e) {
+            Logger.getLogger(Mailer.class.getName()).error("Failed mail task mailing: " + e.getMessage(), e);
           }
           return null;
         }

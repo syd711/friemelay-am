@@ -81,12 +81,14 @@ public class Mailer {
 
 
     List<File> attachments = model.getAttachments();
-    for(File attachment : attachments) {
-      MimeBodyPart mimeBodyPart = new MimeBodyPart();
-      DataSource source = new FileDataSource(attachment);
-      mimeBodyPart.setDataHandler(new DataHandler(source));
-      mimeBodyPart.setFileName(attachment.getName());
-      multipart.addBodyPart(mimeBodyPart);
+    if(attachments != null && !attachments.isEmpty()) {
+      for(File attachment : attachments) {
+        MimeBodyPart mimeBodyPart = new MimeBodyPart();
+        DataSource source = new FileDataSource(attachment);
+        mimeBodyPart.setDataHandler(new DataHandler(source));
+        mimeBodyPart.setFileName(attachment.getName());
+        multipart.addBodyPart(mimeBodyPart);
+      }
     }
 
     // Send the complete message parts
