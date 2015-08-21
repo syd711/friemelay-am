@@ -3,9 +3,16 @@ package de.friemelay.am.mail;
 import de.friemelay.am.config.Config;
 import org.apache.commons.lang.StringUtils;
 
+import javax.activation.DataHandler;
+import javax.activation.DataSource;
+import javax.activation.FileDataSource;
 import javax.mail.*;
 import javax.mail.internet.InternetAddress;
+import javax.mail.internet.MimeBodyPart;
 import javax.mail.internet.MimeMessage;
+import javax.mail.internet.MimeMultipart;
+import java.io.File;
+import java.util.List;
 import java.util.Properties;
 
 /**
@@ -64,8 +71,26 @@ public class Mailer {
     // Set Subject: header field
     message.setSubject(model.getSubject().trim());
 
-    // Now set the actual message
-    message.setContent(model.getMailText().trim(), "text/html");
+    //build message part
+    BodyPart messageBodyPart = new MimeBodyPart();
+    messageBodyPart.setContent(model.getMailText().trim(), "text/html");
+
+    //add text part
+    Multipart multipart = new MimeMultipart();
+    multipart.addBodyPart(messageBodyPart);
+
+
+    List<File> attachments = model.getAttachments();
+    for(File attachment : attachments) {
+      MimeBodyPart mimeBodyPart = new MimeBodyPart();
+      DataSource source = new FileDataSource(attachment);
+      mimeBodyPart.setDataHandler(new DataHandler(source));
+      mimeBodyPart.setFileName(attachment.getName());
+      multipart.addBodyPart(mimeBodyPart);
+    }
+
+    // Send the complete message parts
+    message.setContent(multipart);
 
     // Send message
     if(Config.getBoolean("mail.enabled")) {

@@ -6,12 +6,14 @@ import de.friemelay.am.model.Order;
 import de.friemelay.am.resources.ResourceLoader;
 import de.friemelay.am.ui.OrderTabPane;
 import de.friemelay.am.ui.OrderTreePane;
+import javafx.application.Platform;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Parent;
 import javafx.scene.control.*;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
+import javafx.stage.Stage;
 
 /**
  *
@@ -22,9 +24,12 @@ public class UIController {
   private OrderTreePane treePane;
   private OrderTabPane tabPane;
 
+  private Stage stage;
+
   private Label statusMessage = new Label("");
 
   private UITaskThread uiTaskThread = new UITaskThread();
+
   public static UIController getInstance() {
     return instance;
   }
@@ -66,13 +71,28 @@ public class UIController {
     return root;
   }
 
+  public void setStage(Stage stage) {
+    this.stage = stage;
+  }
+
+  public Stage getStage() {
+    return stage;
+  }
+
   public void setStatusMessage(String msg) {
-    statusMessage.setText(msg);
-    uiTaskThread.setDirty(true);
+    Platform.runLater(new Runnable() {
+      @Override
+      public void run() {
+        statusMessage.setText(msg);
+        uiTaskThread.setDirty(true);
+      }
+    });
   }
 
   public void openOrder(Order order) {
-    tabPane.openOrder(order);
+    if(order != null) {
+      tabPane.openOrder(order);
+    }
   }
 
   public void selectTreeNode(Order order) {
@@ -109,5 +129,19 @@ public class UIController {
 
   public void closeTab(Order order) {
     tabPane.closeTab(order);
+  }
+
+  public void reloadOrders() {
+    treePane.reload();
+  }
+
+  public void resetSelectedOrder() {
+    Order order = treePane.getSelectedOrder();
+    if(order != null) {
+      tabPane.closeTab(order);
+      order.setOrderStatus(Order.ORDER_STATUS_NEW);
+      DB.save(order);
+      reloadOrders();
+    }
   }
 }

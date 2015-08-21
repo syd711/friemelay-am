@@ -4,7 +4,9 @@ import de.friemelay.am.UIController;
 import de.friemelay.am.mail.MailRepresentation;
 import de.friemelay.am.mail.Mailer;
 import de.friemelay.am.mail.TemplateService;
+import de.friemelay.am.model.Order;
 import de.friemelay.am.resources.ResourceLoader;
+import javafx.concurrent.Task;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.geometry.Insets;
@@ -13,6 +15,7 @@ import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
+import javafx.scene.control.Label;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 import javafx.scene.image.Image;
@@ -29,6 +32,8 @@ import javafx.stage.Stage;
 import org.apache.log4j.Logger;
 
 import javax.mail.MessagingException;
+import java.io.File;
+import java.util.List;
 
 public class MailDialog implements EventHandler<ActionEvent> {
 
@@ -43,13 +48,17 @@ public class MailDialog implements EventHandler<ActionEvent> {
   private String subject;
   private String to;
   private String bcc;
+  private List<File> attachments;
 
   private int returnCode = -1;
+  protected Order order;
 
-  public MailDialog(String subject, String to, String bcc) {
+  public MailDialog(String subject, String to, String bcc, List<File> attachments, Order order) {
     this.subject = subject;
     this.to = to;
     this.bcc = bcc;
+    this.order = order;
+    this.attachments = attachments;
   }
 
   public void open(ActionEvent event) {
@@ -89,6 +98,14 @@ public class MailDialog implements EventHandler<ActionEvent> {
     toText = WidgetFactory.addFormTextfield(mailForm, "An:", to, index++);
     WidgetFactory.addFormTextfield(mailForm, "Kopie an:", bcc, index++, false);
     center.getChildren().add(mailForm);
+
+    if(attachments != null && !attachments.isEmpty()) {
+      VBox attBox = new VBox(5);
+      for(File attachment : attachments) {
+        attBox.getChildren().add(new Label(attachment.getName()));
+      }
+      WidgetFactory.addFormPane(mailForm, "Anhänge:", attBox, index++);
+    }
 
     VBox mailPane = new VBox();
     mailPane.setStyle("-fx-border-color:#ccc;-fx-border-width:2px;-fx-border-radius: 5 5 5 5;");
@@ -134,37 +151,63 @@ public class MailDialog implements EventHandler<ActionEvent> {
       stage.close();
     }
     else if(event.getSource() == sendButton) {
-      MailRepresentation model = getModel();
-      updateModel(model);
+      ProgressForm pForm = new ProgressForm(UIController.getInstance().getStage().getScene(), "E-Mail wird gesendet...");
 
-      String mailText = TemplateService.getTemplateSet().renderTemplate(getTemplateName(), model);
-      model.setMailText(mailText);
+      // In real life this task would do something useful and return
+      // some meaningful result:
+      Task<Void> task = new Task<Void>() {
+        @Override
+        public Void call() throws InterruptedException {
+          MailRepresentation model = getModel();
+          updateModel(model);
 
-      Mailer mailer = new Mailer(model);
-      try {
-        mailer.mail();
-        returnCode = 0;
+          String mailText = TemplateService.getTemplateSet().renderTemplate(getTemplateName(), model);
+          model.setMailText(mailText);
+          model.setAttachments(attachments);
+
+          Mailer mailer = new Mailer(model);
+          try {
+            mailer.mail();
+            returnCode = 0;
+          } catch (MessagingException e) {
+            Logger.getLogger(Mailer.class.getName()).error("Failed mailing: " + e.getMessage(), e);
+            WidgetFactory.showError("Failed to send email: " + e.getMessage(), e);
+          }
+          return null;
+        }
+      };
+
+      // binds progress of progress bars to progress of task:
+      pForm.activateProgressBar(task);
+
+      // in real life this method would get the result of the task
+      // and update the UI based on its value:
+      task.setOnSucceeded(e -> {
         updateStatus();
-      } catch (MessagingException e) {
-        Logger.getLogger(Mailer.class.getName()).error("Failed mailing: " + e.getMessage(), e);
-        WidgetFactory.showError("Failed to send email: " + e.getMessage(), e);
-      }
+        pForm.getDialogStage().close();
+        stage.close();
+      });
 
-      stage.close();
+      pForm.getDialogStage().show();
+      Thread thread = new Thread(task);
+      thread.start();
     }
   }
+
   protected void updateStatus() {
     if(getReturnCode() == 0) {
-      UIController.getInstance().setStatusMessage("Kontaktmail versendet");
+      UIController.getInstance().setStatusMessage("E-Mail versendet");
     }
   }
 
   protected MailRepresentation getModel() {
-    return new MailRepresentation(toText.getText(), subjectText.getText());
+    return new MailRepresentation(toText.getText(), subjectText.getText(), order);
   }
 
   protected void updateModel(MailRepresentation model) {
-    model.setMailText(textArea.getText().trim());
+    if(textArea != null) {
+      model.setMailText(textArea.getText().trim());
+    }
   }
 
   protected String getTemplateName() {

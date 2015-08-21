@@ -23,6 +23,8 @@ import javafx.scene.control.*;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.*;
 
+import java.io.File;
+import java.util.Arrays;
 import java.util.List;
 
 
@@ -58,13 +60,14 @@ public class OrderTab extends Tab implements EventHandler<ActionEvent>, ChangeLi
     if(event.getSource() == contactButton) {
       String to = order.getCustomer().getEmail().get();
       String bcc = Config.getString("mail.bcc");
-      MailDialog dialog = new MailDialog("Ihre Bestellung bei friemlay.de (Bestellnummer " + order.getFormattedId() + ")", to, bcc);
+      MailDialog dialog = new MailDialog("Ihre Bestellung bei friemlay.de (Bestellnummer " + order.getFormattedId() + ")", to, bcc, null, order);
       dialog.open(event);
     }
     else if(event.getSource() == orderConfirmButton) {
       String to = order.getCustomer().getEmail().get();
       String bcc = Config.getString("mail.bcc");
-      OrderConfirmationMailDialog dialog = new OrderConfirmationMailDialog("Bestellbestätigung (Bestellnummer " + order.getFormattedId() + ")", to, bcc, order);
+      List<File> attachments = Arrays.asList(new File("mail-templates/pdf/Widerrufsformular-Friemelay.pdf"));
+      OrderConfirmationMailDialog dialog = new OrderConfirmationMailDialog("Bestellbestätigung/Rechnung (Bestellnummer " + order.getFormattedId() + ")", to, bcc, attachments, order);
       dialog.open(event);
     }
     else if(event.getSource() == deliveryConfirmButton) {
@@ -140,7 +143,7 @@ public class OrderTab extends Tab implements EventHandler<ActionEvent>, ChangeLi
     orderForm.getStyleClass().add("root");
     int index = 0;
     WidgetFactory.addFormLabel(orderDetailsForm, "Bestellnummer:", String.valueOf(order.getId()), index++);
-    WidgetFactory.addFormLabel(orderDetailsForm, "Eingang:", String.valueOf(order.getFormattedCreationDate()), index++);
+    WidgetFactory.addFormLabel(orderDetailsForm, "Eingang:", String.valueOf(order.getFormattedCreationDateTime()), index++);
     WidgetFactory.addBindingFormLabel(orderDetailsForm, "Name:", order.getCustomer().getAddress().getLastname(), index++, null);
     WidgetFactory.addBindingFormLabel(orderDetailsForm, "Vorname:", order.getCustomer().getAddress().getFirstname(), index++, null);
     WidgetFactory.addFormLabel(orderDetailsForm, "Preis:", index++, order.getTotalPrice(), new TotalPriceConverter(order));
@@ -227,7 +230,7 @@ public class OrderTab extends Tab implements EventHandler<ActionEvent>, ChangeLi
     VBox imageWrapper = new VBox();
     imageWrapper.getChildren().add(arrow);
 
-    orderConfirmButton = WidgetFactory.createButton(statusPanel, "Auftragsbestätigung senden", "check-green.png", this);
+    orderConfirmButton = WidgetFactory.createButton(statusPanel, "Bestellbestätigung senden", "check-green.png", this);
     statusPanel.getChildren().addAll(imageWrapper);
     deliveryConfirmButton = WidgetFactory.createButton(statusPanel, "Versandbestätigung senden", "check-grey.png", this);
 

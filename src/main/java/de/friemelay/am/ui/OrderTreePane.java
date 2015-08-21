@@ -4,8 +4,10 @@ import de.friemelay.am.UIController;
 import de.friemelay.am.db.DB;
 import de.friemelay.am.model.Order;
 import de.friemelay.am.resources.ResourceLoader;
+import de.friemelay.am.ui.util.ProgressForm;
 import de.friemelay.am.ui.util.WidgetFactory;
 import javafx.collections.ObservableList;
+import javafx.concurrent.Task;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.scene.control.*;
@@ -61,36 +63,63 @@ public class OrderTreePane extends BorderPane implements EventHandler<MouseEvent
     toolbar.getItems().add(trashButton);
 
     setTop(toolbar);
-    reload();
   }
 
   public void handle(MouseEvent event) {
-    if(event.getClickCount() == 2)
-    {
-      TreeItem selectedItem = (TreeItem) treeView.getSelectionModel().getSelectedItem();
-      if(selectedItem.getValue() instanceof Order) {
-        TreeItem<Order> item = (TreeItem<Order>)selectedItem;
-        UIController.getInstance().openOrder(item.getValue());
-      }
+    if(event.getClickCount() == 2) {
+      UIController.getInstance().openOrder(getSelectedOrder());
     }
   }
 
-  private void reload() {
-    treeRoot.getChildren().removeAll(treeRoot.getChildren());
+  public Order getSelectedOrder() {
+    TreeItem selectedItem = (TreeItem) treeView.getSelectionModel().getSelectedItem();
+    if(selectedItem.getValue() instanceof Order) {
+      TreeItem<Order> item = (TreeItem<Order>) selectedItem;
+      return item.getValue();
+    }
+    return null;
+  }
+
+  public void reload() {
+    ProgressForm pForm = new ProgressForm(UIController.getInstance().getStage().getScene(), "Lade Bestellungen");
+
+    // In real life this task would do something useful and return
+    // some meaningful result:
+    Task<Void> task = new Task<Void>() {
+      @Override
+      public Void call() throws InterruptedException {
+        treeRoot.getChildren().removeAll(treeRoot.getChildren());
 
 
-    orders = DB.getOrders();
-    for(Order order : orders) {
-      TreeItem<Object> orderTreeItem = new TreeItem<Object>(order, ResourceLoader.getImageView(order.getStatusIcon()));
+        orders = DB.getOrders();
+        for(Order order : orders) {
+          TreeItem<Object> orderTreeItem = new TreeItem<Object>(order, ResourceLoader.getImageView(order.getStatusIcon()));
 //      List<OrderItem> orderItems = order.getOrderItems();
 //      for(OrderItem orderItem : orderItems) {
 //        TreeItem<Object> orderItemTreeItem = new TreeItem<Object>(orderItem, ResourceLoader.getImageView("item.png"));
 //        orderTreeItem.getChildren().add(orderItemTreeItem);
 //      }
-      treeRoot.getChildren().add(orderTreeItem);
-    }
+          treeRoot.getChildren().add(orderTreeItem);
+        }
 
-    treeRoot.setExpanded(true);
+        treeRoot.setExpanded(true);
+        updateProgress(10, 10);
+        return null;
+      }
+    };
+
+    // binds progress of progress bars to progress of task:
+    pForm.activateProgressBar(task);
+
+    // in real life this method would get the result of the task
+    // and update the UI based on its value:
+    task.setOnSucceeded(event -> {
+      pForm.getDialogStage().close();
+    });
+
+    pForm.getDialogStage().show();
+    Thread thread = new Thread(task);
+    thread.start();
   }
 
   public void openFirst() {
@@ -110,10 +139,12 @@ public class OrderTreePane extends BorderPane implements EventHandler<MouseEvent
   public void updateOrderStatus(Order order) {
     ObservableList<TreeItem<Object>> children = treeRoot.getChildren();
     if(!children.isEmpty()) {
-      TreeItem<Object> treeItem = children.get(0);
-      Order orderChild = (Order) treeItem.getValue();
-      if(orderChild.getId() == order.getId()) {
-        treeItem.setGraphic(ResourceLoader.getImageView(order.getStatusIcon()));
+      for(TreeItem<Object> child : children) {
+        Order orderChild = (Order) child.getValue();
+        if(orderChild.getId() == order.getId()) {
+          child.setGraphic(ResourceLoader.getImageView(order.getStatusIcon()));
+          return;
+        }
       }
     }
   }
@@ -121,7 +152,7 @@ public class OrderTreePane extends BorderPane implements EventHandler<MouseEvent
   private Order getSelection() {
     TreeItem selectedItem = (TreeItem) treeView.getSelectionModel().getSelectedItem();
     if(selectedItem != null && selectedItem.getValue() instanceof Order) {
-      TreeItem<Order> item = (TreeItem<Order>)selectedItem;
+      TreeItem<Order> item = (TreeItem<Order>) selectedItem;
       return item.getValue();
     }
     return null;

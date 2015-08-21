@@ -42,6 +42,8 @@ public class DB {
         Order order = ModelFactory.createOrder(rs);
         DB.loadOrderItems(order);
         DB.loadCustomer(order);
+        DB.loadAddress(order.getCustomer());
+        DB.loadBillingAddress(order.getCustomer());
         orders.add(order);
       }
       

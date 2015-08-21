@@ -111,10 +111,7 @@ public class Order {
 
   @Override
   public String toString() {
-    if(getCreationDate() == null) {
-      return "Bestellungen";
-    }
-    return id + " - " + getFormattedCreationDate();
+    return getCustomer().getAddress().getFirstname().get() +  " "  + getCustomer().getAddress().getLastname().get()  + " (" + getFormattedCreationDateTime() + ")";
   }
 
   public List<OrderItem> getOrderItems() {
@@ -135,6 +132,9 @@ public class Order {
 
   public String getFormattedCreationDate() {
     return new SimpleDateFormat("dd.MM.yyyy").format(getCreationDate());
+  }
+  public String getFormattedCreationDateTime() {
+    return new SimpleDateFormat("dd.MM.yyyy hh:mm").format(getCreationDate()) + " Uhr";
   }
 
   public String getFormattedTotalPrice() {

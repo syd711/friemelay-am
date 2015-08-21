@@ -3,6 +3,7 @@ package de.friemelay.am.ui.util;
 import de.friemelay.am.UIController;
 import de.friemelay.am.mail.MailRepresentation;
 import de.friemelay.am.model.Order;
+import javafx.application.Platform;
 import javafx.scene.layout.VBox;
 import javafx.scene.web.WebView;
 
@@ -11,11 +12,9 @@ import javafx.scene.web.WebView;
  */
 public class OrderDeliveryConfirmationMailDialog extends MailDialog {
 
-  private Order order;
 
   public OrderDeliveryConfirmationMailDialog(String subject, String to, String bcc, Order order) {
-    super(subject, to, bcc);
-    this.order = order;
+    super(subject, to, bcc, null, order);
   }
 
   @Override
@@ -32,13 +31,6 @@ public class OrderDeliveryConfirmationMailDialog extends MailDialog {
   }
 
   @Override
-  protected void updateModel(MailRepresentation model) {
-    model.setName(order.getCustomer().getAddress().getFirstname().get() + " " + order.getCustomer().getAddress().getLastname().get());
-    model.setOrderId(String.valueOf(order.getId()));
-    model.setOrder(order);
-  }
-
-  @Override
   protected String getTemplateName() {
     return "delivery-confirmation-mail.ftl";
   }
@@ -46,7 +38,12 @@ public class OrderDeliveryConfirmationMailDialog extends MailDialog {
   @Override
   protected void updateStatus() {
     if(getReturnCode() == 0) {
-      UIController.getInstance().deliveryConfirmationSent(order);
+      Platform.runLater(new Runnable() {
+        @Override
+        public void run() {
+          UIController.getInstance().deliveryConfirmationSent(order);
+        }
+      });
     }
   }
 }
