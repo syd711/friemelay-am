@@ -24,19 +24,7 @@ public class UITaskThread extends Thread {
         if(dirty) {
           Thread.sleep(5000);
           // UI updaten
-          Platform.runLater(new Runnable() {
-            public void run() {
-              final Label statusMessage = UIController.getInstance().getStatusMessage();
-              FadeTransition outFader = TransitionUtil.createOutFader(statusMessage, 1000);
-              outFader.setOnFinished(new EventHandler<ActionEvent>() {
-                public void handle(ActionEvent event) {
-                  UIController.getInstance().setStatusMessage("");
-                  statusMessage.setOpacity(1);
-                }
-              });
-              outFader.play();
-            }
-          });
+          UIController.getInstance().fadeOutStatusMessage();
           dirty = false;
         }
 

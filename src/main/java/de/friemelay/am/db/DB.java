@@ -7,6 +7,7 @@ import org.apache.log4j.Logger;
 
 import java.sql.*;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 
 public class DB {
@@ -16,7 +17,7 @@ public class DB {
   public static void connect() throws Exception {
     try {
       Class.forName("com.mysql.jdbc.Driver").newInstance();
-      
+
       String host = Config.getString("db.host");
       String schema = Config.getString("db.schema");
       String login = Config.getString("db.login");
@@ -29,15 +30,15 @@ public class DB {
       Logger.getLogger(Connection.class.getName()).error("Failed connect to database: " + ex.getMessage(), ex);
       WidgetFactory.showError("Failed connect to database: " + ex.getMessage(), ex);
       throw ex;
-    }    
+    }
   }
-  
+
   public static List<Order> getOrders() {
     List<Order> orders = new ArrayList<Order>();
     try {
       Statement statement = connection.createStatement();
       ResultSet rs = statement.executeQuery("select * from orders order by id desc");
-      while (rs.next()) {
+      while(rs.next()) {
 
         Order order = ModelFactory.createOrder(rs);
         DB.loadOrderItems(order);
@@ -46,7 +47,7 @@ public class DB {
         DB.loadBillingAddress(order.getCustomer());
         orders.add(order);
       }
-      
+
       statement.close();
     } catch (SQLException e) {
       Logger.getLogger(Connection.class.getName()).error("Failed to get orders: " + e.getMessage(), e);
@@ -59,7 +60,7 @@ public class DB {
     try {
       Statement statement = connection.createStatement();
       ResultSet rs = statement.executeQuery("select * from orders where id = " + id);
-      while (rs.next()) {
+      while(rs.next()) {
         Order order = ModelFactory.createOrder(rs);
         DB.loadOrderItems(order);
         DB.loadCustomer(order);
@@ -80,7 +81,7 @@ public class DB {
     try {
       Statement statement = connection.createStatement();
       ResultSet rs = statement.executeQuery("select * from order_items where order_id = " + order.getId());
-      while (rs.next()) {
+      while(rs.next()) {
         OrderItem orderItem = ModelFactory.createOrderItem(rs);
         order.getOrderItems().add(orderItem);
       }
@@ -96,7 +97,7 @@ public class DB {
     try {
       Statement statement = connection.createStatement();
       ResultSet rs = statement.executeQuery("select * from customers where id = " + order.getCustomerId());
-      while (rs.next()) {
+      while(rs.next()) {
         Customer customer = ModelFactory.createCustomer(rs);
         order.setCustomer(customer);
         break;
@@ -116,7 +117,7 @@ public class DB {
     try {
       Statement statement = connection.createStatement();
       ResultSet rs = statement.executeQuery("select * from addresses where id = " + customer.getAddressId());
-      while (rs.next()) {
+      while(rs.next()) {
         Address address = ModelFactory.createAddress(rs);
         customer.setAddress(address);
         break;
@@ -137,7 +138,7 @@ public class DB {
     try {
       Statement statement = connection.createStatement();
       ResultSet rs = statement.executeQuery("select * from addresses where id = " + customer.getBillingAddressId());
-      while (rs.next()) {
+      while(rs.next()) {
         Address address = ModelFactory.createAddress(rs);
         customer.setBillingAddress(address);
         break;
@@ -247,5 +248,87 @@ public class DB {
       Logger.getLogger(Connection.class.getName()).error("Failed to get address: " + e.getMessage(), e);
       WidgetFactory.showError("Failed to get address: " + e.getMessage(), e);
     }
+  }
+
+  public static List<Category> loadCatalog() {
+    List<Category> items = new ArrayList<Category>();
+    int count = 0;
+    try {
+      Statement statement = connection.createStatement();
+      ResultSet rs = statement.executeQuery("select * from categories");
+      while(rs.next()) {
+        Category item = ModelFactory.createCategory(rs);
+        items.add(item);
+        count++;
+      }
+      statement.close();
+      Logger.getLogger(Connection.class.getName()).info("Loaded " + count + " categories");
+      return buildCatalog(items);
+    } catch (SQLException e) {
+      Logger.getLogger(Connection.class.getName()).error("Failed to get catalog: " + e.getMessage(), e);
+      WidgetFactory.showError("Failed to get catalog: " + e.getMessage(), e);
+    }
+    return items;
+  }
+
+  public static Category createCategory(String name, Category parent) {
+    try {
+      int topLevel = 1;
+      Integer parentId = null;
+      if(parent != null) {
+        topLevel = 0;
+        parentId = parent.getId();
+      }
+      Statement statement = connection.createStatement();
+      statement.executeUpdate("insert into categories (title, top_level, parent_id) VALUES ('" + name + "', " + topLevel + ", " + parentId + ")");
+      statement.close();
+
+      statement = connection.createStatement();
+      ResultSet resultSet = statement.executeQuery("SELECT * FROM categories ORDER BY id DESC LIMIT 0, 1");
+      while(resultSet.next()) {
+        Category item = ModelFactory.createCategory(resultSet);
+        statement.close();
+        return item;
+      }
+      statement.close();
+    } catch (SQLException e) {
+      Logger.getLogger(Connection.class.getName()).error("Failed to insert category in catalog: " + e.getMessage(), e);
+      WidgetFactory.showError("Failed to insert category in catalog: " + e.getMessage(), e);
+    }
+    return null;
+  }
+
+  private static List<Category> buildCatalog(List<Category> items) {
+    List<Category> topLevel = new ArrayList<>();
+    Iterator<Category> iterator = items.iterator();
+    while(iterator.hasNext()) {
+      Category next = iterator.next();
+      if(next.isTopLevel()) {
+        topLevel.add(next);
+      }
+    }
+
+    iterator = items.iterator();
+    while(iterator.hasNext()) {
+      Category next = iterator.next();
+      if(next.isTopLevel()) {
+        continue;
+      }
+      Category parent = getParent(next, items);
+      if(parent != null) {
+        parent.getChildren().add(next);
+      }
+    }
+
+    return topLevel;
+  }
+
+  private static Category getParent(Category next, List<Category> items) {
+    for(Category item : items) {
+      if(item.getId() == next.getParentId()) {
+        return item;
+      }
+    }
+    return null;
   }
 }

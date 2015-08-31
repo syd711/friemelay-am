@@ -8,19 +8,18 @@ import javafx.beans.value.ObservableValue;
 import javafx.collections.ObservableList;
 import javafx.geometry.Side;
 import javafx.scene.control.Tab;
-import javafx.scene.control.TabPane;
 import javafx.scene.layout.BorderPane;
 
 /**
  *
  */
-public class OrderTabPane extends BorderPane implements ChangeListener<Tab> {
-  private TabPane tabPane;
+public class ItemsTabPane extends BorderPane implements ChangeListener<Tab> {
+  private javafx.scene.control.TabPane tabPane;
 
-  public OrderTabPane() {
-    tabPane = new TabPane();
+  public ItemsTabPane() {
+    tabPane = new javafx.scene.control.TabPane();
     tabPane.setRotateGraphic(false);
-    tabPane.setTabClosingPolicy(TabPane.TabClosingPolicy.SELECTED_TAB);
+    tabPane.setTabClosingPolicy(javafx.scene.control.TabPane.TabClosingPolicy.SELECTED_TAB);
     tabPane.setSide(Side.TOP);
     tabPane.getSelectionModel().selectedItemProperty().addListener(this);
 

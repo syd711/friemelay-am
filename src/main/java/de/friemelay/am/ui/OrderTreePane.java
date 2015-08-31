@@ -48,7 +48,7 @@ public class OrderTreePane extends BorderPane implements EventHandler<MouseEvent
     trashButton.setTooltip(new Tooltip("Bestellung löschen"));
     trashButton.setOnAction(new EventHandler<ActionEvent>() {
       public void handle(ActionEvent event) {
-        Order selection = getSelection();
+        Order selection = getSelectedOrder();
         if(selection != null) {
           boolean confirmation = WidgetFactory.showConfirmation("Bestellung löschen?", "Soll die Bestellung '" + selection + "' wirklich gelöscht werden?" +
               "\nAlternativ kann die Bestellung storniert werden und bleibt so in der Bestellhistorie erhalten.");
@@ -73,7 +73,7 @@ public class OrderTreePane extends BorderPane implements EventHandler<MouseEvent
 
   public Order getSelectedOrder() {
     TreeItem selectedItem = (TreeItem) treeView.getSelectionModel().getSelectedItem();
-    if(selectedItem.getValue() instanceof Order) {
+    if(selectedItem != null && selectedItem.getValue() instanceof Order) {
       TreeItem<Order> item = (TreeItem<Order>) selectedItem;
       return item.getValue();
     }
@@ -149,12 +149,4 @@ public class OrderTreePane extends BorderPane implements EventHandler<MouseEvent
     }
   }
 
-  private Order getSelection() {
-    TreeItem selectedItem = (TreeItem) treeView.getSelectionModel().getSelectedItem();
-    if(selectedItem != null && selectedItem.getValue() instanceof Order) {
-      TreeItem<Order> item = (TreeItem<Order>) selectedItem;
-      return item.getValue();
-    }
-    return null;
-  }
 }

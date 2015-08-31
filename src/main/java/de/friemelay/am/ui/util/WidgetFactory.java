@@ -35,6 +35,7 @@ import org.w3c.dom.html.HTMLAnchorElement;
 import java.awt.*;
 import java.net.URI;
 import java.nio.charset.Charset;
+import java.util.Optional;
 
 /**
  *
@@ -46,6 +47,20 @@ public class WidgetFactory {
     alert.setHeaderText("Fehler");
     alert.setContentText(new String(("Ups, das hätte nicht passieren dürfen: " + message+ " [" + e.getMessage() + "]").getBytes(), Charset.forName("utf-8")));
     alert.showAndWait();
+  }
+
+  public static String showInputDialog(String title, String header, String label) {
+    TextInputDialog dialog = new TextInputDialog();
+    dialog.setTitle(title);
+    dialog.setHeaderText(header);
+    dialog.setContentText(label);
+
+    // Traditional way to get the response value.
+    Optional<String> result = dialog.showAndWait();
+    if (result.isPresent()){
+      return result.get();
+    }
+    return null;
   }
 
   public static boolean showConfirmation(String header, String message) {

@@ -43,6 +43,6 @@ public class Main extends Application {
     UIController.getInstance().setStage(primaryStage);
     primaryStage.getIcons().add(new Image(ResourceLoader.getResource("favicon.png")));
     primaryStage.show();
-    UIController.getInstance().reloadOrders();
+    UIController.getInstance().loadData();
   }
 }

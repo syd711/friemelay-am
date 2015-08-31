@@ -3,16 +3,13 @@ package de.friemelay.am;
 import de.friemelay.am.config.Config;
 import de.friemelay.am.db.DB;
 import de.friemelay.am.model.Order;
-import de.friemelay.am.resources.ResourceLoader;
-import de.friemelay.am.ui.OrderTabPane;
-import de.friemelay.am.ui.OrderTreePane;
+import de.friemelay.am.ui.util.TransitionUtil;
+import javafx.animation.FadeTransition;
 import javafx.application.Platform;
-import javafx.geometry.Insets;
-import javafx.geometry.Pos;
+import javafx.event.ActionEvent;
+import javafx.event.EventHandler;
 import javafx.scene.Parent;
-import javafx.scene.control.*;
-import javafx.scene.layout.BorderPane;
-import javafx.scene.layout.HBox;
+import javafx.scene.control.Label;
 import javafx.stage.Stage;
 
 /**
@@ -20,13 +17,9 @@ import javafx.stage.Stage;
  */
 public class UIController {
   private static UIController instance = new UIController();
-  
-  private OrderTreePane treePane;
-  private OrderTabPane tabPane;
 
   private Stage stage;
-
-  private Label statusMessage = new Label("");
+  private MainPanel mainPanel;
 
   private UITaskThread uiTaskThread = new UITaskThread();
 
@@ -35,40 +28,10 @@ public class UIController {
   }
 
   public Parent init() {
-    BorderPane root = new BorderPane();
-    this.tabPane = new OrderTabPane();
-    this.treePane = new OrderTreePane();
-
-    SplitPane splitPane = new SplitPane();
-    splitPane.getItems().addAll(treePane, tabPane);
-    splitPane.setDividerPositions(0.20);
-    root.setCenter(splitPane);
-
-    final MenuBar menuBar = new MenuBar();
-
-    Menu menu = new Menu("Verwaltung");
-    MenuItem menu1 = new MenuItem("Newsletter erstellen (TODO)", ResourceLoader.getImageView("email.png"));
-    menu.getItems().addAll(menu1);
-
-    Menu help = new Menu("Hilfe");
-    MenuItem info = new MenuItem("Über Friemelay");
-    help.getItems().addAll(info);
-
-    menuBar.getMenus().addAll(menu);
-    root.setTop(menuBar);
-
-    HBox footer = new HBox();
-    footer.setStyle("-fx-background-color:#DDD;");
-    footer.setAlignment(Pos.BASELINE_RIGHT);
-    statusMessage.setPadding(new Insets(0, 5, 2, 0));
-    footer.getChildren().addAll(statusMessage);
-    root.setBottom(footer);
-
-    treePane.openFirst();
-
+    mainPanel = new MainPanel();
     uiTaskThread.start();
     setStatusMessage("Verbunden mit " + Config.getString("db.host"));
-    return root;
+    return mainPanel;
   }
 
   public void setStage(Stage stage) {
@@ -83,7 +46,7 @@ public class UIController {
     Platform.runLater(new Runnable() {
       @Override
       public void run() {
-        statusMessage.setText(msg);
+        mainPanel.getStatusMessage().setText(msg);
         uiTaskThread.setDirty(true);
       }
     });
@@ -91,57 +54,79 @@ public class UIController {
 
   public void openOrder(Order order) {
     if(order != null) {
-      tabPane.openOrder(order);
+      mainPanel.getTabPane().openOrder(order);
     }
   }
 
   public void selectTreeNode(Order order) {
-    treePane.selectOrder(order);
-  }
-
-  public Label getStatusMessage() {
-    return statusMessage;
+    mainPanel.getOrderTreePane().selectOrder(order);
   }
 
   public void orderConfirmationSent(Order order) {
     setStatusMessage("Bestellbestätigung versendet");
     order.setOrderStatus(Order.ORDER_STATUS_CONFIRMED);
-    treePane.updateOrderStatus(order);
+    mainPanel.getOrderTreePane().updateOrderStatus(order);
     DB.save(order);
-    tabPane.openOrder(order).refreshOrderStatus();
+    mainPanel.getTabPane().openOrder(order).refreshOrderStatus();
   }
 
   public void deliveryConfirmationSent(Order order) {
     setStatusMessage("Versandbestätigung versendet");
     order.setOrderStatus(Order.ORDER_STATUS_DELIVERED);
-    treePane.updateOrderStatus(order);
+    mainPanel.getOrderTreePane().updateOrderStatus(order);
     DB.save(order);
-    tabPane.openOrder(order).reload();
+    mainPanel.getTabPane().openOrder(order).reload();
   }
 
   public void cancelOrder(Order order) {
     setStatusMessage("Die Bestellung " + order + " wurde storniert");
     order.setOrderStatus(Order.ORDER_STATUS_CANCELED);
-    treePane.updateOrderStatus(order);
+    mainPanel.getOrderTreePane().updateOrderStatus(order);
     DB.save(order);
-    tabPane.openOrder(order).reload();
+    mainPanel.getTabPane().openOrder(order).reload();
   }
 
   public void closeTab(Order order) {
-    tabPane.closeTab(order);
+    mainPanel.getTabPane().closeTab(order);
   }
 
   public void reloadOrders() {
-    treePane.reload();
+    mainPanel.getOrderTreePane().reload();
+  }
+
+  public void reloadCatalog() {
+    mainPanel.getCatalogTreePane().reload();
   }
 
   public void resetSelectedOrder() {
-    Order order = treePane.getSelectedOrder();
+    Order order = mainPanel.getOrderTreePane().getSelectedOrder();
     if(order != null) {
-      tabPane.closeTab(order);
+      mainPanel.getTabPane().closeTab(order);
       order.setOrderStatus(Order.ORDER_STATUS_NEW);
       DB.save(order);
       reloadOrders();
     }
+  }
+
+  public void fadeOutStatusMessage() {
+    Platform.runLater(new Runnable() {
+      public void run() {
+        final Label statusMessage = mainPanel.getStatusMessage();
+        FadeTransition outFader = TransitionUtil.createOutFader(statusMessage, 1000);
+        outFader.setOnFinished(new EventHandler<ActionEvent>() {
+          public void handle(ActionEvent event) {
+            UIController.getInstance().setStatusMessage("");
+            statusMessage.setOpacity(1);
+          }
+        });
+        outFader.play();
+      }
+    });
+  }
+
+  public void loadData() {
+    reloadOrders();
+    reloadCatalog();
+    mainPanel.expandCatalog();
   }
 }

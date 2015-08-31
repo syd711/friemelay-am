@@ -3,6 +3,7 @@ package de.friemelay.am.model;
 import de.friemelay.am.ui.util.WidgetFactory;
 import org.apache.log4j.Logger;
 
+import java.sql.Blob;
 import java.sql.Date;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -121,6 +122,33 @@ public class ModelFactory {
       address.setZip(zip);
       
       return address;
+    } catch (SQLException e) {
+      Logger.getLogger(ModelFactory.class.getName()).error("Failed create address model: " + e.getMessage(), e);
+      WidgetFactory.showError("Failed create address model: " + e.getMessage(), e);
+    }
+    return null;
+  }
+
+  public static Category createCategory(ResultSet resultSet) {
+    try {
+      int id = resultSet.getInt("id");
+      int parentId = resultSet.getInt("parent_id");
+      int topLevel = resultSet.getInt("top_level");
+      String title = resultSet.getString("title");
+      String description= resultSet.getString("description");
+      String titleText = resultSet.getString("title_text");
+      Blob image = resultSet.getBlob("image");
+
+      Category item = new Category();
+      item.setParentId(parentId);
+      item.setId(id);
+      item.setDescription(description);
+      item.setImage(image);
+      item.setTitleText(titleText);
+      item.setTitle(title);
+      item.setTopLevel(topLevel == 1);
+
+      return item;
     } catch (SQLException e) {
       Logger.getLogger(ModelFactory.class.getName()).error("Failed create address model: " + e.getMessage(), e);
       WidgetFactory.showError("Failed create address model: " + e.getMessage(), e);
