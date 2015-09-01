@@ -73,4 +73,7 @@ public class CatalogItem {
   }
 
 
+  public String getStatusIcon() {
+    return "green.png";
+  }
 }

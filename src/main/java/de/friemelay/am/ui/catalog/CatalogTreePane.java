@@ -7,6 +7,7 @@ import de.friemelay.am.model.Category;
 import de.friemelay.am.resources.ResourceLoader;
 import de.friemelay.am.ui.util.ProgressForm;
 import de.friemelay.am.ui.util.WidgetFactory;
+import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.ObservableList;
 import javafx.concurrent.Task;
 import javafx.event.ActionEvent;
@@ -94,6 +95,21 @@ public class CatalogTreePane extends BorderPane implements EventHandler<MouseEve
     return null;
   }
 
+
+  public void refresh() {
+    refresh(treeRoot);
+  }
+
+  private void refresh(TreeItem<Object> item) {
+    ObservableList<TreeItem<Object>> children = item.getChildren();
+    for(TreeItem<Object> child : children) {
+      CatalogItem value = (CatalogItem) child.getValue();
+      child.valueProperty().unbind();
+      child.valueProperty().bind(new SimpleObjectProperty<Object>(value));
+      refresh(child);
+    }
+  }
+
   public void reload() {
     ProgressForm pForm = new ProgressForm(UIController.getInstance().getStage().getScene(), "Lade Katalog");
 
@@ -107,6 +123,7 @@ public class CatalogTreePane extends BorderPane implements EventHandler<MouseEve
 
         for(Category item : items) {
           TreeItem<Object> categoryTreeItem = new TreeItem<Object>(item, ResourceLoader.getImageView("category.png"));
+          categoryTreeItem.valueProperty().bind(new SimpleObjectProperty<Object>(item));
           categoryTreeItem.setExpanded(true);
           treeRoot.getChildren().add(categoryTreeItem);
           buildTree(item.getChildren(), categoryTreeItem);
@@ -135,6 +152,7 @@ public class CatalogTreePane extends BorderPane implements EventHandler<MouseEve
   private void buildTree(List<Category> children, TreeItem<Object> parent) {
     for(Category item : children) {
       TreeItem<Object> orderTreeItem = new TreeItem<Object>(item, ResourceLoader.getImageView("category.png"));
+      orderTreeItem.valueProperty().bind(new SimpleObjectProperty<Object>(item));
       orderTreeItem.setExpanded(true);
       parent.getChildren().add(orderTreeItem);
       buildTree(item.getChildren(), orderTreeItem);
@@ -159,4 +177,5 @@ public class CatalogTreePane extends BorderPane implements EventHandler<MouseEve
     }
     return null;
   }
+
 }

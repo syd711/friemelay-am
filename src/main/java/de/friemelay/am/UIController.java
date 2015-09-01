@@ -141,4 +141,8 @@ public class UIController {
     reloadCatalog();
     mainPanel.expandCatalog();
   }
+
+  public void refreshCatalog() {
+    this.mainPanel.getCatalogTreePane().refresh();
+  }
 }

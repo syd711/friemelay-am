@@ -331,4 +331,38 @@ public class DB {
     }
     return null;
   }
+
+  public static void save(Category category) {
+    try {
+      String query = "update categories set title = ?, title_text = ?, description = ? where id = ?";
+      PreparedStatement preparedStmt = connection.prepareStatement(query);
+      preparedStmt.setString(1, String.valueOf(category.getTitle().get()));
+      preparedStmt.setString(2, category.getTitleText().get());
+      preparedStmt.setString(3, category.getDescription().get());
+      preparedStmt.setInt(4, category.getId());
+      preparedStmt.executeUpdate();
+      preparedStmt.close();
+
+    } catch (SQLException e) {
+      Logger.getLogger(Connection.class.getName()).error("Failed to save category: " + e.getMessage(), e);
+      WidgetFactory.showError("Failed to save category: " + e.getMessage(), e);
+    }
+  }
+
+  public static Category getCategory(int id) {
+    try {
+      Statement statement = connection.createStatement();
+      ResultSet rs = statement.executeQuery("select * from categories where id = " + id);
+      while(rs.next()) {
+        Category item = ModelFactory.createCategory(rs);
+        statement.close();
+        return item;
+      }
+
+    } catch (SQLException e) {
+      Logger.getLogger(Connection.class.getName()).error("Failed to get category: " + e.getMessage(), e);
+      WidgetFactory.showError("Failed to get category: " + e.getMessage(), e);
+    }
+    return null;
+  }
 }
