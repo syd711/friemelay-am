@@ -1,5 +1,8 @@
 package de.friemelay.am.model;
 
+import javafx.beans.property.SimpleStringProperty;
+import javafx.beans.property.StringProperty;
+
 import java.sql.Blob;
 
 /**
@@ -9,9 +12,9 @@ public class CatalogItem {
 
   private int id;
   private int parentId;
-  private String title;
-  private String titleText;
-  private String description;
+  private StringProperty title = new SimpleStringProperty();
+  private StringProperty titleText = new SimpleStringProperty();
+  private StringProperty description = new SimpleStringProperty();
   private Blob image;
 
 
@@ -23,28 +26,28 @@ public class CatalogItem {
     this.id = id;
   }
 
-  public String getTitle() {
+  public StringProperty getTitle() {
     return title;
   }
 
   public void setTitle(String title) {
-    this.title = title;
+    this.title.set(title);
   }
 
-  public String getTitleText() {
+  public StringProperty getTitleText() {
     return titleText;
   }
 
   public void setTitleText(String titleText) {
-    this.titleText = titleText;
+    this.titleText.set(titleText);
   }
 
-  public String getDescription() {
+  public StringProperty getDescription() {
     return description;
   }
 
   public void setDescription(String description) {
-    this.description = description;
+    this.description.setValue(description);
   }
 
   public Blob getImage() {
@@ -58,7 +61,7 @@ public class CatalogItem {
 
   @Override
   public String toString() {
-    return title;
+    return title.get();
   }
 
   public int getParentId() {

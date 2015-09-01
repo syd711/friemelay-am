@@ -1,11 +1,13 @@
-package de.friemelay.am.ui;
+package de.friemelay.am.ui.catalog;
 
 import de.friemelay.am.UIController;
 import de.friemelay.am.db.DB;
+import de.friemelay.am.model.CatalogItem;
 import de.friemelay.am.model.Category;
 import de.friemelay.am.resources.ResourceLoader;
 import de.friemelay.am.ui.util.ProgressForm;
 import de.friemelay.am.ui.util.WidgetFactory;
+import javafx.collections.ObservableList;
 import javafx.concurrent.Task;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
@@ -79,7 +81,7 @@ public class CatalogTreePane extends BorderPane implements EventHandler<MouseEve
 
   public void handle(MouseEvent event) {
     if(event.getClickCount() == 2) {
-
+      UIController.getInstance().openCategory(getSelectedCategory());
     }
   }
 
@@ -104,7 +106,7 @@ public class CatalogTreePane extends BorderPane implements EventHandler<MouseEve
         items = DB.loadCatalog();
 
         for(Category item : items) {
-          TreeItem<Object> categoryTreeItem  = new TreeItem<Object>(item, ResourceLoader.getImageView("category.png"));
+          TreeItem<Object> categoryTreeItem = new TreeItem<Object>(item, ResourceLoader.getImageView("category.png"));
           categoryTreeItem.setExpanded(true);
           treeRoot.getChildren().add(categoryTreeItem);
           buildTree(item.getChildren(), categoryTreeItem);
@@ -137,5 +139,24 @@ public class CatalogTreePane extends BorderPane implements EventHandler<MouseEve
       parent.getChildren().add(orderTreeItem);
       buildTree(item.getChildren(), orderTreeItem);
     }
+  }
+
+  public void selectCatalogItem(CatalogItem item) {
+    TreeItem<Object> treeItem = findTreeItem(treeRoot, item);
+    treeView.getSelectionModel().select(treeItem);
+  }
+
+  private TreeItem<Object> findTreeItem(TreeItem<Object> child, CatalogItem item) {
+    if(child.getValue().equals(item)) {
+      return child;
+    }
+    ObservableList<TreeItem<Object>> children = child.getChildren();
+    for(TreeItem<Object> treeItem : children) {
+      TreeItem<Object> match = findTreeItem(treeItem, item);
+      if(match != null) {
+        return match;
+      }
+    }
+    return null;
   }
 }

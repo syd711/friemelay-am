@@ -2,6 +2,8 @@ package de.friemelay.am;
 
 import de.friemelay.am.config.Config;
 import de.friemelay.am.db.DB;
+import de.friemelay.am.model.CatalogItem;
+import de.friemelay.am.model.Category;
 import de.friemelay.am.model.Order;
 import de.friemelay.am.ui.util.TransitionUtil;
 import javafx.animation.FadeTransition;
@@ -58,8 +60,18 @@ public class UIController {
     }
   }
 
-  public void selectTreeNode(Order order) {
+  public void openCategory(Category category) {
+    if(category != null) {
+      mainPanel.getTabPane().openCategory(category);
+    }
+  }
+
+  public void selectOrderTreeNode(Order order) {
     mainPanel.getOrderTreePane().selectOrder(order);
+  }
+
+  public void selectCatalogTreeNode(CatalogItem item) {
+    mainPanel.getCatalogTreePane().selectCatalogItem(item);
   }
 
   public void orderConfirmationSent(Order order) {

@@ -1,9 +1,9 @@
 package de.friemelay.am;
 
 import de.friemelay.am.resources.ResourceLoader;
-import de.friemelay.am.ui.CatalogTreePane;
+import de.friemelay.am.ui.catalog.CatalogTreePane;
 import de.friemelay.am.ui.ItemsTabPane;
-import de.friemelay.am.ui.OrderTreePane;
+import de.friemelay.am.ui.order.OrderTreePane;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.*;

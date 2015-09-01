@@ -1,4 +1,4 @@
-package de.friemelay.am.ui;
+package de.friemelay.am.ui.order;
 
 import de.friemelay.am.model.OrderItem;
 import javafx.util.StringConverter;
