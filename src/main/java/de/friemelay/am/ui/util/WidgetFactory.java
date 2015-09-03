@@ -1,7 +1,10 @@
 package de.friemelay.am.ui.util;
 
+import de.friemelay.am.UIController;
 import de.friemelay.am.mail.TemplateService;
 import de.friemelay.am.resources.ResourceLoader;
+import de.friemelay.am.ui.imageeditor.ImageEditor;
+import de.friemelay.am.ui.imageeditor.ImageEditorChangeListener;
 import javafx.beans.binding.Bindings;
 import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.IntegerProperty;
@@ -101,6 +104,19 @@ public class WidgetFactory {
     return condValue;
   }
 
+  public static ImageEditor addFormImageEditor(GridPane grid, String label, int row, int height, ImageEditorChangeListener listener) {
+    Label condLabel = new Label(label);
+    GridPane.setHalignment(condLabel, HPos.RIGHT);
+    GridPane.setValignment(condLabel, VPos.TOP);
+    GridPane.setConstraints(condLabel, 0, row);
+    ImageEditor imageEditor = new ImageEditor(UIController.getInstance().getStage(), height);
+    imageEditor.addChangeListener(listener);
+    GridPane.setMargin(imageEditor, new Insets(5, 5, 5, 10));
+    GridPane.setConstraints(imageEditor, 1, row);
+    grid.getChildren().addAll(condLabel, imageEditor);
+    return imageEditor;
+  }
+
   public static Label addFormLabel(GridPane grid, String label, int row, DoubleProperty property, StringConverter<Number> converter) {
     Label condLabel = new Label(label);
     GridPane.setHalignment(condLabel, HPos.RIGHT);
@@ -148,12 +164,15 @@ public class WidgetFactory {
   }
 
   public static TextArea addBindingFormTextarea(GridPane grid, String label, StringProperty property, int row, boolean editable, ChangeListener<String> listener) {
+    return addBindingFormTextarea(grid, label, property, 70, row, editable, listener);
+  }
+  public static TextArea addBindingFormTextarea(GridPane grid, String label, StringProperty property, int height, int row, boolean editable, ChangeListener<String> listener) {
     Label condLabel = new Label(label);
     GridPane.setHalignment(condLabel, HPos.RIGHT);
     GridPane.setValignment(condLabel, VPos.TOP);
     GridPane.setConstraints(condLabel, 0, row);
     TextArea textBox = new TextArea(property.get());
-    textBox.setMaxHeight(70);
+    textBox.setMaxHeight(height);
     textBox.setStyle("-fx-border-color:#DDD; -fx-border-width:1px;");
     Bindings.bindBidirectional(property, textBox.textProperty());
     if(listener != null) {

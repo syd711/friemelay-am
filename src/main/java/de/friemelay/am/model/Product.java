@@ -12,14 +12,15 @@ import java.util.List;
 public class Product extends CatalogItem {
 
   private List<Blob> images = new ArrayList<Blob>();
+  private List<Product> variants = new ArrayList<>();
   private IntegerProperty stock = new SimpleIntegerProperty();
   private DoubleProperty price = new SimpleDoubleProperty();
+
   private StringProperty variantLabel = new SimpleStringProperty();
   private StringProperty variantName = new SimpleStringProperty();
   private BooleanProperty amountProperty = new SimpleBooleanProperty();
-  private boolean variant = false;
 
-  private List<Product> variants = new ArrayList<>();
+  private boolean variant = false;
 
   public List<Blob> getImages() {
     return images;
@@ -29,47 +30,23 @@ public class Product extends CatalogItem {
     this.images = images;
   }
 
-  public boolean getAmountProperty() {
-    return amountProperty.get();
+  public List<Product> getVariants() {
+    return variants;
   }
 
-  public BooleanProperty amountPropertyProperty() {
-    return amountProperty;
+  public void setVariants(List<Product> variants) {
+    this.variants = variants;
   }
 
-  public void setAmountProperty(boolean amountProperty) {
-    this.amountProperty.set(amountProperty);
+  public int getStock() {
+    return stock.get();
   }
 
-  public String getVariantName() {
-    return variantName.get();
+  public void setStock(int stock) {
+    this.stock.set(stock);
   }
 
-  public StringProperty variantNameProperty() {
-    return variantName;
-  }
-
-  public void setVariantName(String variantName) {
-    this.variantName.set(variantName);
-  }
-
-  public String getVariantLabel() {
-    return variantLabel.get();
-  }
-
-  public StringProperty variantLabelProperty() {
-    return variantLabel;
-  }
-
-  public void setVariantLabel(String variantLabel) {
-    this.variantLabel.set(variantLabel);
-  }
-
-  public double getPrice() {
-    return price.get();
-  }
-
-  public DoubleProperty priceProperty() {
+  public DoubleProperty getPrice() {
     return price;
   }
 
@@ -77,16 +54,24 @@ public class Product extends CatalogItem {
     this.price.set(price);
   }
 
-  public int getStock() {
-    return stock.get();
+  public void setVariantLabel(String variantLabel) {
+    this.variantLabel.set(variantLabel);
   }
 
-  public IntegerProperty stockProperty() {
-    return stock;
+  public StringProperty getVariantName() {
+    return variantName;
   }
 
-  public void setStock(int stock) {
-    this.stock.set(stock);
+  public void setVariantName(String variantName) {
+    this.variantName.set(variantName);
+  }
+
+  public BooleanProperty getAmount() {
+    return amountProperty;
+  }
+
+  public void setAmount(boolean amountProperty) {
+    this.amountProperty.set(amountProperty);
   }
 
   public boolean isVariant() {
@@ -97,11 +82,19 @@ public class Product extends CatalogItem {
     this.variant = variant;
   }
 
-  public List<Product> getVariants() {
-    return variants;
+  @Override
+  public String getStatusIcon() {
+    if(isVariant()) {
+      return "variant.png";
+    }
+    return "product.png";
   }
 
-  public void setVariants(List<Product> variants) {
-    this.variants = variants;
+  @Override
+  public String toString() {
+    if(isVariant()) {
+      return getVariantName().get();
+    }
+    return getTitle().get();
   }
 }

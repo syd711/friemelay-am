@@ -5,6 +5,7 @@ import de.friemelay.am.db.DB;
 import de.friemelay.am.model.Category;
 import de.friemelay.am.resources.ResourceLoader;
 import de.friemelay.am.ui.ModelTab;
+import de.friemelay.am.ui.imageeditor.ImageEditorChangeListener;
 import de.friemelay.am.ui.util.WidgetFactory;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
@@ -23,7 +24,7 @@ import javafx.scene.layout.VBox;
 /**
  *
  */
-public class CategoryTab extends ModelTab implements EventHandler<ActionEvent>, ChangeListener<String> {
+public class CategoryTab extends ModelTab implements EventHandler<ActionEvent>, ChangeListener<String>,ImageEditorChangeListener {
   private Category category;
 
   private Button saveButton;
@@ -34,7 +35,6 @@ public class CategoryTab extends ModelTab implements EventHandler<ActionEvent>, 
 
   public CategoryTab(Category category) {
     super(category);
-    setGraphic(ResourceLoader.getImageView(category.getStatusIcon()));
     this.category = category;
     init();
   }
@@ -96,13 +96,13 @@ public class CategoryTab extends ModelTab implements EventHandler<ActionEvent>, 
     catalogForm.getChildren().clear();
 
     GridPane categoryDetailsForm = WidgetFactory.createFormGrid();
-    categoryDetailsForm.getStyleClass().add("root");
     int index = 0;
     WidgetFactory.addBindingFormTextfield(categoryDetailsForm, "Name:", category.getTitle(), index++, true, this);
     if(!category.isTopLevel()) {
       WidgetFactory.addBindingFormTextarea(categoryDetailsForm, "Titeltext:", category.getTitleText(), index++, true, this);
     }
     WidgetFactory.addBindingFormTextarea(categoryDetailsForm, "Kurzbeschreibung:", category.getDescription(), index++, true, this);
+    WidgetFactory.addFormImageEditor(categoryDetailsForm, "Bild:", index++, 400, this);
     WidgetFactory.createSection(catalogForm, categoryDetailsForm, "Details", false);
   }
 
@@ -124,5 +124,10 @@ public class CategoryTab extends ModelTab implements EventHandler<ActionEvent>, 
 
   public Category getCategory() {
     return category;
+  }
+
+  @Override
+  public void editorChanged() {
+    setDirty(true);
   }
 }

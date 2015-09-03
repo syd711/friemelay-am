@@ -34,7 +34,6 @@ public class VariantTab extends ModelTab implements EventHandler<ActionEvent>, C
 
   public VariantTab(Product product) {
     super(product);
-    setGraphic(ResourceLoader.getImageView(product.getStatusIcon()));
     this.product = product;
     init();
   }
@@ -98,9 +97,8 @@ public class VariantTab extends ModelTab implements EventHandler<ActionEvent>, C
     GridPane detailsForm = WidgetFactory.createFormGrid();
     detailsForm.getStyleClass().add("root");
     int index = 0;
-    WidgetFactory.addBindingFormTextfield(detailsForm, "Name:", product.getTitle(), index++, true, this);
-    WidgetFactory.addBindingFormTextarea(detailsForm, "Titeltext:", product.getTitleText(), index++, true, this);
-    WidgetFactory.addBindingFormTextarea(detailsForm, "Kurzbeschreibung:", product.getDescription(), index++, true, this);
+    WidgetFactory.addBindingFormTextfield(detailsForm, "Varianten-Name:", product.getVariantName(), index++, true, this);
+    WidgetFactory.addBindingFormTextarea(detailsForm, "Beschreibung:", product.getDescription(), 250, index++, true, this);
     WidgetFactory.createSection(form, detailsForm, "Varianten-Details", false);
   }
 

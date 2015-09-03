@@ -34,7 +34,6 @@ public class ProductTab extends ModelTab implements EventHandler<ActionEvent>, C
 
   public ProductTab(Product product) {
     super(product);
-    setGraphic(ResourceLoader.getImageView(product.getStatusIcon()));
     this.product = product;
     init();
   }

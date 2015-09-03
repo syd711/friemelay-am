@@ -79,4 +79,9 @@ public class Address extends AbstractModel{
   public void setStreet(String street) {
     this.street.setValue(street);
   }
+
+  @Override
+  public String getStatusIcon() {
+    return null;
+  }
 }

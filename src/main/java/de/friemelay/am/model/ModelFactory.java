@@ -177,7 +177,7 @@ public class ModelFactory {
       item.setVariantName(variant_name);
       item.setDescription(description);
       item.setPrice(price);
-      item.setAmountProperty(amount != 0);
+      item.setAmount(amount != 0);
 
       return item;
     } catch (SQLException e) {

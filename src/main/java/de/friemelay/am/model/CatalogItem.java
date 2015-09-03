@@ -8,7 +8,7 @@ import java.sql.Blob;
 /**
  *
  */
-public class CatalogItem extends AbstractModel {
+public abstract class CatalogItem extends AbstractModel {
 
   private int parentId;
   private StringProperty title = new SimpleStringProperty();
@@ -62,8 +62,4 @@ public class CatalogItem extends AbstractModel {
     this.parentId = parentId;
   }
 
-
-  public String getStatusIcon() {
-    return "green.png";
-  }
 }

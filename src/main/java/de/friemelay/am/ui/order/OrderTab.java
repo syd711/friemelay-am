@@ -48,7 +48,6 @@ public class OrderTab extends ModelTab implements EventHandler<ActionEvent>, Cha
 
   public OrderTab(Order order) {
     super(order);
-    setGraphic(ResourceLoader.getImageView(order.getStatusIcon()));
     this.order = order;
     init();
   }

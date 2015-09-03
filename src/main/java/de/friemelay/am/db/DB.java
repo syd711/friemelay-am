@@ -257,6 +257,7 @@ public class DB {
       ResultSet rs = statement.executeQuery("select * from categories");
       while(rs.next()) {
         Category item = ModelFactory.createCategory(rs);
+        item.setProducts(getProducts(item.getId()));
         items.add(item);
         count++;
       }
@@ -413,6 +414,7 @@ public class DB {
       ResultSet rs = statement.executeQuery("select * from products where category_id = " + categoryId);
       while(rs.next()) {
         Product item = ModelFactory.createProduct(rs);
+        item.setVariants(getVariants(item.getId()));
         items.add(item);
       }
       statement.close();
@@ -496,7 +498,7 @@ public class DB {
   public static Product createVariant(String name, Product selection) {
     try {
       Statement statement = connection.createStatement();
-      statement.executeUpdate("insert into variants (title, product_id) VALUES ('" + name + "', " + selection.getId() + ")");
+      statement.executeUpdate("insert into variants (variant_name, product_id) VALUES ('" + name + "', " + selection.getId() + ")");
       statement.close();
 
       statement = connection.createStatement();

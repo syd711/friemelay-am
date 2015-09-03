@@ -121,4 +121,9 @@ public class Customer extends AbstractModel {
   public void setBillingAddress(Address billingAddress) {
     this.billingAddress = billingAddress;
   }
+
+  @Override
+  public String getStatusIcon() {
+    return null;
+  }
 }
