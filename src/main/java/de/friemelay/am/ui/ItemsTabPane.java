@@ -2,9 +2,13 @@ package de.friemelay.am.ui;
 
 import de.friemelay.am.UIController;
 import de.friemelay.am.db.DB;
+import de.friemelay.am.model.AbstractModel;
 import de.friemelay.am.model.Category;
 import de.friemelay.am.model.Order;
+import de.friemelay.am.model.Product;
 import de.friemelay.am.ui.catalog.CategoryTab;
+import de.friemelay.am.ui.catalog.ProductTab;
+import de.friemelay.am.ui.catalog.VariantTab;
 import de.friemelay.am.ui.order.OrderTab;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
@@ -29,42 +33,37 @@ public class ItemsTabPane extends BorderPane implements ChangeListener<Tab> {
     setCenter(tabPane);
   }
 
-  public CategoryTab openCategory(Category category) {
+  public ModelTab open(AbstractModel model) {
     ObservableList<Tab> tabs = tabPane.getTabs();
     for(Tab tab : tabs) {
-      if(tab instanceof CategoryTab) {
-        CategoryTab categoryTab = (CategoryTab) tab;
-        if(categoryTab.getCategory().equals(category)) {
-          tabPane.getSelectionModel().select(tab);
-          return categoryTab;
-        }
+      ModelTab modelTab = (ModelTab) tab;
+      if(modelTab.getModel().getId() == model.getId()) {
+        tabPane.getSelectionModel().select(tab);
+        return modelTab;
       }
     }
 
 
-    CategoryTab tab = new CategoryTab(category);
-    tabPane.getTabs().add(tab);
-    tabPane.getSelectionModel().select(tab);
-    return tab;
-  }
-
-  public OrderTab openOrder(Order order) {
-    ObservableList<Tab> tabs = tabPane.getTabs();
-    for(Tab tab : tabs) {
-      if(tab instanceof OrderTab) {
-        OrderTab orderTab = (OrderTab) tab;
-        if(orderTab.getOrder().equals(order)) {
-          tabPane.getSelectionModel().select(tab);
-          return orderTab;
-        }
+    ModelTab tab = null;
+    if(model instanceof Category) {
+      tab = new CategoryTab((Category) model);
+    }
+    else if (model instanceof Product) {
+      Product product = (Product) model;
+      if(product.isVariant()) {
+        tab = new VariantTab(product);
+      }
+      else {
+        tab = new ProductTab(product);
       }
     }
-
-    DB.loadCustomer(order);
-    DB.loadAddress(order.getCustomer());
-    DB.loadBillingAddress(order.getCustomer());
-
-    OrderTab tab = new OrderTab(order);
+    else if (model instanceof Order) {
+      Order order = (Order) model;
+      DB.loadCustomer(order);
+      DB.loadAddress(order.getCustomer());
+      DB.loadBillingAddress(order.getCustomer());
+      tab = new OrderTab((Order) model);
+    }
     tabPane.getTabs().add(tab);
     tabPane.getSelectionModel().select(tab);
     return tab;
@@ -85,12 +84,12 @@ public class ItemsTabPane extends BorderPane implements ChangeListener<Tab> {
     }
   }
 
-  public void closeTab(Order order) {
+  public void closeTab(AbstractModel item) {
     ObservableList<Tab> tabs = tabPane.getTabs();
     for(Tab tab : tabs) {
-      OrderTab orderTab = (OrderTab) tab;
-      if(orderTab.getOrder().getId() == order.getId()) {
-        tabPane.getTabs().removeAll(orderTab);
+      ModelTab modelTab = (ModelTab) tab;
+      if(modelTab.getModel().getId() == item.getId()) {
+        tabPane.getTabs().removeAll(tab);
         return;
       }
     }

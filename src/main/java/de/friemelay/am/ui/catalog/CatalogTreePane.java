@@ -4,6 +4,7 @@ import de.friemelay.am.UIController;
 import de.friemelay.am.db.DB;
 import de.friemelay.am.model.CatalogItem;
 import de.friemelay.am.model.Category;
+import de.friemelay.am.model.Product;
 import de.friemelay.am.resources.ResourceLoader;
 import de.friemelay.am.ui.util.ProgressForm;
 import de.friemelay.am.ui.util.WidgetFactory;
@@ -18,6 +19,7 @@ import javafx.scene.layout.BorderPane;
 import org.apache.commons.lang.StringUtils;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 
 /**
@@ -54,8 +56,9 @@ public class CatalogTreePane extends BorderPane implements EventHandler<MouseEve
         Category selection = getSelectedCategory();
         String name = WidgetFactory.showInputDialog("", "Kategorie anlegen", "Name der Kategorie");
         if(!StringUtils.isEmpty(name)) {
-          DB.createCategory(name, selection);
+          Category category = DB.createCategory(name, selection);
           reload();
+          UIController.getInstance().open(category);
         }
       }
     });
@@ -68,27 +71,53 @@ public class CatalogTreePane extends BorderPane implements EventHandler<MouseEve
         if(selection != null) {
           String name = WidgetFactory.showInputDialog("", "Produkt anlegen", "Name des Produktes");
           if(!StringUtils.isEmpty(name)) {
-            DB.createCategory(name, selection);
+            Product product = DB.createProduct(name, selection);
+            reload();
+            UIController.getInstance().open(product);
+          }
+        }
+      }
+    });
+
+    Button deleteButton = new Button("", ResourceLoader.getImageView("trash.png"));
+    deleteButton.setTooltip(new Tooltip("Selektion löschen"));
+    deleteButton.setOnAction(new EventHandler<ActionEvent>() {
+      public void handle(ActionEvent event) {
+        CatalogItem selection = getSelection();
+        if(selection != null) {
+          boolean delete = WidgetFactory.showConfirmation("Löschen", "Soll '" + selection + "' gelöscht werden?");
+          if(delete) {
+            UIController.getInstance().closeTab(selection);
+            DB.deleteCatalogItem(selection);
             reload();
           }
         }
       }
     });
 
-    toolbar.getItems().addAll(addCategoryButton, addProductButton);
+    toolbar.getItems().addAll(addCategoryButton, addProductButton, new Separator(), deleteButton);
 
     setTop(toolbar);
   }
 
   public void handle(MouseEvent event) {
     if(event.getClickCount() == 2) {
-      UIController.getInstance().openCategory(getSelectedCategory());
+      UIController.getInstance().open(getSelectedCategory());
     }
   }
 
   public Category getSelectedCategory() {
     TreeItem selectedItem = (TreeItem) treeView.getSelectionModel().getSelectedItem();
     if(selectedItem != null && selectedItem.getValue() instanceof Category) {
+      TreeItem<Category> item = (TreeItem<Category>) selectedItem;
+      return item.getValue();
+    }
+    return null;
+  }
+
+  public CatalogItem getSelection() {
+    TreeItem selectedItem = (TreeItem) treeView.getSelectionModel().getSelectedItem();
+    if(selectedItem != null) {
       TreeItem<Category> item = (TreeItem<Category>) selectedItem;
       return item.getValue();
     }
@@ -120,6 +149,7 @@ public class CatalogTreePane extends BorderPane implements EventHandler<MouseEve
       public Void call() throws InterruptedException {
         treeRoot.getChildren().removeAll(treeRoot.getChildren());
         items = DB.loadCatalog();
+        buildCatalog(items);
 
         for(Category item : items) {
           TreeItem<Object> categoryTreeItem = new TreeItem<Object>(item, ResourceLoader.getImageView("category.png"));
@@ -147,6 +177,41 @@ public class CatalogTreePane extends BorderPane implements EventHandler<MouseEve
     pForm.getDialogStage().show();
     Thread thread = new Thread(task);
     thread.start();
+  }
+
+
+  private static List<Category> buildCatalog(List<Category> items) {
+    List<Category> topLevel = new ArrayList<>();
+    Iterator<Category> iterator = items.iterator();
+    while(iterator.hasNext()) {
+      Category next = iterator.next();
+      if(next.isTopLevel()) {
+        topLevel.add(next);
+      }
+    }
+
+    iterator = items.iterator();
+    while(iterator.hasNext()) {
+      Category next = iterator.next();
+      if(next.isTopLevel()) {
+        continue;
+      }
+      Category parent = getParent(next, items);
+      if(parent != null) {
+        parent.getChildren().add(next);
+      }
+    }
+
+    return topLevel;
+  }
+
+  private static Category getParent(Category next, List<Category> items) {
+    for(Category item : items) {
+      if(item.getId() == next.getParentId()) {
+        return item;
+      }
+    }
+    return null;
   }
 
   private void buildTree(List<Category> children, TreeItem<Object> parent) {

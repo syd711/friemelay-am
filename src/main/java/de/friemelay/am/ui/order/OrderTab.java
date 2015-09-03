@@ -6,6 +6,7 @@ import de.friemelay.am.db.DB;
 import de.friemelay.am.model.Order;
 import de.friemelay.am.model.OrderItem;
 import de.friemelay.am.resources.ResourceLoader;
+import de.friemelay.am.ui.ModelTab;
 import de.friemelay.am.ui.util.MailDialog;
 import de.friemelay.am.ui.util.OrderConfirmationMailDialog;
 import de.friemelay.am.ui.util.OrderDeliveryConfirmationMailDialog;
@@ -31,7 +32,7 @@ import java.util.List;
 /**
  *
  */
-public class OrderTab extends Tab implements EventHandler<ActionEvent>, ChangeListener<String> {
+public class OrderTab extends ModelTab implements EventHandler<ActionEvent>, ChangeListener<String> {
   private Order order;
 
   private Button contactButton;
@@ -46,7 +47,7 @@ public class OrderTab extends Tab implements EventHandler<ActionEvent>, ChangeLi
   private boolean dirty;
 
   public OrderTab(Order order) {
-    super(order.toString());
+    super(order);
     setGraphic(ResourceLoader.getImageView(order.getStatusIcon()));
     this.order = order;
     init();

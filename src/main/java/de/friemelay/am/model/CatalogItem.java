@@ -8,23 +8,13 @@ import java.sql.Blob;
 /**
  *
  */
-public class CatalogItem {
+public class CatalogItem extends AbstractModel {
 
-  private int id;
   private int parentId;
   private StringProperty title = new SimpleStringProperty();
   private StringProperty titleText = new SimpleStringProperty();
   private StringProperty description = new SimpleStringProperty();
   private Blob image;
-
-
-  public int getId() {
-    return id;
-  }
-
-  public void setId(int id) {
-    this.id = id;
-  }
 
   public StringProperty getTitle() {
     return title;

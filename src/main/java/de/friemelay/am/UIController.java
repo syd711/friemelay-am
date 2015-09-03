@@ -2,9 +2,10 @@ package de.friemelay.am;
 
 import de.friemelay.am.config.Config;
 import de.friemelay.am.db.DB;
+import de.friemelay.am.model.AbstractModel;
 import de.friemelay.am.model.CatalogItem;
-import de.friemelay.am.model.Category;
 import de.friemelay.am.model.Order;
+import de.friemelay.am.ui.order.OrderTab;
 import de.friemelay.am.ui.util.TransitionUtil;
 import javafx.animation.FadeTransition;
 import javafx.application.Platform;
@@ -54,15 +55,9 @@ public class UIController {
     });
   }
 
-  public void openOrder(Order order) {
-    if(order != null) {
-      mainPanel.getTabPane().openOrder(order);
-    }
-  }
-
-  public void openCategory(Category category) {
-    if(category != null) {
-      mainPanel.getTabPane().openCategory(category);
+  public void open(AbstractModel model) {
+    if(model != null) {
+      mainPanel.getTabPane().open(model);
     }
   }
 
@@ -79,7 +74,8 @@ public class UIController {
     order.setOrderStatus(Order.ORDER_STATUS_CONFIRMED);
     mainPanel.getOrderTreePane().updateOrderStatus(order);
     DB.save(order);
-    mainPanel.getTabPane().openOrder(order).refreshOrderStatus();
+    OrderTab tab = (OrderTab) mainPanel.getTabPane().open(order);
+    tab.refreshOrderStatus();
   }
 
   public void deliveryConfirmationSent(Order order) {
@@ -87,7 +83,8 @@ public class UIController {
     order.setOrderStatus(Order.ORDER_STATUS_DELIVERED);
     mainPanel.getOrderTreePane().updateOrderStatus(order);
     DB.save(order);
-    mainPanel.getTabPane().openOrder(order).reload();
+    OrderTab tab = (OrderTab) mainPanel.getTabPane().open(order);
+    tab.reload();
   }
 
   public void cancelOrder(Order order) {
@@ -95,11 +92,12 @@ public class UIController {
     order.setOrderStatus(Order.ORDER_STATUS_CANCELED);
     mainPanel.getOrderTreePane().updateOrderStatus(order);
     DB.save(order);
-    mainPanel.getTabPane().openOrder(order).reload();
+    OrderTab tab = (OrderTab) mainPanel.getTabPane().open(order);
+    tab.reload();
   }
 
-  public void closeTab(Order order) {
-    mainPanel.getTabPane().closeTab(order);
+  public void closeTab(AbstractModel item) {
+    mainPanel.getTabPane().closeTab(item);
   }
 
   public void reloadOrders() {

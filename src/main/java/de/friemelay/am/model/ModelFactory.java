@@ -155,4 +155,61 @@ public class ModelFactory {
     }
     return null;
   }
+
+  public static Product createProduct(ResultSet resultSet) {
+    try {
+      int id = resultSet.getInt("id");
+      int category_id = resultSet.getInt("category_id");
+      int stock = resultSet.getInt("stock");
+      int amount = resultSet.getInt("amount");
+      double price = resultSet.getDouble("price");
+      String variant_label = resultSet.getString("variant_label");
+      String title = resultSet.getString("title");
+      String variant_name= resultSet.getString("variant_name");
+      String description = resultSet.getString("description");
+
+      Product item = new Product();
+      item.setParentId(category_id);
+      item.setId(id);
+      item.setStock(stock);
+      item.setTitle(title);
+      item.setVariantLabel(variant_label);
+      item.setVariantName(variant_name);
+      item.setDescription(description);
+      item.setPrice(price);
+      item.setAmountProperty(amount != 0);
+
+      return item;
+    } catch (SQLException e) {
+      Logger.getLogger(ModelFactory.class.getName()).error("Failed create product model: " + e.getMessage(), e);
+      WidgetFactory.showError("Failed create product model: " + e.getMessage(), e);
+    }
+    return null;
+  }
+
+  public static Product createVariant(ResultSet resultSet) {
+    try {
+      int id = resultSet.getInt("id");
+      int product_id = resultSet.getInt("product_id");
+      int stock = resultSet.getInt("stock");
+      double price = resultSet.getDouble("price");
+      String variant_name= resultSet.getString("variant_name");
+      String description = resultSet.getString("description");
+
+      Product item = new Product();
+      item.setVariant(true);
+      item.setParentId(product_id);
+      item.setId(id);
+      item.setDescription(description);
+      item.setVariantName(variant_name);
+      item.setPrice(price);
+      item.setStock(stock);
+
+      return item;
+    } catch (SQLException e) {
+      Logger.getLogger(ModelFactory.class.getName()).error("Failed create variant model: " + e.getMessage(), e);
+      WidgetFactory.showError("Failed create variant model: " + e.getMessage(), e);
+    }
+    return null;
+  }
 }

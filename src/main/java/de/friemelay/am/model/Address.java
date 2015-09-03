@@ -6,8 +6,7 @@ import javafx.beans.property.StringProperty;
 /**
  *
  */
-public class Address {
-  private int id;
+public class Address extends AbstractModel{
   private StringProperty firstname = new SimpleStringProperty();
   private StringProperty lastname = new SimpleStringProperty();
   private StringProperty company = new SimpleStringProperty();
@@ -16,14 +15,6 @@ public class Address {
   private StringProperty zip = new SimpleStringProperty();
   private StringProperty city = new SimpleStringProperty();
   private StringProperty country = new SimpleStringProperty();
-
-  public int getId() {
-    return id;
-  }
-
-  public void setId(int id) {
-    this.id = id;
-  }
 
   public StringProperty getFirstname() {
     return firstname;

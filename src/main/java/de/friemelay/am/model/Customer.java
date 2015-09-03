@@ -10,12 +10,11 @@ import java.sql.Date;
 /**
  * 
  */
-public class Customer {
+public class Customer extends AbstractModel {
 
   private Address address;
   private Address billingAddress;
-  
-  private int id;
+
   private Date creationDate;
   private Date lastLogin;
   private StringProperty customerStatus = new SimpleStringProperty();
@@ -26,14 +25,6 @@ public class Customer {
   private StringProperty phone = new SimpleStringProperty();
   private IntegerProperty newsletter = new SimpleIntegerProperty();
   private StringProperty password = new SimpleStringProperty();
-
-  public int getId() {
-    return id;
-  }
-
-  public void setId(int id) {
-    this.id = id;
-  }
 
   public Date getCreationDate() {
     return creationDate;

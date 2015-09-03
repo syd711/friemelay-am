@@ -67,7 +67,7 @@ public class OrderTreePane extends BorderPane implements EventHandler<MouseEvent
 
   public void handle(MouseEvent event) {
     if(event.getClickCount() == 2) {
-      UIController.getInstance().openOrder(getSelectedOrder());
+      UIController.getInstance().open(getSelectedOrder());
     }
   }
 
@@ -127,7 +127,7 @@ public class OrderTreePane extends BorderPane implements EventHandler<MouseEvent
     if(!children.isEmpty()) {
       TreeItem<Object> treeItem = children.get(0);
       Order order = (Order) treeItem.getValue();
-      UIController.getInstance().openOrder(order);
+      UIController.getInstance().open(order);
     }
   }
 

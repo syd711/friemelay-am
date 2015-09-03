@@ -11,14 +11,13 @@ import java.util.List;
 /**
  *
  */
-public class Order {
+public class Order extends AbstractModel {
   public final static int ORDER_STATUS_NEW = 0;
   public final static int ORDER_STATUS_CONFIRMED = 1;
   public final static int ORDER_STATUS_DELIVERED = 2;
   public final static int ORDER_STATUS_CANCELED = 3;
 
 
-  private int id;
   private Date creationDate;
   private IntegerProperty orderStatus = new SimpleIntegerProperty();
   private int customerId;
@@ -29,14 +28,6 @@ public class Order {
   private StringProperty comments = new SimpleStringProperty();
   private List<OrderItem> orderItems = new ArrayList<OrderItem>();
   private Customer customer;
-
-  public int getId() {
-    return id;
-  }
-
-  public void setId(int id) {
-    this.id = id;
-  }
 
   public Date getCreationDate() {
     return creationDate;

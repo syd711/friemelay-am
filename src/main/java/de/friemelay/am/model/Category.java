@@ -27,4 +27,8 @@ public class Category extends CatalogItem {
     this.children = children;
   }
 
+  @Override
+  public String getStatusIcon() {
+    return "category.png";
+  }
 }

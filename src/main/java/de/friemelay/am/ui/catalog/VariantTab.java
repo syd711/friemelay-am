@@ -2,7 +2,7 @@ package de.friemelay.am.ui.catalog;
 
 import de.friemelay.am.UIController;
 import de.friemelay.am.db.DB;
-import de.friemelay.am.model.Category;
+import de.friemelay.am.model.Product;
 import de.friemelay.am.resources.ResourceLoader;
 import de.friemelay.am.ui.ModelTab;
 import de.friemelay.am.ui.util.WidgetFactory;
@@ -23,19 +23,19 @@ import javafx.scene.layout.VBox;
 /**
  *
  */
-public class CategoryTab extends ModelTab implements EventHandler<ActionEvent>, ChangeListener<String> {
-  private Category category;
+public class VariantTab extends ModelTab implements EventHandler<ActionEvent>, ChangeListener<String> {
+  private Product product;
 
   private Button saveButton;
   private Button resetButton;
 
   private boolean dirty;
-  private final VBox catalogForm = new VBox();
+  private final VBox form = new VBox();
 
-  public CategoryTab(Category category) {
-    super(category);
-    setGraphic(ResourceLoader.getImageView(category.getStatusIcon()));
-    this.category = category;
+  public VariantTab(Product product) {
+    super(product);
+    setGraphic(ResourceLoader.getImageView(product.getStatusIcon()));
+    this.product = product;
     init();
   }
 
@@ -45,15 +45,15 @@ public class CategoryTab extends ModelTab implements EventHandler<ActionEvent>, 
    */
   public void handle(ActionEvent event) {
     if(event.getSource() == resetButton) {
-      category = DB.getCategory(category.getId());
-      createCatalogForm();
+      product = DB.getProduct(product.getId());
+      createForm();
       setDirty(false);
     }
     else if(event.getSource() == saveButton) {
-      boolean confirmed = WidgetFactory.showConfirmation("Kategorie überschreiben", "Soll die Kategorie mit den Änderungen überschrieben werden?");
+      boolean confirmed = WidgetFactory.showConfirmation("Variante überschreiben", "Soll die Variante mit den Änderungen überschrieben werden?");
       if(confirmed) {
-        DB.save(category);
-        this.setText(category.toString());
+        DB.save(product);
+        this.setText(product.toString());
         UIController.getInstance().refreshCatalog();
       }
       setDirty(!confirmed);
@@ -61,7 +61,7 @@ public class CategoryTab extends ModelTab implements EventHandler<ActionEvent>, 
   }
 
   public void reload() {
-    createCatalogForm();
+    createForm();
   }
 
   private void init() {
@@ -77,33 +77,31 @@ public class CategoryTab extends ModelTab implements EventHandler<ActionEvent>, 
     toolbar.getItems().addAll(saveButton, resetButton);
     root.setTop(toolbar);
 
-    catalogForm.setAlignment(Pos.TOP_CENTER);
-    catalogForm.setFillWidth(true);
+    form.setAlignment(Pos.TOP_CENTER);
+    form.setFillWidth(true);
 
     ScrollPane centerScroller = new ScrollPane();
     centerScroller.setFitToWidth(true);
-    centerScroller.setContent(catalogForm);
+    centerScroller.setContent(form);
 
-    catalogForm.setPadding(new Insets(5, 10, 5, 0));
+    form.setPadding(new Insets(5, 10, 5, 0));
     root.setCenter(centerScroller);
 
     setContent(root);
 
-    createCatalogForm();
+    createForm();
   }
 
-  private void createCatalogForm() {
-    catalogForm.getChildren().clear();
+  private void createForm() {
+    form.getChildren().clear();
 
-    GridPane categoryDetailsForm = WidgetFactory.createFormGrid();
-    categoryDetailsForm.getStyleClass().add("root");
+    GridPane detailsForm = WidgetFactory.createFormGrid();
+    detailsForm.getStyleClass().add("root");
     int index = 0;
-    WidgetFactory.addBindingFormTextfield(categoryDetailsForm, "Name:", category.getTitle(), index++, true, this);
-    if(!category.isTopLevel()) {
-      WidgetFactory.addBindingFormTextarea(categoryDetailsForm, "Titeltext:", category.getTitleText(), index++, true, this);
-    }
-    WidgetFactory.addBindingFormTextarea(categoryDetailsForm, "Kurzbeschreibung:", category.getDescription(), index++, true, this);
-    WidgetFactory.createSection(catalogForm, categoryDetailsForm, "Details", false);
+    WidgetFactory.addBindingFormTextfield(detailsForm, "Name:", product.getTitle(), index++, true, this);
+    WidgetFactory.addBindingFormTextarea(detailsForm, "Titeltext:", product.getTitleText(), index++, true, this);
+    WidgetFactory.addBindingFormTextarea(detailsForm, "Kurzbeschreibung:", product.getDescription(), index++, true, this);
+    WidgetFactory.createSection(form, detailsForm, "Varianten-Details", false);
   }
 
 
@@ -120,9 +118,5 @@ public class CategoryTab extends ModelTab implements EventHandler<ActionEvent>, 
   @Override
   public void changed(ObservableValue<? extends String> observable, String oldValue, String newValue) {
     setDirty(true);
-  }
-
-  public Category getCategory() {
-    return category;
   }
 }
