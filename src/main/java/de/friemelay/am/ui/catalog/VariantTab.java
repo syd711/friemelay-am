@@ -49,13 +49,10 @@ public class VariantTab extends ModelTab implements EventHandler<ActionEvent>, C
       setDirty(false);
     }
     else if(event.getSource() == saveButton) {
-      boolean confirmed = WidgetFactory.showConfirmation("Variante überschreiben", "Soll die Variante mit den Änderungen überschrieben werden?");
-      if(confirmed) {
-        DB.save(product);
-        this.setText(product.toString());
-        UIController.getInstance().refreshCatalog();
-      }
-      setDirty(!confirmed);
+      DB.save(product);
+      this.setText(product.toString());
+      UIController.getInstance().refreshCatalog();
+      setDirty(false);
     }
   }
 
@@ -98,7 +95,7 @@ public class VariantTab extends ModelTab implements EventHandler<ActionEvent>, C
     detailsForm.getStyleClass().add("root");
     int index = 0;
     WidgetFactory.addBindingFormTextfield(detailsForm, "Varianten-Name:", product.getVariantName(), index++, true, this);
-    WidgetFactory.addBindingFormTextarea(detailsForm, "Beschreibung:", product.getDescription(), 250, index++, true, this);
+    WidgetFactory.addBindingFormTextarea(detailsForm, "Beschreibung:", product.getDetails(), 250, index++, true, this);
     WidgetFactory.createSection(form, detailsForm, "Varianten-Details", false);
   }
 

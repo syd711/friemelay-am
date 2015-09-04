@@ -94,4 +94,8 @@ public class ItemsTabPane extends BorderPane implements ChangeListener<Tab> {
       }
     }
   }
+
+  public ObservableList<Tab> getTabs() {
+    return tabPane.getTabs();
+  }
 }

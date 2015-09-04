@@ -5,7 +5,10 @@ import de.friemelay.am.db.DB;
 import de.friemelay.am.model.Category;
 import de.friemelay.am.resources.ResourceLoader;
 import de.friemelay.am.ui.ModelTab;
+import de.friemelay.am.ui.imageeditor.ImageEditor;
+import de.friemelay.am.ui.imageeditor.ImageEditorChangeEvent;
 import de.friemelay.am.ui.imageeditor.ImageEditorChangeListener;
+import de.friemelay.am.ui.imageeditor.ImageVariant;
 import de.friemelay.am.ui.util.WidgetFactory;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
@@ -24,7 +27,7 @@ import javafx.scene.layout.VBox;
 /**
  *
  */
-public class CategoryTab extends ModelTab implements EventHandler<ActionEvent>, ChangeListener<String>,ImageEditorChangeListener {
+public class CategoryTab extends ModelTab implements EventHandler<ActionEvent>, ImageEditorChangeListener, ChangeListener<String> {
   private Category category;
 
   private Button saveButton;
@@ -50,13 +53,10 @@ public class CategoryTab extends ModelTab implements EventHandler<ActionEvent>, 
       setDirty(false);
     }
     else if(event.getSource() == saveButton) {
-      boolean confirmed = WidgetFactory.showConfirmation("Kategorie überschreiben", "Soll die Kategorie mit den Änderungen überschrieben werden?");
-      if(confirmed) {
-        DB.save(category);
-        this.setText(category.toString());
-        UIController.getInstance().refreshCatalog();
-      }
-      setDirty(!confirmed);
+      DB.save(category);
+      this.setText(category.toString());
+      UIController.getInstance().refreshCatalog();
+      setDirty(false);
     }
   }
 
@@ -99,11 +99,17 @@ public class CategoryTab extends ModelTab implements EventHandler<ActionEvent>, 
     int index = 0;
     WidgetFactory.addBindingFormTextfield(categoryDetailsForm, "Name:", category.getTitle(), index++, true, this);
     if(!category.isTopLevel()) {
-      WidgetFactory.addBindingFormTextarea(categoryDetailsForm, "Titeltext:", category.getTitleText(), index++, true, this);
+      WidgetFactory.addBindingFormTextarea(categoryDetailsForm, "Titeltext:", category.getShortDescription(), index++, true, this);
     }
-    WidgetFactory.addBindingFormTextarea(categoryDetailsForm, "Kurzbeschreibung:", category.getDescription(), index++, true, this);
-    WidgetFactory.addFormImageEditor(categoryDetailsForm, "Bild:", index++, 400, this);
-    WidgetFactory.createSection(catalogForm, categoryDetailsForm, "Details", false);
+    WidgetFactory.addBindingFormTextarea(categoryDetailsForm, "Kurzbeschreibung (Bildunterschrift):", category.getDetails(), index++, true, this);
+    ImageEditor imageEditor = WidgetFactory.addFormImageEditor(categoryDetailsForm, "Bild:", index++, 400, this);
+    imageEditor.openTab(new ImageVariant("Kategorie Bild", category.getImage()));
+
+    String label = "Details der Kategorie";
+    if(category.isTopLevel()) {
+      label = "Details der Top-Level Kategorie";
+    }
+    WidgetFactory.createSection(catalogForm, categoryDetailsForm, label, false);
   }
 
 
@@ -117,17 +123,19 @@ public class CategoryTab extends ModelTab implements EventHandler<ActionEvent>, 
     return dirty;
   }
 
-  @Override
-  public void changed(ObservableValue<? extends String> observable, String oldValue, String newValue) {
-    setDirty(true);
-  }
 
   public Category getCategory() {
     return category;
   }
 
   @Override
-  public void editorChanged() {
+  public void imageChanged(ImageEditorChangeEvent event) {
+    category.setImage(event.getImageVariant().getImage());
+    setDirty(true);
+  }
+
+  @Override
+  public void changed(ObservableValue<? extends String> observable, String oldValue, String newValue) {
     setDirty(true);
   }
 }

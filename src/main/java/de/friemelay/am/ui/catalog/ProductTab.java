@@ -49,13 +49,10 @@ public class ProductTab extends ModelTab implements EventHandler<ActionEvent>, C
       setDirty(false);
     }
     else if(event.getSource() == saveButton) {
-      boolean confirmed = WidgetFactory.showConfirmation("Produkt überschreiben", "Soll das Produkt mit den Änderungen überschrieben werden?");
-      if(confirmed) {
-        DB.save(product);
-        this.setText(product.toString());
-        UIController.getInstance().refreshCatalog();
-      }
-      setDirty(!confirmed);
+      DB.save(product);
+      this.setText(product.toString());
+      UIController.getInstance().refreshCatalog();
+      setDirty(false);
     }
   }
 
@@ -98,8 +95,8 @@ public class ProductTab extends ModelTab implements EventHandler<ActionEvent>, C
     detailsForm.getStyleClass().add("root");
     int index = 0;
     WidgetFactory.addBindingFormTextfield(detailsForm, "Name:", product.getTitle(), index++, true, this);
-    WidgetFactory.addBindingFormTextarea(detailsForm, "Titeltext:", product.getTitleText(), index++, true, this);
-    WidgetFactory.addBindingFormTextarea(detailsForm, "Kurzbeschreibung:", product.getDescription(), index++, true, this);
+    WidgetFactory.addBindingFormTextarea(detailsForm, "Titeltext:", product.getShortDescription(), index++, true, this);
+    WidgetFactory.addBindingFormTextarea(detailsForm, "Kurzbeschreibung:", product.getDetails(), index++, true, this);
     WidgetFactory.createSection(form, detailsForm, "Produkt-Details", false);
   }
 

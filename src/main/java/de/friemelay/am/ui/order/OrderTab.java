@@ -114,7 +114,7 @@ public class OrderTab extends ModelTab implements EventHandler<ActionEvent>, Cha
     resetButton = new Button("Änderungen zurücksetzen", ResourceLoader.getImageView("revert.png"));
     resetButton.setOnAction(this);
     resetButton.setDisable(isReadonly() || !isDirty());
-    orderCancelButton = new Button("Bestellung stornieren", ResourceLoader.getImageView("remove.gif"));
+    orderCancelButton = new Button("Bestellung stornieren", ResourceLoader.getImageView("remove.png"));
     orderCancelButton.setOnAction(this);
     orderCancelButton.setDisable(isReadonly());
     toolbar.getItems().addAll(contactButton, saveButton, resetButton, orderCancelButton);
@@ -282,7 +282,7 @@ public class OrderTab extends ModelTab implements EventHandler<ActionEvent>, Cha
     GridPane.setConstraints(totalPriceLabel, 4, row);
     grid.getChildren().addAll(totalPriceLabel);
 
-    Button removeButton = new Button("Löschen", ResourceLoader.getImageView("remove.gif"));
+    Button removeButton = new Button("Löschen", ResourceLoader.getImageView("remove.png"));
     removeButton.setDisable(isReadonly());
     removeButton.setOnAction(new EventHandler<ActionEvent>() {
       public void handle(ActionEvent event) {

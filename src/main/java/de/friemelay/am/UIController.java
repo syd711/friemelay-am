@@ -5,6 +5,7 @@ import de.friemelay.am.db.DB;
 import de.friemelay.am.model.AbstractModel;
 import de.friemelay.am.model.CatalogItem;
 import de.friemelay.am.model.Order;
+import de.friemelay.am.ui.ModelTab;
 import de.friemelay.am.ui.order.OrderTab;
 import de.friemelay.am.ui.util.TransitionUtil;
 import javafx.animation.FadeTransition;
@@ -13,7 +14,11 @@ import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.scene.Parent;
 import javafx.scene.control.Label;
+import javafx.scene.control.Tab;
 import javafx.stage.Stage;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  *
@@ -142,5 +147,23 @@ public class UIController {
 
   public void refreshCatalog() {
     this.mainPanel.getCatalogTreePane().refresh();
+  }
+
+  public void closeInvalidTabs() {
+    Platform.runLater(new Runnable() {
+      @Override
+      public void run() {
+        List<Tab> tabs = new ArrayList<>(mainPanel.getTabPane().getTabs());
+        for(Tab tab : tabs) {
+          ModelTab modelTab = (ModelTab) tab;
+          if(modelTab.getModel() instanceof CatalogItem) {
+            CatalogItem model = (CatalogItem) modelTab.getModel();
+            if(!mainPanel.getCatalogTreePane().hasCatalogItem(model)) {
+              closeTab(model);
+            }
+          }
+        }
+      }
+    });
   }
 }

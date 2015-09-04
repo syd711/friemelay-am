@@ -251,6 +251,16 @@ public class WidgetFactory {
     return createButton(parent, label, null, handler);
   }
 
+  public static Button createButton(ToolBar parent, String label, String image, EventHandler<ActionEvent> handler) {
+    Button button = new Button(label);
+    if(image != null) {
+      button = new Button(label, ResourceLoader.getImageView(image));
+    }
+    parent.getItems().addAll(button);
+    button.setOnAction(handler);
+    return button;
+  }
+
   public static Button createButton(Pane parent, String label, String image, EventHandler<ActionEvent> handler) {
     Button button = new Button(label);
     if(image != null) {

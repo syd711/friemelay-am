@@ -108,6 +108,7 @@ public class CatalogTreePane extends BorderPane implements EventHandler<MouseEve
             UIController.getInstance().closeTab(selection);
             DB.deleteCatalogItem(selection);
             reload();
+            UIController.getInstance().closeInvalidTabs();
           }
         }
       }
@@ -120,7 +121,12 @@ public class CatalogTreePane extends BorderPane implements EventHandler<MouseEve
 
   public void handle(MouseEvent event) {
     if(event.getClickCount() == 2) {
-      UIController.getInstance().open(getSelection());
+      CatalogItem selection = getSelection();
+      if(selection != null) {
+        TreeItem selectedItem = (TreeItem) treeView.getSelectionModel().getSelectedItem();
+        selectedItem.setExpanded(true);
+        UIController.getInstance().open(selection);
+      }
     }
 
     AbstractModel model = getSelection();
@@ -271,6 +277,11 @@ public class CatalogTreePane extends BorderPane implements EventHandler<MouseEve
   public void selectCatalogItem(CatalogItem item) {
     TreeItem<Object> treeItem = findTreeItem(treeRoot, item);
     treeView.getSelectionModel().select(treeItem);
+  }
+
+  public boolean hasCatalogItem(CatalogItem item) {
+    TreeItem<Object> treeItem = findTreeItem(treeRoot, item);
+    return treeItem != null;
   }
 
   private TreeItem<Object> findTreeItem(TreeItem<Object> child, CatalogItem item) {

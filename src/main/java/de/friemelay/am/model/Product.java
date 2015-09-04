@@ -1,8 +1,8 @@
 package de.friemelay.am.model;
 
 import javafx.beans.property.*;
+import javafx.scene.image.Image;
 
-import java.sql.Blob;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -11,7 +11,7 @@ import java.util.List;
  */
 public class Product extends CatalogItem {
 
-  private List<Blob> images = new ArrayList<Blob>();
+  private List<Image> images = new ArrayList<Image>();
   private List<Product> variants = new ArrayList<>();
   private IntegerProperty stock = new SimpleIntegerProperty();
   private DoubleProperty price = new SimpleDoubleProperty();
@@ -22,11 +22,11 @@ public class Product extends CatalogItem {
 
   private boolean variant = false;
 
-  public List<Blob> getImages() {
+  public List<Image> getImages() {
     return images;
   }
 
-  public void setImages(List<Blob> images) {
+  public void setImages(List<Image> images) {
     this.images = images;
   }
 

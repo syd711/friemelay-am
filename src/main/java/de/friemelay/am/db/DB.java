@@ -2,6 +2,7 @@ package de.friemelay.am.db;
 
 import de.friemelay.am.config.Config;
 import de.friemelay.am.model.*;
+import de.friemelay.am.ui.util.ImageUtil;
 import de.friemelay.am.ui.util.WidgetFactory;
 import org.apache.log4j.Logger;
 
@@ -271,6 +272,7 @@ public class DB {
   }
 
   public static Category createCategory(String name, Category parent) {
+    Logger.getLogger(Connection.class.getName()).info("Creating child category for " + parent);
     try {
       int topLevel = 1;
       Integer parentId = null;
@@ -298,11 +300,23 @@ public class DB {
   }
 
   public static void deleteCategory(Category category) {
+    Logger.getLogger(Connection.class.getName()).info("Deleting category " + category);
     try {
       String query = "delete from categories where id = " + category.getId();
       PreparedStatement preparedStmt = connection.prepareStatement(query);
       preparedStmt.executeUpdate();
       preparedStmt.close();
+
+      for(Category child : category.getChildren()) {
+        deleteCategory(child);
+      }
+
+      List<Product> products = category.getProducts();
+      for(Product product : products) {
+        deleteProduct(product);
+      }
+
+
     } catch (SQLException e) {
       Logger.getLogger(Connection.class.getName()).error("Failed to delete category: " + e.getMessage(), e);
       WidgetFactory.showError("Failed to delete category: " + e.getMessage(), e);
@@ -310,6 +324,7 @@ public class DB {
   }
 
   public static void deleteProduct(Product product) {
+    Logger.getLogger(Connection.class.getName()).info("Deleting product " + product);
     try {
       String query = "delete from products where id = " + product.getId();
       PreparedStatement preparedStmt = connection.prepareStatement(query);
@@ -327,6 +342,7 @@ public class DB {
   }
 
   public static void deleteVariant(Product product) {
+    Logger.getLogger(Connection.class.getName()).info("Deleting variant " + product);
     try {
       String query = "delete from variants where id = " + product.getId();
       PreparedStatement preparedStmt = connection.prepareStatement(query);
@@ -341,12 +357,17 @@ public class DB {
 
   public static void save(Category category) {
     try {
-      String query = "update categories set title = ?, title_text = ?, description = ? where id = ?";
+      String query = "update categories set title = ?, short_description = ?, details = ? , image = ? where id = " + category.getId();
       PreparedStatement preparedStmt = connection.prepareStatement(query);
       preparedStmt.setString(1, String.valueOf(category.getTitle().get()));
-      preparedStmt.setString(2, category.getTitleText().get());
-      preparedStmt.setString(3, category.getDescription().get());
-      preparedStmt.setInt(4, category.getId());
+      preparedStmt.setString(2, category.getShortDescription().get());
+      preparedStmt.setString(3, category.getDetails().get());
+      if(category.getImage() != null) {
+        preparedStmt.setBinaryStream(4, ImageUtil.getFileInputStream(category.getImage()));
+      }
+      else {
+        preparedStmt.setNull(4, Types.BLOB);
+      }
       preparedStmt.executeUpdate();
       preparedStmt.close();
 
@@ -361,8 +382,8 @@ public class DB {
       String query = "update products set title = ?, title_text = ?, description = ? where id = " + product.getId();
       PreparedStatement preparedStmt = connection.prepareStatement(query);
       preparedStmt.setString(1, String.valueOf(product.getTitle().get()));
-      preparedStmt.setString(2, product.getTitleText().get());
-      preparedStmt.setString(3, product.getDescription().get());
+      preparedStmt.setString(2, product.getShortDescription().get());
+      preparedStmt.setString(3, product.getDetails().get());
       preparedStmt.executeUpdate();
       preparedStmt.close();
 
@@ -371,7 +392,6 @@ public class DB {
       WidgetFactory.showError("Failed to save product: " + e.getMessage(), e);
     }
   }
-
 
   public static Category getCategory(int id) {
     try {
@@ -389,6 +409,7 @@ public class DB {
     }
     return null;
   }
+
 
   public static Product getProduct(int id) {
     try {
@@ -475,6 +496,7 @@ public class DB {
   }
 
   public static Product createProduct(String name, Category selection) {
+    Logger.getLogger(Connection.class.getName()).info("Creating new product for category " + selection);
     try {
       Statement statement = connection.createStatement();
       statement.executeUpdate("insert into products (title, category_id) VALUES ('" + name + "', " + selection.getId() + ")");
@@ -496,6 +518,7 @@ public class DB {
   }
 
   public static Product createVariant(String name, Product selection) {
+    Logger.getLogger(Connection.class.getName()).info("Creating new variant for product " + selection);
     try {
       Statement statement = connection.createStatement();
       statement.executeUpdate("insert into variants (variant_name, product_id) VALUES ('" + name + "', " + selection.getId() + ")");

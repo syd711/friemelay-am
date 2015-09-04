@@ -19,6 +19,14 @@ public class ImageVariant {
     this.name = name;
   }
 
+  public void setName(String name) {
+    this.name = name;
+  }
+
+  public void setImage(Image image) {
+    this.image = image;
+  }
+
   public void save(OutputStream out) {
     try {
       ImageIO.write(SwingFXUtils.fromFXImage(image, null), "png", out);
@@ -33,6 +41,9 @@ public class ImageVariant {
 
   @Override
   public String toString() {
-    return name;
+    if(image == null && name == null) {
+      return "Default Bild";
+    }
+    return name + " (" + (int)image.getWidth() + " x " + (int)image.getHeight() + ")";
   }
 }

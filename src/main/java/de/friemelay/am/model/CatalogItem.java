@@ -2,8 +2,7 @@ package de.friemelay.am.model;
 
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
-
-import java.sql.Blob;
+import javafx.scene.image.Image;
 
 /**
  *
@@ -12,9 +11,9 @@ public abstract class CatalogItem extends AbstractModel {
 
   private int parentId;
   private StringProperty title = new SimpleStringProperty();
-  private StringProperty titleText = new SimpleStringProperty();
-  private StringProperty description = new SimpleStringProperty();
-  private Blob image;
+  private StringProperty shortDescription = new SimpleStringProperty();
+  private StringProperty details = new SimpleStringProperty();
+  private Image image;
 
   public StringProperty getTitle() {
     return title;
@@ -24,27 +23,27 @@ public abstract class CatalogItem extends AbstractModel {
     this.title.set(title);
   }
 
-  public StringProperty getTitleText() {
-    return titleText;
+  public StringProperty getShortDescription() {
+    return shortDescription;
   }
 
-  public void setTitleText(String titleText) {
-    this.titleText.set(titleText);
+  public void setShortDescription(String shortDescription) {
+    this.shortDescription.set(shortDescription);
   }
 
-  public StringProperty getDescription() {
-    return description;
+  public StringProperty getDetails() {
+    return details;
   }
 
-  public void setDescription(String description) {
-    this.description.setValue(description);
+  public void setDetails(String details) {
+    this.details.setValue(details);
   }
 
-  public Blob getImage() {
+  public Image getImage() {
     return image;
   }
 
-  public void setImage(Blob image) {
+  public void setImage(Image image) {
     this.image = image;
   }
 

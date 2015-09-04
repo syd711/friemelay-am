@@ -1,8 +1,13 @@
 package de.friemelay.am.model;
 
 import de.friemelay.am.ui.util.WidgetFactory;
+import javafx.embed.swing.SwingFXUtils;
+import javafx.scene.image.Image;
 import org.apache.log4j.Logger;
 
+import javax.imageio.ImageIO;
+import java.awt.image.BufferedImage;
+import java.io.InputStream;
 import java.sql.Blob;
 import java.sql.Date;
 import java.sql.ResultSet;
@@ -135,23 +140,25 @@ public class ModelFactory {
       int parentId = resultSet.getInt("parent_id");
       int topLevel = resultSet.getInt("top_level");
       String title = resultSet.getString("title");
-      String description= resultSet.getString("description");
-      String titleText = resultSet.getString("title_text");
-      Blob image = resultSet.getBlob("image");
+      String details= resultSet.getString("details");
+      String short_description = resultSet.getString("short_description");
+      Image image = readImage("image", resultSet);
+
 
       Category item = new Category();
+      item.setImage(image);
       item.setParentId(parentId);
       item.setId(id);
-      item.setDescription(description);
+      item.setDetails(details);
       item.setImage(image);
-      item.setTitleText(titleText);
+      item.setShortDescription(short_description);
       item.setTitle(title);
       item.setTopLevel(topLevel == 1);
 
       return item;
     } catch (SQLException e) {
-      Logger.getLogger(ModelFactory.class.getName()).error("Failed create address model: " + e.getMessage(), e);
-      WidgetFactory.showError("Failed create address model: " + e.getMessage(), e);
+      Logger.getLogger(ModelFactory.class.getName()).error("Failed create category model: " + e.getMessage(), e);
+      WidgetFactory.showError("Failed create category model: " + e.getMessage(), e);
     }
     return null;
   }
@@ -166,7 +173,7 @@ public class ModelFactory {
       String variant_label = resultSet.getString("variant_label");
       String title = resultSet.getString("title");
       String variant_name= resultSet.getString("variant_name");
-      String description = resultSet.getString("description");
+      String details = resultSet.getString("details");
 
       Product item = new Product();
       item.setParentId(category_id);
@@ -175,7 +182,7 @@ public class ModelFactory {
       item.setTitle(title);
       item.setVariantLabel(variant_label);
       item.setVariantName(variant_name);
-      item.setDescription(description);
+      item.setDetails(details);
       item.setPrice(price);
       item.setAmount(amount != 0);
 
@@ -194,13 +201,15 @@ public class ModelFactory {
       int stock = resultSet.getInt("stock");
       double price = resultSet.getDouble("price");
       String variant_name= resultSet.getString("variant_name");
-      String description = resultSet.getString("description");
+      String variant_short_description= resultSet.getString("variant_short_description");
+      String details = resultSet.getString("details");
 
       Product item = new Product();
       item.setVariant(true);
       item.setParentId(product_id);
       item.setId(id);
-      item.setDescription(description);
+      item.setDetails(details);
+      item.setShortDescription(variant_short_description);
       item.setVariantName(variant_name);
       item.setPrice(price);
       item.setStock(stock);
@@ -209,6 +218,21 @@ public class ModelFactory {
     } catch (SQLException e) {
       Logger.getLogger(ModelFactory.class.getName()).error("Failed create variant model: " + e.getMessage(), e);
       WidgetFactory.showError("Failed create variant model: " + e.getMessage(), e);
+    }
+    return null;
+  }
+
+  private static Image readImage(String column, ResultSet resultSet) {
+    try {
+      Blob blob = resultSet.getBlob(column);
+      if(blob == null) {
+        return null;
+      }
+      InputStream is = blob.getBinaryStream();
+      BufferedImage bufferedImage = ImageIO.read(is);
+      return SwingFXUtils.toFXImage(bufferedImage, null);
+    } catch (Exception e) {
+      Logger.getLogger(ModelFactory.class).error("Error reading image from database: " + e.getMessage(), e);
     }
     return null;
   }

@@ -58,8 +58,8 @@ CREATE TABLE categories (
   parent_id INT(8) NULL,
   top_level INT(1) NOT NULL DEFAULT 0,
   title VARCHAR(100) NULL,
-  title_text VARCHAR(2000) NULL,
-  description VARCHAR(300) NULL,
+  short_description VARCHAR(300) NULL,
+  details VARCHAR(2000) NULL,
   image MEDIUMBLOB
 );
 
@@ -73,7 +73,8 @@ CREATE TABLE products (
   title VARCHAR(100) NULL,
   variant_label VARCHAR(100) NULL,
   variant_name VARCHAR(100) NULL,
-  description VARCHAR(300) NULL
+  variant_short_description VARCHAR(300) NULL,
+  details VARCHAR(2000) NULL
 );
 
 DROP TABLE IF EXISTS variants;
@@ -83,7 +84,8 @@ CREATE TABLE variants (
   stock INT(8) NOT NULL DEFAULT 0,
   price DECIMAL(5,2) NOT NULL DEFAULT 0,
   variant_name VARCHAR(100) NULL,
-  description VARCHAR(300) NULL
+  variant_short_description VARCHAR(300) NULL,
+  details VARCHAR(2000) NULL
 );
 
 DROP TABLE IF EXISTS images;
