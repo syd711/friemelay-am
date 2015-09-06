@@ -1,7 +1,9 @@
 package de.friemelay.am.ui.imageeditor;
 
+import de.friemelay.am.ui.util.ImageUtil;
 import de.friemelay.am.ui.util.WidgetFactory;
 import javafx.event.ActionEvent;
+import javafx.event.Event;
 import javafx.event.EventHandler;
 import javafx.geometry.Insets;
 import javafx.scene.control.*;
@@ -11,10 +13,9 @@ import javafx.scene.input.Clipboard;
 import javafx.scene.layout.BorderPane;
 import javafx.stage.FileChooser;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.InputStream;
+import javax.imageio.ImageIO;
+import java.awt.image.BufferedImage;
+import java.io.*;
 import java.sql.Blob;
 import java.sql.SQLException;
 import java.util.List;
@@ -26,6 +27,7 @@ public class ImageTab extends Tab implements EventHandler<ActionEvent> {
   private ImageVariant variant;
 
   private Button addButton;
+  private Button newButton;
   private Button removeButton;
   private Button pasteButton;
 
@@ -36,11 +38,20 @@ public class ImageTab extends Tab implements EventHandler<ActionEvent> {
     super(variant.toString());
     this.imageEditor = imageEditor;
     this.variant = variant;
-    setClosable(false);
+    setClosable(imageEditor.getTabs().size() >= 1);
+
+    setOnClosed(new EventHandler<Event>() {
+      @Override
+      public void handle(Event event) {
+        variant.setName(null);
+        variant.setImage(null);
+        imageEditor.setDirty(true, variant);
+      }
+    });
 
     imageView = new ImageView();
     if(variant.getImage() != null) {
-      imageView.setImage(variant.getImage());
+      imageView.setImage(ImageUtil.toImage(variant.getImage()));
     }
 
     ScrollPane centerScroller = new ScrollPane();
@@ -55,10 +66,11 @@ public class ImageTab extends Tab implements EventHandler<ActionEvent> {
     setContent(main);
 
     ToolBar toolBar = new ToolBar();
-    addButton = WidgetFactory.createButton(toolBar, "", "open.png", this);
-    removeButton = WidgetFactory.createButton(toolBar, "", "remove.png", this);
+    addButton = WidgetFactory.createButton(toolBar, "", "open.png", "Bilddatei öffnen", this);
+    removeButton = WidgetFactory.createButton(toolBar, "", "remove.png", "Bild entfernen", this);
     toolBar.getItems().add(new Separator());
-    pasteButton = WidgetFactory.createButton(toolBar, "", "paste.png", this);
+    newButton = WidgetFactory.createButton(toolBar, "", "plus.png", "Neues Bild hinzufügen", this);
+    newButton.setDisable(imageEditor.getTabs().size()+1 == imageEditor.getMaxTabs());
     main.setTop(toolBar);
   }
 
@@ -81,18 +93,23 @@ public class ImageTab extends Tab implements EventHandler<ActionEvent> {
     }
   }
 
-  private void addImageVariant(String name, Image image) {
+  private void addImageVariant(String name, BufferedImage image) {
     variant.setName(name);
     variant.setImage(image);
     setText(variant.toString());
-    imageView.setImage(image);
+    imageView.setImage(ImageUtil.toImage(image));
 
     imageEditor.setDirty(true, variant);
   }
 
   private void addImageVariant(String name, InputStream in) {
-    Image image = new Image(in);
-    addImageVariant(name, image);
+    try {
+      BufferedImage image = ImageIO.read(in);
+      addImageVariant(name, image);
+    } catch (IOException e) {
+      e.printStackTrace();
+    }
+
   }
 
   @Override
@@ -110,10 +127,14 @@ public class ImageTab extends Tab implements EventHandler<ActionEvent> {
         addImageVariant(file);
       }
     }
+    else if(event.getSource() == newButton) {
+      imageEditor.openTab(new ImageVariant("Bild", null));
+    }
     else if(event.getSource() == removeButton) {
       variant.setImage(null);
       variant.setName(null);
       imageView.setImage(null);
+      setText("Bild");
       imageEditor.setDirty(true, variant);
     }
     else if(event.getSource() == pasteButton) {
@@ -124,9 +145,10 @@ public class ImageTab extends Tab implements EventHandler<ActionEvent> {
         if(clipboard.getHtml() != null && clipboard.getHtml().startsWith("<img")) {
           String html = clipboard.getHtml();
           html = html.replaceAll("/>", "");
-          name = html.substring(html.lastIndexOf("/")+1, html.lastIndexOf("\""));
+          html = html.substring(html.indexOf("src=")+5, html.length());
+          name = html.substring(html.lastIndexOf("/")+1, html.indexOf("\""));
         }
-        addImageVariant(name, image);
+        addImageVariant(name, ImageUtil.toBufferedImage(image));
       }
       List<File> files = clipboard.getFiles();
       if(files != null && !files.isEmpty()) {
@@ -136,6 +158,10 @@ public class ImageTab extends Tab implements EventHandler<ActionEvent> {
         }
       }
     }
+  }
+
+  public ImageVariant getVariant() {
+    return variant;
   }
 
 }

@@ -22,20 +22,19 @@ public class ImageEditor extends BorderPane {
 
   public static File lastLocation;
 
-  public ImageEditor(Stage stage, int height) {
+  public ImageEditor(Stage stage, int height, int maxTabs) {
     this.stage = stage;
     imageTabs = new ImageTabPane();
     setCenter(imageTabs);
     setMinHeight(height);
+    this.maxTabs = maxTabs;
     setStyle("-fx-border-color:#DDD; -fx-border-width:1px;");
   }
 
   public void openTab(ImageVariant variant) {
-    imageTabs.getTabs().addAll(new ImageTab(this, variant));
-  }
-
-  public void setImageTabCount(int max) {
-    this.maxTabs = max;
+    ImageTab imageTab = new ImageTab(this, variant);
+    imageTabs.getTabs().addAll(imageTab);
+    imageTabs.getSelectionModel().select(imageTab);
   }
 
   public void addChangeListener(ImageEditorChangeListener listener) {
@@ -45,8 +44,9 @@ public class ImageEditor extends BorderPane {
   protected void setDirty(boolean b, ImageVariant variant) {
     this.dirty = b;
     if(dirty) {
+      List<ImageVariant> variants = getAllVariants();
       for(ImageEditorChangeListener changeListener : changeListeners) {
-        changeListener.imageChanged(new ImageEditorChangeEvent(variant));
+        changeListener.imageChanged(new ImageEditorChangeEvent(variant, variants));
       }
     }
   }
@@ -57,5 +57,23 @@ public class ImageEditor extends BorderPane {
 
   public ObservableList<Tab> getTabs() {
     return imageTabs.getTabs();
+  }
+
+  public int getMaxTabs() {
+    return maxTabs;
+  }
+
+  public List<ImageVariant> getAllVariants() {
+    List<ImageVariant> variants = new ArrayList<>();
+    ObservableList<Tab> tabs = imageTabs.getTabs();
+    for(Tab tab : tabs) {
+      ImageTab imageTab = (ImageTab) tab;
+      ImageVariant variant = imageTab.getVariant();
+      if(variant.getImage() != null) {
+        variants.add(variant);
+      }
+    }
+
+    return variants;
   }
 }

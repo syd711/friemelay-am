@@ -5,10 +5,8 @@ import de.friemelay.am.db.DB;
 import de.friemelay.am.model.Category;
 import de.friemelay.am.resources.ResourceLoader;
 import de.friemelay.am.ui.ModelTab;
-import de.friemelay.am.ui.imageeditor.ImageEditor;
 import de.friemelay.am.ui.imageeditor.ImageEditorChangeEvent;
 import de.friemelay.am.ui.imageeditor.ImageEditorChangeListener;
-import de.friemelay.am.ui.imageeditor.ImageVariant;
 import de.friemelay.am.ui.util.WidgetFactory;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
@@ -98,12 +96,13 @@ public class CategoryTab extends ModelTab implements EventHandler<ActionEvent>, 
     GridPane categoryDetailsForm = WidgetFactory.createFormGrid();
     int index = 0;
     WidgetFactory.addBindingFormTextfield(categoryDetailsForm, "Name:", category.getTitle(), index++, true, this);
-    if(!category.isTopLevel()) {
-      WidgetFactory.addBindingFormTextarea(categoryDetailsForm, "Titeltext:", category.getShortDescription(), index++, true, this);
+    WidgetFactory.addBindingFormTextarea(categoryDetailsForm, "Titeltext:", category.getDetails(), index++, true, this);
+    WidgetFactory.addBindingFormTextarea(categoryDetailsForm, "Kurzbeschreibung (Bildunterschrift):", category.getShortDescription(), index++, true, this);
+    String formLabel = "Bild (empfohlene Größe: 305 x 200 Pixel):";
+    if(category.isTopLevel()) {
+      formLabel = "Bild (empfohlene Größe: 305 x 130 Pixel):";
     }
-    WidgetFactory.addBindingFormTextarea(categoryDetailsForm, "Kurzbeschreibung (Bildunterschrift):", category.getDetails(), index++, true, this);
-    ImageEditor imageEditor = WidgetFactory.addFormImageEditor(categoryDetailsForm, "Bild:", index++, 400, this);
-    imageEditor.openTab(new ImageVariant("Kategorie Bild", category.getImage()));
+    WidgetFactory.addFormImageEditor(categoryDetailsForm, formLabel, category.getImage(), index++, 400, 1, this);
 
     String label = "Details der Kategorie";
     if(category.isTopLevel()) {

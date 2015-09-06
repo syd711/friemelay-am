@@ -126,4 +126,9 @@ public class Customer extends AbstractModel {
   public String getStatusIcon() {
     return null;
   }
+
+  @Override
+  public int getType() {
+    return AbstractModel.TYPE_CUSTUMER;
+  }
 }

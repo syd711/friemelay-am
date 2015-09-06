@@ -6,6 +6,7 @@ import de.friemelay.am.ui.util.ImageUtil;
 import de.friemelay.am.ui.util.WidgetFactory;
 import org.apache.log4j.Logger;
 
+import java.awt.image.BufferedImage;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
@@ -281,7 +282,7 @@ public class DB {
         parentId = parent.getId();
       }
       Statement statement = connection.createStatement();
-      statement.executeUpdate("insert into categories (title, top_level, parent_id) VALUES ('" + name + "', " + topLevel + ", " + parentId + ")");
+      statement.executeUpdate("insert into categories (title, model_type, top_level, parent_id) VALUES ('" + name + "', " + CatalogItem.TYPE_CATEGORY + ", " + topLevel + ", " + parentId + ")");
       statement.close();
 
       statement = connection.createStatement();
@@ -333,27 +334,13 @@ public class DB {
 
       List<Product> variants = product.getVariants();
       for(Product variant : variants) {
-        deleteVariant(variant);
+        deleteProduct(variant);
       }
     } catch (SQLException e) {
       Logger.getLogger(Connection.class.getName()).error("Failed to delete product: " + e.getMessage(), e);
       WidgetFactory.showError("Failed to delete product: " + e.getMessage(), e);
     }
   }
-
-  public static void deleteVariant(Product product) {
-    Logger.getLogger(Connection.class.getName()).info("Deleting variant " + product);
-    try {
-      String query = "delete from variants where id = " + product.getId();
-      PreparedStatement preparedStmt = connection.prepareStatement(query);
-      preparedStmt.executeUpdate();
-      preparedStmt.close();
-    } catch (SQLException e) {
-      Logger.getLogger(Connection.class.getName()).error("Failed to delete variant: " + e.getMessage(), e);
-      WidgetFactory.showError("Failed to delete variant: " + e.getMessage(), e);
-    }
-  }
-
 
   public static void save(Category category) {
     try {
@@ -363,7 +350,7 @@ public class DB {
       preparedStmt.setString(2, category.getShortDescription().get());
       preparedStmt.setString(3, category.getDetails().get());
       if(category.getImage() != null) {
-        preparedStmt.setBinaryStream(4, ImageUtil.getFileInputStream(category.getImage()));
+        preparedStmt.setBinaryStream(4, ImageUtil.getImageInputStream(category.getImage()));
       }
       else {
         preparedStmt.setNull(4, Types.BLOB);
@@ -379,13 +366,38 @@ public class DB {
 
   public static void save(Product product) {
     try {
-      String query = "update products set title = ?, title_text = ?, description = ? where id = " + product.getId();
+      String query = "update products set title = ?, variant_label = ?, variant_name = ?, short_description = ?, details = ?, stock = ?, price = ?, amount = ? where id = " + product.getId();
       PreparedStatement preparedStmt = connection.prepareStatement(query);
       preparedStmt.setString(1, String.valueOf(product.getTitle().get()));
-      preparedStmt.setString(2, product.getShortDescription().get());
-      preparedStmt.setString(3, product.getDetails().get());
+      preparedStmt.setString(2, product.getVariantLabel().get());
+      preparedStmt.setString(3, product.getVariantName().get());
+      preparedStmt.setString(4, product.getShortDescription().get());
+      preparedStmt.setString(5, product.getDetails().get());
+      preparedStmt.setInt(6, product.getStock().get());
+      preparedStmt.setDouble(7, product.getPrice().get());
+      preparedStmt.setInt(8, product.getAmountValue());
       preparedStmt.executeUpdate();
       preparedStmt.close();
+
+      query = "DELETE FROM productimages where product_id = " + product.getId();
+      preparedStmt = connection.prepareStatement(query);
+      preparedStmt.executeUpdate();
+      preparedStmt.close();
+
+      List<BufferedImage> images = product.getImages();
+      for(BufferedImage image : images) {
+        try {
+          query = "INSERT INTO productimages (product_id, mime_type, image) VALUES (?,?,?)";
+          preparedStmt = connection.prepareStatement(query);
+          preparedStmt.setInt(1, product.getId());
+          preparedStmt.setString(2, "image/jpeg");
+          preparedStmt.setBinaryStream(3, ImageUtil.getImageInputStream(image));
+          preparedStmt.executeUpdate();
+          preparedStmt.close();
+        } catch (RuntimeException e) {
+          Logger.getLogger(Connection.class.getName()).error("Failed to insert image: " + e.getMessage(), e);
+        }
+      }
 
     } catch (SQLException e) {
       Logger.getLogger(Connection.class.getName()).error("Failed to save product: " + e.getMessage(), e);
@@ -428,14 +440,31 @@ public class DB {
     return null;
   }
 
-  public static List<Product> getProducts(int categoryId) {
+  public static Product loadImages(Product p) {
+    try {
+      p.getImages().clear();
+      Statement statement = connection.createStatement();
+      ResultSet rs = statement.executeQuery("select * from productimages where product_id = " + p.getId());
+      while(rs.next()) {
+        BufferedImage image = ModelFactory.createImage(rs);
+        p.getImages().add(image);
+      }
+      statement.close();
+    } catch (SQLException e) {
+      Logger.getLogger(Connection.class.getName()).error("Failed to get product: " + e.getMessage(), e);
+      WidgetFactory.showError("Failed to get product: " + e.getMessage(), e);
+    }
+    return null;
+  }
+
+  public static List<Product> getProducts(int parentId) {
     List<Product> items = new ArrayList();
     try {
       Statement statement = connection.createStatement();
-      ResultSet rs = statement.executeQuery("select * from products where category_id = " + categoryId);
+      ResultSet rs = statement.executeQuery("select * from products where parent_id = " + parentId);
       while(rs.next()) {
         Product item = ModelFactory.createProduct(rs);
-        item.setVariants(getVariants(item.getId()));
+        item.setVariants(getProducts(item.getId()));
         items.add(item);
       }
       statement.close();
@@ -446,60 +475,23 @@ public class DB {
     return items;
   }
 
-  public static Product getVariant(int id) {
-    try {
-      Statement statement = connection.createStatement();
-      ResultSet rs = statement.executeQuery("select * from variants where id = " + id);
-      while(rs.next()) {
-        Product item = ModelFactory.createVariant(rs);
-        statement.close();
-        return item;
-      }
-
-    } catch (SQLException e) {
-      Logger.getLogger(Connection.class.getName()).error("Failed to get variant: " + e.getMessage(), e);
-      WidgetFactory.showError("Failed to get variant: " + e.getMessage(), e);
-    }
-    return null;
-  }
-
-  public static List<Product> getVariants(int productId) {
-    List<Product> variants = new ArrayList();
-    try {
-      Statement statement = connection.createStatement();
-      ResultSet rs = statement.executeQuery("select * from variants where product_id = " + productId);
-      while(rs.next()) {
-        Product item = ModelFactory.createVariant(rs);
-        variants.add(item);
-      }
-      statement.close();
-    } catch (SQLException e) {
-      Logger.getLogger(Connection.class.getName()).error("Failed to get variants: " + e.getMessage(), e);
-      WidgetFactory.showError("Failed to get variants: " + e.getMessage(), e);
-    }
-    return variants;
-  }
-
   public static void deleteCatalogItem(CatalogItem selection) {
     if(selection instanceof Category) {
       deleteCategory((Category) selection);
     }
     else if(selection instanceof Product) {
-      Product product = (Product) selection;
-      if(product.isVariant()) {
-        deleteVariant(product);
-      }
-      else {
-        deleteProduct(product);
-      }
+      deleteProduct((Product) selection);
     }
   }
 
-  public static Product createProduct(String name, Category selection) {
-    Logger.getLogger(Connection.class.getName()).info("Creating new product for category " + selection);
+  public static Product createProduct(String name, int parentId, boolean variant) {
     try {
       Statement statement = connection.createStatement();
-      statement.executeUpdate("insert into products (title, category_id) VALUES ('" + name + "', " + selection.getId() + ")");
+      int type = CatalogItem.TYPE_PRODUCT;
+      if(variant) {
+        type = AbstractModel.TYPE_VARIANT;
+      }
+      statement.executeUpdate("insert into products (title, model_type, parent_id) VALUES ('" + name + "', " + type + ", " + parentId + ")");
       statement.close();
 
       statement = connection.createStatement();
@@ -513,28 +505,6 @@ public class DB {
     } catch (SQLException e) {
       Logger.getLogger(Connection.class.getName()).error("Failed to insert product in catalog: " + e.getMessage(), e);
       WidgetFactory.showError("Failed to insert product in catalog: " + e.getMessage(), e);
-    }
-    return null;
-  }
-
-  public static Product createVariant(String name, Product selection) {
-    Logger.getLogger(Connection.class.getName()).info("Creating new variant for product " + selection);
-    try {
-      Statement statement = connection.createStatement();
-      statement.executeUpdate("insert into variants (variant_name, product_id) VALUES ('" + name + "', " + selection.getId() + ")");
-      statement.close();
-
-      statement = connection.createStatement();
-      ResultSet resultSet = statement.executeQuery("SELECT * FROM variants ORDER BY id DESC LIMIT 0, 1");
-      while(resultSet.next()) {
-        Product item = ModelFactory.createVariant(resultSet);
-        statement.close();
-        return item;
-      }
-      statement.close();
-    } catch (SQLException e) {
-      Logger.getLogger(Connection.class.getName()).error("Failed to insert variant in catalog: " + e.getMessage(), e);
-      WidgetFactory.showError("Failed to insert variant in catalog: " + e.getMessage(), e);
     }
     return null;
   }

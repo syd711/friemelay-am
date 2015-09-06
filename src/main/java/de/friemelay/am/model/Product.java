@@ -1,8 +1,8 @@
 package de.friemelay.am.model;
 
 import javafx.beans.property.*;
-import javafx.scene.image.Image;
 
+import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -11,22 +11,26 @@ import java.util.List;
  */
 public class Product extends CatalogItem {
 
-  private List<Image> images = new ArrayList<Image>();
+  private List<BufferedImage> images = new ArrayList<>();
   private List<Product> variants = new ArrayList<>();
   private IntegerProperty stock = new SimpleIntegerProperty();
   private DoubleProperty price = new SimpleDoubleProperty();
 
   private StringProperty variantLabel = new SimpleStringProperty();
-  private StringProperty variantName = new SimpleStringProperty();
-  private BooleanProperty amountProperty = new SimpleBooleanProperty();
 
+  private StringProperty variantName = new SimpleStringProperty();
+  private BooleanProperty amountProperty = new SimpleBooleanProperty(true);
   private boolean variant = false;
 
-  public List<Image> getImages() {
+  public StringProperty getVariantLabel() {
+    return variantLabel;
+  }
+
+  public List<BufferedImage> getImages() {
     return images;
   }
 
-  public void setImages(List<Image> images) {
+  public void setImages(List<BufferedImage> images) {
     this.images = images;
   }
 
@@ -38,8 +42,8 @@ public class Product extends CatalogItem {
     this.variants = variants;
   }
 
-  public int getStock() {
-    return stock.get();
+  public IntegerProperty getStock() {
+    return stock;
   }
 
   public void setStock(int stock) {
@@ -96,5 +100,20 @@ public class Product extends CatalogItem {
       return getVariantName().get();
     }
     return getTitle().get();
+  }
+
+  @Override
+  public int getType() {
+    if(isVariant()) {
+      return TYPE_VARIANT;
+    }
+    return TYPE_PRODUCT;
+  }
+
+  public int getAmountValue() {
+    if(amountProperty.get()) {
+      return 1;
+    }
+    return 0;
   }
 }

@@ -55,6 +55,7 @@ CREATE TABLE order_items (
 DROP TABLE IF EXISTS categories;
 CREATE TABLE categories (
   id INT(8) NOT NULL AUTO_INCREMENT PRIMARY KEY,
+  model_type INT(4) NOT NULL,
   parent_id INT(8) NULL,
   top_level INT(1) NOT NULL DEFAULT 0,
   title VARCHAR(100) NULL,
@@ -66,32 +67,23 @@ CREATE TABLE categories (
 DROP TABLE IF EXISTS products;
 CREATE TABLE products (
   id INT(8) NOT NULL AUTO_INCREMENT PRIMARY KEY,
-  category_id INT(8) NULL,
+  model_type INT(4) NOT NULL,
+  parent_id INT(8) NOT NULL,
   stock INT(8) NOT NULL DEFAULT 0,
   amount INT(1) NOT NULL DEFAULT 0,
   price DECIMAL(5,2) NOT NULL DEFAULT 0,
   title VARCHAR(100) NULL,
   variant_label VARCHAR(100) NULL,
   variant_name VARCHAR(100) NULL,
-  variant_short_description VARCHAR(300) NULL,
+  short_description VARCHAR(300) NULL,
   details VARCHAR(2000) NULL
 );
 
-DROP TABLE IF EXISTS variants;
-CREATE TABLE variants (
+DROP TABLE IF EXISTS productimages;
+CREATE TABLE productimages (
   id INT(8) NOT NULL AUTO_INCREMENT PRIMARY KEY,
   product_id INT(8) NULL,
-  stock INT(8) NOT NULL DEFAULT 0,
-  price DECIMAL(5,2) NOT NULL DEFAULT 0,
-  variant_name VARCHAR(100) NULL,
-  variant_short_description VARCHAR(300) NULL,
-  details VARCHAR(2000) NULL
-);
-
-DROP TABLE IF EXISTS images;
-CREATE TABLE images (
-  id INT(8) NOT NULL AUTO_INCREMENT PRIMARY KEY,
-  product_id INT(8) NULL,
+  mime_type VARCHAR(20) NULL,
   image MEDIUMBLOB
 );
 

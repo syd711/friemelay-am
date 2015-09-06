@@ -20,6 +20,7 @@ import javafx.scene.layout.BorderPane;
 import org.apache.commons.lang.StringUtils;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 
@@ -73,7 +74,7 @@ public class CatalogTreePane extends BorderPane implements EventHandler<MouseEve
         if(selection != null) {
           String name = WidgetFactory.showInputDialog("", "Produkt anlegen", "Name des Produktes");
           if(!StringUtils.isEmpty(name)) {
-            Product product = DB.createProduct(name, selection);
+            Product product = DB.createProduct(name, selection.getId(), false);
             reload();
             UIController.getInstance().open(product);
           }
@@ -89,7 +90,7 @@ public class CatalogTreePane extends BorderPane implements EventHandler<MouseEve
         if(item != null && item instanceof Product) {
           String name = WidgetFactory.showInputDialog("", "Variante anlegen", "Name der Variante");
           if(!StringUtils.isEmpty(name)) {
-            Product product = DB.createVariant(name, (Product) item);
+            Product product = DB.createProduct(name, item.getId(), true);
             reload();
             UIController.getInstance().open(product);
           }
@@ -251,6 +252,7 @@ public class CatalogTreePane extends BorderPane implements EventHandler<MouseEve
       TreeItem<Object> categoryTreeItem = new TreeItem<Object>(item, ResourceLoader.getImageView(item.getStatusIcon()));
       categoryTreeItem.valueProperty().bind(new SimpleObjectProperty<Object>(item));
       categoryTreeItem.setExpanded(true);
+      parent.getChildren().add(categoryTreeItem);
 
       List<Product> products = item.getProducts();
       for(Product product : products) {
@@ -269,7 +271,7 @@ public class CatalogTreePane extends BorderPane implements EventHandler<MouseEve
       }
 
 
-      parent.getChildren().add(categoryTreeItem);
+      Collections.reverse(parent.getChildren());
       buildTree(item.getChildren(), categoryTreeItem);
     }
   }

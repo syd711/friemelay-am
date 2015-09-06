@@ -37,7 +37,7 @@ public class ItemsTabPane extends BorderPane implements ChangeListener<Tab> {
     ObservableList<Tab> tabs = tabPane.getTabs();
     for(Tab tab : tabs) {
       ModelTab modelTab = (ModelTab) tab;
-      if(modelTab.getModel().getId() == model.getId()) {
+      if(modelTab.getModel().getId() == model.getId() && modelTab.getModel().getType() == model.getType()) {
         tabPane.getSelectionModel().select(tab);
         return modelTab;
       }
@@ -54,6 +54,7 @@ public class ItemsTabPane extends BorderPane implements ChangeListener<Tab> {
         tab = new VariantTab(product);
       }
       else {
+        DB.loadImages(product);
         tab = new ProductTab(product);
       }
     }

@@ -41,4 +41,10 @@ public class Category extends CatalogItem {
   public void setProducts(List<Product> products) {
     this.products = products;
   }
+
+
+  @Override
+  public int getType() {
+    return TYPE_CATEGORY;
+  }
 }

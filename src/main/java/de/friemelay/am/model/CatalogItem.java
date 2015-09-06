@@ -2,7 +2,8 @@ package de.friemelay.am.model;
 
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
-import javafx.scene.image.Image;
+
+import java.awt.image.BufferedImage;
 
 /**
  *
@@ -13,7 +14,7 @@ public abstract class CatalogItem extends AbstractModel {
   private StringProperty title = new SimpleStringProperty();
   private StringProperty shortDescription = new SimpleStringProperty();
   private StringProperty details = new SimpleStringProperty();
-  private Image image;
+  private BufferedImage image;
 
   public StringProperty getTitle() {
     return title;
@@ -39,11 +40,11 @@ public abstract class CatalogItem extends AbstractModel {
     this.details.setValue(details);
   }
 
-  public Image getImage() {
+  public BufferedImage getImage() {
     return image;
   }
 
-  public void setImage(Image image) {
+  public void setImage(BufferedImage image) {
     this.image = image;
   }
 
@@ -61,4 +62,5 @@ public abstract class CatalogItem extends AbstractModel {
     this.parentId = parentId;
   }
 
+  public abstract int getType();
 }

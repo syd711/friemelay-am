@@ -1,14 +1,10 @@
 package de.friemelay.am.model;
 
+import de.friemelay.am.ui.util.ImageUtil;
 import de.friemelay.am.ui.util.WidgetFactory;
-import javafx.embed.swing.SwingFXUtils;
-import javafx.scene.image.Image;
 import org.apache.log4j.Logger;
 
-import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
-import java.io.InputStream;
-import java.sql.Blob;
 import java.sql.Date;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -142,7 +138,7 @@ public class ModelFactory {
       String title = resultSet.getString("title");
       String details= resultSet.getString("details");
       String short_description = resultSet.getString("short_description");
-      Image image = readImage("image", resultSet);
+      BufferedImage image = ImageUtil.readImage("image", resultSet);
 
 
       Category item = new Category();
@@ -166,22 +162,26 @@ public class ModelFactory {
   public static Product createProduct(ResultSet resultSet) {
     try {
       int id = resultSet.getInt("id");
-      int category_id = resultSet.getInt("category_id");
+      int parent_id = resultSet.getInt("parent_id");
+      int modelType = resultSet.getInt("model_type");
       int stock = resultSet.getInt("stock");
       int amount = resultSet.getInt("amount");
       double price = resultSet.getDouble("price");
-      String variant_label = resultSet.getString("variant_label");
       String title = resultSet.getString("title");
+      String variant_label = resultSet.getString("variant_label");
       String variant_name= resultSet.getString("variant_name");
+      String short_description = resultSet.getString("short_description");
       String details = resultSet.getString("details");
 
       Product item = new Product();
-      item.setParentId(category_id);
+      item.setParentId(parent_id);
+      item.setVariant(modelType == AbstractModel.TYPE_VARIANT);
       item.setId(id);
       item.setStock(stock);
       item.setTitle(title);
       item.setVariantLabel(variant_label);
       item.setVariantName(variant_name);
+      item.setShortDescription(short_description);
       item.setDetails(details);
       item.setPrice(price);
       item.setAmount(amount != 0);
@@ -194,45 +194,11 @@ public class ModelFactory {
     return null;
   }
 
-  public static Product createVariant(ResultSet resultSet) {
+  public static BufferedImage createImage(ResultSet resultSet) {
     try {
-      int id = resultSet.getInt("id");
-      int product_id = resultSet.getInt("product_id");
-      int stock = resultSet.getInt("stock");
-      double price = resultSet.getDouble("price");
-      String variant_name= resultSet.getString("variant_name");
-      String variant_short_description= resultSet.getString("variant_short_description");
-      String details = resultSet.getString("details");
-
-      Product item = new Product();
-      item.setVariant(true);
-      item.setParentId(product_id);
-      item.setId(id);
-      item.setDetails(details);
-      item.setShortDescription(variant_short_description);
-      item.setVariantName(variant_name);
-      item.setPrice(price);
-      item.setStock(stock);
-
-      return item;
-    } catch (SQLException e) {
-      Logger.getLogger(ModelFactory.class.getName()).error("Failed create variant model: " + e.getMessage(), e);
-      WidgetFactory.showError("Failed create variant model: " + e.getMessage(), e);
-    }
-    return null;
-  }
-
-  private static Image readImage(String column, ResultSet resultSet) {
-    try {
-      Blob blob = resultSet.getBlob(column);
-      if(blob == null) {
-        return null;
-      }
-      InputStream is = blob.getBinaryStream();
-      BufferedImage bufferedImage = ImageIO.read(is);
-      return SwingFXUtils.toFXImage(bufferedImage, null);
+      return ImageUtil.readImage("image", resultSet);
     } catch (Exception e) {
-      Logger.getLogger(ModelFactory.class).error("Error reading image from database: " + e.getMessage(), e);
+      Logger.getLogger(ModelFactory.class).error("Failed to stream image: " + e.getMessage(), e);
     }
     return null;
   }

@@ -170,4 +170,9 @@ public class Order extends AbstractModel {
     }
     return orderId;
   }
+
+  @Override
+  public int getType() {
+    return AbstractModel.TYPE_ORDER;
+  }
 }

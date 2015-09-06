@@ -5,6 +5,8 @@ import de.friemelay.am.db.DB;
 import de.friemelay.am.model.Product;
 import de.friemelay.am.resources.ResourceLoader;
 import de.friemelay.am.ui.ModelTab;
+import de.friemelay.am.ui.imageeditor.ImageEditorChangeEvent;
+import de.friemelay.am.ui.imageeditor.ImageEditorChangeListener;
 import de.friemelay.am.ui.util.WidgetFactory;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
@@ -23,7 +25,7 @@ import javafx.scene.layout.VBox;
 /**
  *
  */
-public class ProductTab extends ModelTab implements EventHandler<ActionEvent>, ChangeListener<String> {
+public class ProductTab extends ModelTab implements EventHandler<ActionEvent>, ChangeListener, ImageEditorChangeListener {
   private Product product;
 
   private Button saveButton;
@@ -54,10 +56,6 @@ public class ProductTab extends ModelTab implements EventHandler<ActionEvent>, C
       UIController.getInstance().refreshCatalog();
       setDirty(false);
     }
-  }
-
-  public void reload() {
-    createForm();
   }
 
   private void init() {
@@ -94,10 +92,21 @@ public class ProductTab extends ModelTab implements EventHandler<ActionEvent>, C
     GridPane detailsForm = WidgetFactory.createFormGrid();
     detailsForm.getStyleClass().add("root");
     int index = 0;
-    WidgetFactory.addBindingFormTextfield(detailsForm, "Name:", product.getTitle(), index++, true, this);
-    WidgetFactory.addBindingFormTextarea(detailsForm, "Titeltext:", product.getShortDescription(), index++, true, this);
-    WidgetFactory.addBindingFormTextarea(detailsForm, "Kurzbeschreibung:", product.getDetails(), index++, true, this);
+    WidgetFactory.addBindingFormTextfield(detailsForm, "Name (Bildüberschrift):", product.getTitle(), index++, true, this);
+    WidgetFactory.addBindingFormTextarea(detailsForm, "Kurzbeschreibung (Bildunterschrift):", product.getShortDescription(), index++, true, this);
+    WidgetFactory.addBindingFormCheckbox(detailsForm, "Anzahl-Auswahl anzeigen:", product.getAmount(), index++, true, this);
     WidgetFactory.createSection(form, detailsForm, "Produkt-Details", false);
+
+    GridPane variantForm = WidgetFactory.createFormGrid();
+    variantForm.getStyleClass().add("root");
+    index = 0;
+    WidgetFactory.addBindingFormTextfield(variantForm, "Varianten-Überschrift:", product.getVariantLabel(), index++, true, this);
+    WidgetFactory.addBindingFormTextfield(variantForm, "Varianten-Name:", product.getVariantName(), index++, true, this);
+    WidgetFactory.addBindingFormSpinner(variantForm, "Warenbestand:", 0, 1000, product.getStock(), index++, true, this);
+    WidgetFactory.addBindingFormTextarea(variantForm, "Produktbeschreibung:", product.getDetails(), 100, index++, true, this);
+    String formLabel = "Bilder (empfohlene Größe: 800 x 600 Pixel):";
+    WidgetFactory.addFormImageEditor(variantForm, formLabel, product.getImages(), index++, 400, 10, this);
+    WidgetFactory.createSection(form, variantForm, "Produkt Details (diese werden nur benutzt wenn das Produkt keine Varianten hat)", false);
   }
 
 
@@ -112,7 +121,13 @@ public class ProductTab extends ModelTab implements EventHandler<ActionEvent>, C
   }
 
   @Override
-  public void changed(ObservableValue<? extends String> observable, String oldValue, String newValue) {
+  public void changed(ObservableValue observable, Object oldValue, Object newValue) {
+    setDirty(true);
+  }
+
+  @Override
+  public void imageChanged(ImageEditorChangeEvent event) {
+    product.setImages(event.getAllImages());
     setDirty(true);
   }
 }

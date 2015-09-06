@@ -5,7 +5,9 @@ import de.friemelay.am.mail.TemplateService;
 import de.friemelay.am.resources.ResourceLoader;
 import de.friemelay.am.ui.imageeditor.ImageEditor;
 import de.friemelay.am.ui.imageeditor.ImageEditorChangeListener;
+import de.friemelay.am.ui.imageeditor.ImageVariant;
 import javafx.beans.binding.Bindings;
+import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.StringProperty;
@@ -36,9 +38,11 @@ import org.w3c.dom.events.EventTarget;
 import org.w3c.dom.html.HTMLAnchorElement;
 
 import java.awt.*;
+import java.awt.image.BufferedImage;
 import java.net.URI;
 import java.nio.charset.Charset;
-import java.util.Optional;
+import java.util.*;
+import java.util.List;
 
 /**
  *
@@ -103,14 +107,28 @@ public class WidgetFactory {
     grid.getChildren().addAll(condLabel, condValue);
     return condValue;
   }
+  public static ImageEditor addFormImageEditor(GridPane grid, String label, BufferedImage image, int row, int height, int maxImages, ImageEditorChangeListener listener) {
+    return addFormImageEditor(grid, label, Arrays.asList(image), row, height, maxImages, listener);
+  }
 
-  public static ImageEditor addFormImageEditor(GridPane grid, String label, int row, int height, ImageEditorChangeListener listener) {
+  public static ImageEditor addFormImageEditor(GridPane grid, String label, List<BufferedImage> images, int row, int height, int maxImages, ImageEditorChangeListener listener) {
     Label condLabel = new Label(label);
     GridPane.setHalignment(condLabel, HPos.RIGHT);
     GridPane.setValignment(condLabel, VPos.TOP);
     GridPane.setConstraints(condLabel, 0, row);
-    ImageEditor imageEditor = new ImageEditor(UIController.getInstance().getStage(), height);
+    ImageEditor imageEditor = new ImageEditor(UIController.getInstance().getStage(), height, maxImages);
     imageEditor.addChangeListener(listener);
+
+    for(BufferedImage image : images) {
+      if(image != null) {
+        imageEditor.openTab(new ImageVariant("Bild", image));
+      }
+    }
+    if(imageEditor.getTabs().size() == 0) {
+      imageEditor.openTab(new ImageVariant(null, null));
+    }
+
+
     GridPane.setMargin(imageEditor, new Insets(5, 5, 5, 10));
     GridPane.setConstraints(imageEditor, 1, row);
     grid.getChildren().addAll(condLabel, imageEditor);
@@ -186,6 +204,59 @@ public class WidgetFactory {
   }
 
 
+  public static Spinner addBindingFormSpinner(GridPane grid, String label, int min, int max, IntegerProperty property, int row, boolean editable, ChangeListener<Number> listener) {
+    Label condLabel = new Label(label);
+    GridPane.setHalignment(condLabel, HPos.RIGHT);
+    GridPane.setConstraints(condLabel, 0, row);
+    Spinner spinner = new Spinner();
+    SpinnerValueFactory.IntegerSpinnerValueFactory factory = new SpinnerValueFactory.IntegerSpinnerValueFactory(min, max, property.get());
+    spinner.setValueFactory(factory);
+    if(listener != null) {
+      property.addListener(listener);
+    }
+
+    factory.valueProperty().addListener(new ChangeListener() {
+      @Override
+      public void changed(ObservableValue observable, Object oldValue, Object newValue) {
+        int value = Integer.parseInt(String.valueOf(newValue));
+        if(property.get() != value) {
+          property.setValue(value);
+        }
+      }
+    });
+    property.addListener(new ChangeListener<Number>() {
+      @Override
+      public void changed(ObservableValue<? extends Number> observable, Number oldValue, Number newValue) {
+        if(spinner.getValueFactory().getValue() != newValue) {
+          spinner.getValueFactory().setValue(newValue);
+        }
+      }
+    });
+    spinner.setEditable(editable);
+    GridPane.setMargin(spinner, new Insets(5, 5, 5, 10));
+    GridPane.setConstraints(spinner, 1, row);
+    grid.getChildren().addAll(condLabel, spinner);
+    return spinner;
+  }
+
+  public static CheckBox addBindingFormCheckbox(GridPane grid, String label, BooleanProperty property, int row, boolean editable, ChangeListener<Boolean> listener) {
+    Label condLabel = new Label(label);
+    GridPane.setHalignment(condLabel, HPos.RIGHT);
+    GridPane.setConstraints(condLabel, 0, row);
+    CheckBox checkbox = new CheckBox();
+    Bindings.bindBidirectional(property, checkbox.selectedProperty());
+    if(listener != null) {
+      property.addListener(listener);
+    }
+    checkbox.setSelected(property.get());
+    checkbox.setDisable(!editable);
+    GridPane.setMargin(checkbox, new Insets(5, 5, 5, 10));
+    GridPane.setConstraints(checkbox, 1, row);
+    grid.getChildren().addAll(condLabel, checkbox);
+    return checkbox;
+  }
+
+
   public static TextField addFormTextfield(GridPane grid, String label, String text, int row, boolean editable) {
     Label condLabel = new Label(label);
     GridPane.setHalignment(condLabel, HPos.RIGHT);
@@ -251,8 +322,9 @@ public class WidgetFactory {
     return createButton(parent, label, null, handler);
   }
 
-  public static Button createButton(ToolBar parent, String label, String image, EventHandler<ActionEvent> handler) {
+  public static Button createButton(ToolBar parent, String label, String image, String tooltip, EventHandler<ActionEvent> handler) {
     Button button = new Button(label);
+    button.setTooltip(new Tooltip(tooltip));
     if(image != null) {
       button = new Button(label, ResourceLoader.getImageView(image));
     }
@@ -332,4 +404,5 @@ public class WidgetFactory {
         });
     return mailHeader;
   }
+
 }

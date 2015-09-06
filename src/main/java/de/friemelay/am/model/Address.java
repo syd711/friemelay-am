@@ -84,4 +84,9 @@ public class Address extends AbstractModel{
   public String getStatusIcon() {
     return null;
   }
+
+  @Override
+  public int getType() {
+    return AbstractModel.TYPE_ADDRESS;
+  }
 }
