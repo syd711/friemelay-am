@@ -32,7 +32,11 @@ public class CatalogTreePane extends BorderPane implements EventHandler<MouseEve
   private final TreeItem<Object> treeRoot = new TreeItem<Object>(new Category());
   private TreeView treeView;
   private List<Category> items = new ArrayList<>();
+
   private Button addVariantButton;
+  private Button addProductButton;
+  private Button addCategoryButton;
+  private Button deleteButton;
 
   public CatalogTreePane() {
     treeView = new TreeView<Object>();
@@ -52,7 +56,7 @@ public class CatalogTreePane extends BorderPane implements EventHandler<MouseEve
     refreshButton.setTooltip(new Tooltip("Katalog neu laden"));
     toolbar.getItems().add(refreshButton);
 
-    Button addCategoryButton = new Button("", ResourceLoader.getImageView("new_category.png"));
+    addCategoryButton = new Button("", ResourceLoader.getImageView("new_category.png"));
     addCategoryButton.setTooltip(new Tooltip("Neue Kategorie erstellen"));
     addCategoryButton.setOnAction(new EventHandler<ActionEvent>() {
       public void handle(ActionEvent event) {
@@ -66,7 +70,7 @@ public class CatalogTreePane extends BorderPane implements EventHandler<MouseEve
       }
     });
 
-    Button addProductButton = new Button("", ResourceLoader.getImageView("new_product.png"));
+    addProductButton = new Button("", ResourceLoader.getImageView("new_product.png"));
     addProductButton.setTooltip(new Tooltip("Neues Produkt erstellen"));
     addProductButton.setOnAction(new EventHandler<ActionEvent>() {
       public void handle(ActionEvent event) {
@@ -98,7 +102,7 @@ public class CatalogTreePane extends BorderPane implements EventHandler<MouseEve
       }
     });
 
-    Button deleteButton = new Button("", ResourceLoader.getImageView("trash.png"));
+    deleteButton = new Button("", ResourceLoader.getImageView("trash.png"));
     deleteButton.setTooltip(new Tooltip("Selektion löschen"));
     deleteButton.setOnAction(new EventHandler<ActionEvent>() {
       public void handle(ActionEvent event) {
@@ -118,29 +122,46 @@ public class CatalogTreePane extends BorderPane implements EventHandler<MouseEve
     toolbar.getItems().addAll(addCategoryButton, addProductButton, addVariantButton, new Separator(), deleteButton);
 
     setTop(toolbar);
+    handle(null);
   }
 
   public void handle(MouseEvent event) {
-    if(event.getClickCount() == 2) {
-      CatalogItem selection = getSelection();
-      if(selection != null) {
-        TreeItem selectedItem = (TreeItem) treeView.getSelectionModel().getSelectedItem();
-        selectedItem.setExpanded(true);
-        UIController.getInstance().open(selection);
+    if(event != null) {
+      if(event.getClickCount() == 2) {
+        CatalogItem selection = getSelection();
+        if(selection != null) {
+          TreeItem selectedItem = (TreeItem) treeView.getSelectionModel().getSelectedItem();
+          selectedItem.setExpanded(true);
+          UIController.getInstance().open(selection);
+        }
       }
     }
 
+
     AbstractModel model = getSelection();
-    if(model instanceof Category) {
+    if(model == null) {
+      addCategoryButton.setDisable(false);
       addVariantButton.setDisable(true);
+      addProductButton.setDisable(true);
+      deleteButton.setDisable(true);
     }
-    if(model instanceof Product) {
-      Product product = (Product) model;
-      if(product.isVariant()) {
+    else {
+      deleteButton.setDisable(false);
+      if(model instanceof Category) {
+        addVariantButton.setDisable(true);
+        addProductButton.setDisable(false);
         addVariantButton.setDisable(true);
       }
-      else {
-        addVariantButton.setDisable(false);
+      if(model instanceof Product) {
+        addCategoryButton.setDisable(true);
+        Product product = (Product) model;
+        if(product.isVariant()) {
+          addVariantButton.setDisable(true);
+          addProductButton.setDisable(true);
+        }
+        else {
+          addVariantButton.setDisable(false);
+        }
       }
     }
   }
@@ -287,7 +308,8 @@ public class CatalogTreePane extends BorderPane implements EventHandler<MouseEve
   }
 
   private TreeItem<Object> findTreeItem(TreeItem<Object> child, CatalogItem item) {
-    if(child.getValue().equals(item)) {
+    CatalogItem treeModel = (CatalogItem) child.getValue();
+    if(treeModel.getId() == item.getId() && treeModel.getType() == item.getType()) {
       return child;
     }
     ObservableList<TreeItem<Object>> children = child.getChildren();

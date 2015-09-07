@@ -28,4 +28,8 @@ public class Config {
   public static String getString(String key) {
     return config.getString(key);
   }
+
+  public static int getInt(String key) {
+    return config.getInt(key);
+  }
 }

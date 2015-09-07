@@ -5,7 +5,6 @@ import de.friemelay.am.mail.TemplateService;
 import de.friemelay.am.resources.ResourceLoader;
 import de.friemelay.am.ui.imageeditor.ImageEditor;
 import de.friemelay.am.ui.imageeditor.ImageEditorChangeListener;
-import de.friemelay.am.ui.imageeditor.ImageVariant;
 import javafx.beans.binding.Bindings;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.DoubleProperty;
@@ -41,8 +40,9 @@ import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.net.URI;
 import java.nio.charset.Charset;
-import java.util.*;
+import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 
 /**
  *
@@ -116,16 +116,16 @@ public class WidgetFactory {
     GridPane.setHalignment(condLabel, HPos.RIGHT);
     GridPane.setValignment(condLabel, VPos.TOP);
     GridPane.setConstraints(condLabel, 0, row);
-    ImageEditor imageEditor = new ImageEditor(UIController.getInstance().getStage(), height, maxImages);
+    ImageEditor imageEditor = new ImageEditor(UIController.getInstance().getStage(), height, maxImages, 800, 800);
     imageEditor.addChangeListener(listener);
 
     for(BufferedImage image : images) {
       if(image != null) {
-        imageEditor.openTab(new ImageVariant("Bild", image));
+        imageEditor.openTab("Bild", image);
       }
     }
     if(imageEditor.getTabs().size() == 0) {
-      imageEditor.openTab(new ImageVariant(null, null));
+      imageEditor.openTab(null, null);
     }
 
 
@@ -244,11 +244,12 @@ public class WidgetFactory {
     GridPane.setHalignment(condLabel, HPos.RIGHT);
     GridPane.setConstraints(condLabel, 0, row);
     CheckBox checkbox = new CheckBox();
+    checkbox.setSelected(property.get());
     Bindings.bindBidirectional(property, checkbox.selectedProperty());
     if(listener != null) {
       property.addListener(listener);
     }
-    checkbox.setSelected(property.get());
+
     checkbox.setDisable(!editable);
     GridPane.setMargin(checkbox, new Insets(5, 5, 5, 10));
     GridPane.setConstraints(checkbox, 1, row);

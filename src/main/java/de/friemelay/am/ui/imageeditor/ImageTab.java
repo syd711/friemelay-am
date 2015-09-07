@@ -97,7 +97,7 @@ public class ImageTab extends Tab implements EventHandler<ActionEvent> {
     variant.setName(name);
     variant.setImage(image);
     setText(variant.toString());
-    imageView.setImage(ImageUtil.toImage(image));
+    imageView.setImage(ImageUtil.toImage(variant.getImage()));
 
     imageEditor.setDirty(true, variant);
   }
@@ -128,7 +128,7 @@ public class ImageTab extends Tab implements EventHandler<ActionEvent> {
       }
     }
     else if(event.getSource() == newButton) {
-      imageEditor.openTab(new ImageVariant("Bild", null));
+      imageEditor.openTab("Bild", null);
     }
     else if(event.getSource() == removeButton) {
       variant.setImage(null);

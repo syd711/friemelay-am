@@ -3,6 +3,7 @@ package de.friemelay.am.ui.util;
 import javafx.embed.swing.SwingFXUtils;
 import javafx.scene.image.Image;
 import org.apache.log4j.Logger;
+import org.imgscalr.Scalr;
 
 import javax.imageio.IIOImage;
 import javax.imageio.ImageIO;
@@ -56,6 +57,10 @@ public class ImageUtil {
       Logger.getLogger(ImageUtil.class).error("Error reading image from database: " + e.getMessage(), e);
     }
     return null;
+  }
+
+  public static BufferedImage createThumbnail(BufferedImage image, int maxWidth, int maxHeight) {
+    return Scalr.resize(image, Scalr.Method.QUALITY, Scalr.Mode.FIT_TO_WIDTH, maxWidth, maxHeight);
   }
 
   public static Image toImage(BufferedImage image) {

@@ -170,6 +170,7 @@ public class ModelFactory {
       String title = resultSet.getString("title");
       String variant_label = resultSet.getString("variant_label");
       String variant_name= resultSet.getString("variant_name");
+      String variant_short_description = resultSet.getString("variant_short_description");
       String short_description = resultSet.getString("short_description");
       String details = resultSet.getString("details");
 
@@ -181,6 +182,7 @@ public class ModelFactory {
       item.setTitle(title);
       item.setVariantLabel(variant_label);
       item.setVariantName(variant_name);
+      item.setVariantShortDescription(variant_short_description);
       item.setShortDescription(short_description);
       item.setDetails(details);
       item.setPrice(price);

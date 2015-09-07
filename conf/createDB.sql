@@ -73,9 +73,10 @@ CREATE TABLE products (
   amount INT(1) NOT NULL DEFAULT 0,
   price DECIMAL(5,2) NOT NULL DEFAULT 0,
   title VARCHAR(100) NULL,
+  short_description VARCHAR(300) NULL,
   variant_label VARCHAR(100) NULL,
   variant_name VARCHAR(100) NULL,
-  short_description VARCHAR(300) NULL,
+  variant_short_description VARCHAR(300) NULL,  
   details VARCHAR(2000) NULL
 );
 
@@ -84,6 +85,8 @@ CREATE TABLE productimages (
   id INT(8) NOT NULL AUTO_INCREMENT PRIMARY KEY,
   product_id INT(8) NULL,
   mime_type VARCHAR(20) NULL,
-  image MEDIUMBLOB
+  image MEDIUMBLOB,
+  teaser_image MEDIUMBLOB,
+  thumbnail_image MEDIUMBLOB  
 );
 

@@ -17,8 +17,9 @@ public class Product extends CatalogItem {
   private DoubleProperty price = new SimpleDoubleProperty();
 
   private StringProperty variantLabel = new SimpleStringProperty();
-
   private StringProperty variantName = new SimpleStringProperty();
+  private StringProperty variantShortDescription = new SimpleStringProperty();
+
   private BooleanProperty amountProperty = new SimpleBooleanProperty(true);
   private boolean variant = false;
 
@@ -96,9 +97,6 @@ public class Product extends CatalogItem {
 
   @Override
   public String toString() {
-    if(isVariant()) {
-      return getVariantName().get();
-    }
     return getTitle().get();
   }
 
@@ -115,5 +113,13 @@ public class Product extends CatalogItem {
       return 1;
     }
     return 0;
+  }
+
+  public StringProperty getVariantShortDescription() {
+    return variantShortDescription;
+  }
+
+  public void setVariantShortDescription(String variantShortDescription) {
+    this.variantShortDescription.set(variantShortDescription);
   }
 }
