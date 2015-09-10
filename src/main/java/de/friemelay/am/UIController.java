@@ -60,6 +60,10 @@ public class UIController {
     });
   }
 
+  public void setInfoMessage(String msg) {
+    mainPanel.getInfoMessage().setText(msg);
+  }
+
   public void open(AbstractModel model) {
     if(model != null) {
       mainPanel.getTabPane().open(model);

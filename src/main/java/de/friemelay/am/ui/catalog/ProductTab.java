@@ -114,6 +114,7 @@ public class ProductTab extends ModelTab implements EventHandler<ActionEvent>, C
     WidgetFactory.addBindingFormTextfield(variantForm, "Varianten-Name:", product.getVariantName(), index++, true, this);
     WidgetFactory.addBindingFormTextfield(variantForm, "Varianten-Kurzbeschreibung:", product.getVariantShortDescription(), index++, true, this);
     WidgetFactory.addBindingFormSpinner(variantForm, "Warenbestand:", 0, 1000, product.getStock(), index++, true, this);
+    WidgetFactory.addBindingFormPriceField(variantForm, "Preis:", product.getPrice(), index++, true, this);
     WidgetFactory.addBindingFormTextarea(variantForm, "Produktbeschreibung:", product.getDetails(), 100, index++, true, this);
     WidgetFactory.addFormImageEditor(variantForm, "Produktbilder", product.getImages(), index++, 400, 10, this);
     WidgetFactory.createSection(form, variantForm, "Produkt Details (diese werden nur benutzt wenn das Produkt keine Varianten hat)", false);

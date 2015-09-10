@@ -20,8 +20,10 @@ public class MainPanel extends BorderPane {
   private ItemsTabPane tabPane;
 
   private Label statusMessage = new Label("");
-  private TitledPane catalogTreeTitledPane;
 
+  private Label infoMessage = new Label("");
+
+  private TitledPane catalogTreeTitledPane;
   public MainPanel() {
     this.tabPane = new ItemsTabPane();
     this.orderTreePane = new OrderTreePane();
@@ -57,11 +59,22 @@ public class MainPanel extends BorderPane {
     menuBar.getMenus().addAll(menu);
     setTop(menuBar);
 
-    HBox footer = new HBox();
+    BorderPane footer = new BorderPane();
     footer.setStyle("-fx-background-color:#DDD;");
-    footer.setAlignment(Pos.BASELINE_RIGHT);
+
+    HBox statusBox = new HBox();
+    statusBox.setAlignment(Pos.BASELINE_RIGHT);
+    statusBox.getChildren().addAll(statusMessage);
     statusMessage.setPadding(new Insets(0, 5, 2, 0));
-    footer.getChildren().addAll(statusMessage);
+
+    HBox infoBox = new HBox();
+    infoBox.setAlignment(Pos.BASELINE_LEFT);
+    infoBox.getChildren().addAll(infoMessage);
+    infoMessage.setStyle("-fx-font-weight: bold;");
+    infoMessage.setPadding(new Insets(0, 0, 2, 5));
+
+    footer.setLeft(infoBox);
+    footer.setCenter(statusBox);
     setBottom(footer);
 
     orderTreePane.openFirst();
@@ -85,5 +98,9 @@ public class MainPanel extends BorderPane {
 
   public void expandCatalog() {
     catalogTreeTitledPane.setExpanded(true);
+  }
+
+  public Label getInfoMessage() {
+    return infoMessage;
   }
 }

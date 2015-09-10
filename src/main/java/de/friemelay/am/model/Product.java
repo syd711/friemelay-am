@@ -126,4 +126,17 @@ public class Product extends CatalogItem {
   public void setVariantShortDescription(String variantShortDescription) {
     this.variantShortDescription.set(variantShortDescription);
   }
+
+  public boolean isOnStock() {
+    if(isVariant() || variants.isEmpty()) {
+      return getStock().get() > 0;
+    }
+
+    for(Product variant : this.variants) {
+      if(variant.getStock().get() > 0) {
+        return true;
+      }
+    }
+    return false;
+  }
 }

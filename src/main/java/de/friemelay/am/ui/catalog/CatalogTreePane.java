@@ -2,7 +2,6 @@ package de.friemelay.am.ui.catalog;
 
 import de.friemelay.am.UIController;
 import de.friemelay.am.db.DB;
-import de.friemelay.am.model.AbstractModel;
 import de.friemelay.am.model.CatalogItem;
 import de.friemelay.am.model.Category;
 import de.friemelay.am.model.Product;
@@ -132,7 +131,6 @@ public class CatalogTreePane extends BorderPane implements EventHandler<MouseEve
     toolbar.getItems().addAll(addCategoryButton, addProductButton, addVariantButton, new Separator(), deleteButton);
 
     setTop(toolbar);
-    handle(null);
   }
 
   public void handle(MouseEvent event) {
@@ -147,8 +145,12 @@ public class CatalogTreePane extends BorderPane implements EventHandler<MouseEve
       }
     }
 
+    UIController.getInstance().setInfoMessage("");
+    CatalogItem model = getSelection();
+    if(!model.getStatus().get()) {
+      UIController.getInstance().setInfoMessage("'" + model + "' ist nicht aktiv und wird nicht auf der Webseite angezeigt.");
+    }
 
-    AbstractModel model = getSelection();
     if(model == null) {
       addCategoryButton.setDisable(false);
       addVariantButton.setDisable(true);
@@ -165,6 +167,9 @@ public class CatalogTreePane extends BorderPane implements EventHandler<MouseEve
       if(model instanceof Product) {
         addCategoryButton.setDisable(true);
         Product product = (Product) model;
+        if(!product.isOnStock()) {
+          UIController.getInstance().setInfoMessage("'" + model + "' ist nicht mehr auf Lager. Sobald alle Varianten eines Produktes nicht mehr auf Lager sind, sollte dieses deaktiviert werden.");
+        }
         if(product.isVariant()) {
           addVariantButton.setDisable(true);
           addProductButton.setDisable(true);

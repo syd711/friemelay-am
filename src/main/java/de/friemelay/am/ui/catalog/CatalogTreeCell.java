@@ -58,11 +58,11 @@ public class CatalogTreeCell extends TreeCell<CatalogItem> {
           setStyle("-fx-text-fill:#000;");
           if(item.getType() == AbstractModel.TYPE_VARIANT || item.getType() == AbstractModel.TYPE_PRODUCT) {
             Product product = (Product) item;
-            if(product.getStock().get() == 0) {
+            if(!product.isOnStock()) {
               setStyle("-fx-text-fill:#cc4444;-fx-font-weight:bold;");
             }
             else {
-              setStyle("");
+              setStyle("-fx-text-fill:#000;");
             }
           }
         }
