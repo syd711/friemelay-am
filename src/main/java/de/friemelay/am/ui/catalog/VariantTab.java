@@ -46,7 +46,7 @@ public class VariantTab extends ModelTab implements EventHandler<ActionEvent>, C
    */
   public void handle(ActionEvent event) {
     if(event.getSource() == resetButton) {
-      product = DB.getProduct(product.getId());
+      product = DB.getProduct(product.getParent(), product.getId());
       createForm();
       setDirty(false);
     }
@@ -56,10 +56,6 @@ public class VariantTab extends ModelTab implements EventHandler<ActionEvent>, C
       UIController.getInstance().refreshCatalog();
       setDirty(false);
     }
-  }
-
-  public void reload() {
-    createForm();
   }
 
   private void init() {
@@ -96,10 +92,12 @@ public class VariantTab extends ModelTab implements EventHandler<ActionEvent>, C
     GridPane variantForm = WidgetFactory.createFormGrid();
     variantForm.getStyleClass().add("root");
     int index = 0;
-    WidgetFactory.addBindingFormTextfield(variantForm, "Varianten-Überschrift:", product.getTitle(), index++, true, this);
-    WidgetFactory.addBindingFormTextfield(variantForm, "Varianten-Name:", product.getVariantName(), index++, true, this);
+    WidgetFactory.addBindingFormCheckbox(variantForm, "Variante aktiviert:", product.getStatus(), index++, true, this);
+    WidgetFactory.addBindingFormTextfield(variantForm, "Varianten-Überschrift:", product.getVariantLabel(), index++, true, this);
+    WidgetFactory.addBindingFormTextfield(variantForm, "Varianten-Name:", product.getTitle(), index++, true, this);
     WidgetFactory.addBindingFormTextfield(variantForm, "Varianten-Kurzbeschreibung:", product.getVariantShortDescription(), index++, true, this);
     WidgetFactory.addBindingFormSpinner(variantForm, "Warenbestand:", 0, 1000, product.getStock(), index++, true, this);
+    WidgetFactory.addBindingFormPriceField(variantForm, "Preis:", product.getPrice(), index++, true, this);
     WidgetFactory.addBindingFormTextarea(variantForm, "Produktbeschreibung:", product.getDetails(), 100, index++, true, this);
     String formLabel = "Bild der Variante - empfohlene Größe: 800 x 600 Pixel:\n(automatische Skalierung größerer Bilder)";
     WidgetFactory.addFormImageEditor(variantForm, formLabel, product.getImages(), index++, 400, 1, this);

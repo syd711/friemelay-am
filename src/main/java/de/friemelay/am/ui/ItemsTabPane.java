@@ -50,11 +50,12 @@ public class ItemsTabPane extends BorderPane implements ChangeListener<Tab> {
     }
     else if (model instanceof Product) {
       Product product = (Product) model;
+      DB.loadImages(product);
+
       if(product.isVariant()) {
         tab = new VariantTab(product);
       }
       else {
-        DB.loadImages(product);
         tab = new ProductTab(product);
       }
     }

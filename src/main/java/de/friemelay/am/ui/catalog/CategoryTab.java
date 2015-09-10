@@ -25,7 +25,7 @@ import javafx.scene.layout.VBox;
 /**
  *
  */
-public class CategoryTab extends ModelTab implements EventHandler<ActionEvent>, ImageEditorChangeListener, ChangeListener<String> {
+public class CategoryTab extends ModelTab implements EventHandler<ActionEvent>, ImageEditorChangeListener, ChangeListener {
   private Category category;
 
   private Button saveButton;
@@ -46,7 +46,7 @@ public class CategoryTab extends ModelTab implements EventHandler<ActionEvent>, 
    */
   public void handle(ActionEvent event) {
     if(event.getSource() == resetButton) {
-      category = DB.getCategory(category.getId());
+      category = DB.getCategory(category.getParent(), category.getId());
       createCatalogForm();
       setDirty(false);
     }
@@ -95,6 +95,7 @@ public class CategoryTab extends ModelTab implements EventHandler<ActionEvent>, 
 
     GridPane categoryDetailsForm = WidgetFactory.createFormGrid();
     int index = 0;
+    WidgetFactory.addBindingFormCheckbox(categoryDetailsForm, "Kategorie aktiviert:", category.getStatus(), index++, true, this);
     WidgetFactory.addBindingFormTextfield(categoryDetailsForm, "Name:", category.getTitle(), index++, true, this);
     WidgetFactory.addBindingFormTextarea(categoryDetailsForm, "Titeltext:", category.getDetails(), index++, true, this);
     WidgetFactory.addBindingFormTextarea(categoryDetailsForm, "Kurzbeschreibung (Bildunterschrift):", category.getShortDescription(), index++, true, this);
@@ -134,7 +135,7 @@ public class CategoryTab extends ModelTab implements EventHandler<ActionEvent>, 
   }
 
   @Override
-  public void changed(ObservableValue<? extends String> observable, String oldValue, String newValue) {
+  public void changed(ObservableValue observable, Object oldValue, Object newValue) {
     setDirty(true);
   }
 }

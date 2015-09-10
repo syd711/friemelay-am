@@ -11,10 +11,12 @@ public class ImageEditorChangeEvent {
 
   private ImageVariant imageVariant;
   private List<ImageVariant> allVariants;
+  private ImageEditor editor;
 
-  public ImageEditorChangeEvent(ImageVariant variant, List<ImageVariant> allVariants) {
+  public ImageEditorChangeEvent(ImageEditor editor, ImageVariant variant, List<ImageVariant> allVariants) {
     this.imageVariant = variant;
     this.allVariants = allVariants;
+    this.editor = editor;
   }
 
   public ImageVariant getImageVariant() {
@@ -31,5 +33,13 @@ public class ImageEditorChangeEvent {
       images.add(v.getImage());
     }
     return images;
+  }
+
+  public BufferedImage getImage() {
+    return imageVariant.getImage();
+  }
+
+  public ImageEditor getSource() {
+    return editor;
   }
 }

@@ -5,6 +5,7 @@ import de.friemelay.am.db.DB;
 import de.friemelay.am.model.Product;
 import de.friemelay.am.resources.ResourceLoader;
 import de.friemelay.am.ui.ModelTab;
+import de.friemelay.am.ui.imageeditor.ImageEditor;
 import de.friemelay.am.ui.imageeditor.ImageEditorChangeEvent;
 import de.friemelay.am.ui.imageeditor.ImageEditorChangeListener;
 import de.friemelay.am.ui.util.WidgetFactory;
@@ -33,6 +34,7 @@ public class ProductTab extends ModelTab implements EventHandler<ActionEvent>, C
 
   private boolean dirty;
   private final VBox form = new VBox();
+  private ImageEditor categoryImageEditor;
 
   public ProductTab(Product product) {
     super(product);
@@ -46,7 +48,7 @@ public class ProductTab extends ModelTab implements EventHandler<ActionEvent>, C
    */
   public void handle(ActionEvent event) {
     if(event.getSource() == resetButton) {
-      product = DB.getProduct(product.getId());
+      product = DB.getProduct(product.getParent(), product.getId());
       createForm();
       setDirty(false);
     }
@@ -92,10 +94,18 @@ public class ProductTab extends ModelTab implements EventHandler<ActionEvent>, C
     GridPane detailsForm = WidgetFactory.createFormGrid();
     detailsForm.getStyleClass().add("root");
     int index = 0;
+    WidgetFactory.addBindingFormCheckbox(detailsForm, "Produkt aktiviert:", product.getStatus(), index++, true, this);
     WidgetFactory.addBindingFormTextfield(detailsForm, "Name (Bildüberschrift):", product.getTitle(), index++, true, this);
     WidgetFactory.addBindingFormTextarea(detailsForm, "Kurzbeschreibung (Bildunterschrift):", product.getShortDescription(), index++, true, this);
     WidgetFactory.addBindingFormCheckbox(detailsForm, "Anzahl-Auswahl anzeigen:", product.getAmount(), index++, true, this);
     WidgetFactory.createSection(form, detailsForm, "Produkt-Details", false);
+
+    GridPane categoryImageForm = WidgetFactory.createFormGrid();
+    categoryImageForm.getStyleClass().add("root");
+    index = 0;
+    String formLabel = "Kategoriebild - empfohlene Größe: 305x 200 Pixel:";
+    categoryImageEditor = WidgetFactory.addFormImageEditor(categoryImageForm, formLabel, product.getImage(), index++, 250, 1, this);
+    WidgetFactory.createSection(form, categoryImageForm, "Kategoriebild", false);
 
     GridPane variantForm = WidgetFactory.createFormGrid();
     variantForm.getStyleClass().add("root");
@@ -105,8 +115,7 @@ public class ProductTab extends ModelTab implements EventHandler<ActionEvent>, C
     WidgetFactory.addBindingFormTextfield(variantForm, "Varianten-Kurzbeschreibung:", product.getVariantShortDescription(), index++, true, this);
     WidgetFactory.addBindingFormSpinner(variantForm, "Warenbestand:", 0, 1000, product.getStock(), index++, true, this);
     WidgetFactory.addBindingFormTextarea(variantForm, "Produktbeschreibung:", product.getDetails(), 100, index++, true, this);
-    String formLabel = "Produktbilder - empfohlene Größe: 800 x 600 Pixel:\n(automatische Skalierung größerer Bilder)";
-    WidgetFactory.addFormImageEditor(variantForm, formLabel, product.getImages(), index++, 400, 10, this);
+    WidgetFactory.addFormImageEditor(variantForm, "Produktbilder", product.getImages(), index++, 400, 10, this);
     WidgetFactory.createSection(form, variantForm, "Produkt Details (diese werden nur benutzt wenn das Produkt keine Varianten hat)", false);
   }
 
@@ -128,7 +137,13 @@ public class ProductTab extends ModelTab implements EventHandler<ActionEvent>, C
 
   @Override
   public void imageChanged(ImageEditorChangeEvent event) {
-    product.setImages(event.getAllImages());
+    if(event.getSource() == categoryImageEditor) {
+      product.setImage(event.getImage());
+    }
+    else {
+      product.setImages(event.getAllImages());
+    }
+
     setDirty(true);
   }
 }

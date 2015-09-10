@@ -6,10 +6,7 @@ import de.friemelay.am.resources.ResourceLoader;
 import de.friemelay.am.ui.imageeditor.ImageEditor;
 import de.friemelay.am.ui.imageeditor.ImageEditorChangeListener;
 import javafx.beans.binding.Bindings;
-import javafx.beans.property.BooleanProperty;
-import javafx.beans.property.DoubleProperty;
-import javafx.beans.property.IntegerProperty;
-import javafx.beans.property.StringProperty;
+import javafx.beans.property.*;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.concurrent.Worker;
@@ -17,6 +14,7 @@ import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.geometry.HPos;
 import javafx.geometry.Insets;
+import javafx.geometry.Pos;
 import javafx.geometry.VPos;
 import javafx.scene.Node;
 import javafx.scene.control.*;
@@ -26,6 +24,7 @@ import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.ColumnConstraints;
 import javafx.scene.layout.GridPane;
+import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
 import javafx.scene.web.WebEngine;
 import javafx.scene.web.WebView;
@@ -239,6 +238,23 @@ public class WidgetFactory {
     return spinner;
   }
 
+  public static PriceField addBindingFormPriceField(GridPane grid, String label, DoubleProperty property, int index, boolean enabled, ChangeListener listener) {
+    Label condLabel = new Label(label);
+    GridPane.setHalignment(condLabel, HPos.RIGHT);
+    GridPane.setConstraints(condLabel, 0, index);
+    StringProperty stringProperty = new SimpleStringProperty(String.valueOf(property.get()));
+    HBox container = new HBox(0);
+    container.setAlignment(Pos.CENTER_LEFT);
+    PriceField field = new PriceField(property);
+    field.addListener(listener);
+    container.getChildren().addAll(field);
+    field.setEnabled(enabled);
+    GridPane.setMargin(container, new Insets(5, 5, 5, 10));
+    GridPane.setConstraints(container, 1, index);
+    grid.getChildren().addAll(condLabel, container);
+    return field;
+  }
+
   public static CheckBox addBindingFormCheckbox(GridPane grid, String label, BooleanProperty property, int row, boolean editable, ChangeListener<Boolean> listener) {
     Label condLabel = new Label(label);
     GridPane.setHalignment(condLabel, HPos.RIGHT);
@@ -405,5 +421,6 @@ public class WidgetFactory {
         });
     return mailHeader;
   }
+
 
 }

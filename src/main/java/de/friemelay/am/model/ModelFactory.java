@@ -130,10 +130,11 @@ public class ModelFactory {
     return null;
   }
 
-  public static Category createCategory(ResultSet resultSet) {
+  public static Category createCategory(CatalogItem parent, ResultSet resultSet) {
     try {
       int id = resultSet.getInt("id");
       int parentId = resultSet.getInt("parent_id");
+      int catalog_status = resultSet.getInt("catalog_status");
       int topLevel = resultSet.getInt("top_level");
       String title = resultSet.getString("title");
       String details= resultSet.getString("details");
@@ -141,7 +142,8 @@ public class ModelFactory {
       BufferedImage image = ImageUtil.readImage("image", resultSet);
 
 
-      Category item = new Category();
+      Category item = new Category(parent);
+      item.setStatus(catalog_status);
       item.setImage(image);
       item.setParentId(parentId);
       item.setId(id);
@@ -159,13 +161,14 @@ public class ModelFactory {
     return null;
   }
 
-  public static Product createProduct(ResultSet resultSet) {
+  public static Product createProduct(CatalogItem parent, ResultSet resultSet) {
     try {
       int id = resultSet.getInt("id");
       int parent_id = resultSet.getInt("parent_id");
       int modelType = resultSet.getInt("model_type");
       int stock = resultSet.getInt("stock");
       int amount = resultSet.getInt("amount");
+      int catalog_status = resultSet.getInt("catalog_status");
       double price = resultSet.getDouble("price");
       String title = resultSet.getString("title");
       String variant_label = resultSet.getString("variant_label");
@@ -173,8 +176,11 @@ public class ModelFactory {
       String variant_short_description = resultSet.getString("variant_short_description");
       String short_description = resultSet.getString("short_description");
       String details = resultSet.getString("details");
+      BufferedImage image = ImageUtil.readImage("image", resultSet);
 
-      Product item = new Product();
+      Product item = new Product(parent);
+      item.setImage(image);
+      item.setStatus(catalog_status);
       item.setParentId(parent_id);
       item.setVariant(modelType == AbstractModel.TYPE_VARIANT);
       item.setId(id);

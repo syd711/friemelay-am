@@ -251,15 +251,15 @@ public class DB {
     }
   }
 
-  public static List<Category> loadCatalog() {
+  public static List<Category> loadCatalog(CatalogItem parent) {
     List<Category> items = new ArrayList<Category>();
     int count = 0;
     try {
       Statement statement = connection.createStatement();
       ResultSet rs = statement.executeQuery("select * from categories");
       while(rs.next()) {
-        Category item = ModelFactory.createCategory(rs);
-        item.setProducts(getProducts(item.getId()));
+        Category item = ModelFactory.createCategory(parent, rs);
+        item.setProducts(getProducts(item, item.getId()));
         items.add(item);
         count++;
       }
@@ -282,13 +282,13 @@ public class DB {
         parentId = parent.getId();
       }
       Statement statement = connection.createStatement();
-      statement.executeUpdate("insert into categories (title, model_type, top_level, parent_id) VALUES ('" + name + "', " + CatalogItem.TYPE_CATEGORY + ", " + topLevel + ", " + parentId + ")");
+      statement.executeUpdate("insert into categories (title, model_type, top_level, parent_id, catalog_status) VALUES ('" + name + "', " + CatalogItem.TYPE_CATEGORY + ", " + topLevel + ", " + parentId + ", 1)");
       statement.close();
 
       statement = connection.createStatement();
       ResultSet resultSet = statement.executeQuery("SELECT * FROM categories ORDER BY id DESC LIMIT 0, 1");
       while(resultSet.next()) {
-        Category item = ModelFactory.createCategory(resultSet);
+        Category item = ModelFactory.createCategory(parent, resultSet);
         statement.close();
         return item;
       }
@@ -344,7 +344,7 @@ public class DB {
 
   public static void save(Category category) {
     try {
-      String query = "update categories set title = ?, short_description = ?, details = ? , image = ? where id = " + category.getId();
+      String query = "update categories set title = ?, short_description = ?, details = ? , image = ?, catalog_status = ? where id = " + category.getId();
       PreparedStatement preparedStmt = connection.prepareStatement(query);
       preparedStmt.setString(1, String.valueOf(category.getTitle().get()));
       preparedStmt.setString(2, category.getShortDescription().get());
@@ -355,6 +355,7 @@ public class DB {
       else {
         preparedStmt.setNull(4, Types.BLOB);
       }
+      preparedStmt.setInt(5, category.getStatusValue());
       preparedStmt.executeUpdate();
       preparedStmt.close();
 
@@ -366,7 +367,8 @@ public class DB {
 
   public static void save(Product product) {
     try {
-      String query = "update products set title = ?, variant_label = ?, variant_name = ?, variant_short_description = ?, short_description = ?, details = ?, stock = ?, price = ?, amount = ? where id = " + product.getId();
+      String query = "update products set title = ?, variant_label = ?, variant_name = ?, variant_short_description = ?," +
+          " short_description = ?, details = ?, stock = ?, price = ?, amount = ?, catalog_status = ?, image = ? where id = " + product.getId();
       PreparedStatement preparedStmt = connection.prepareStatement(query);
       preparedStmt.setString(1, String.valueOf(product.getTitle().get()));
       preparedStmt.setString(2, product.getVariantLabel().get());
@@ -377,6 +379,13 @@ public class DB {
       preparedStmt.setInt(7, product.getStock().get());
       preparedStmt.setDouble(8, product.getPrice().get());
       preparedStmt.setInt(9, product.getAmountValue());
+      preparedStmt.setInt(10, product.getStatusValue());
+      if(product.getImage() != null) {
+        preparedStmt.setBinaryStream(11, ImageUtil.getImageInputStream(product.getImage()));
+      }
+      else {
+        preparedStmt.setNull(11, Types.BLOB);
+      }
       preparedStmt.executeUpdate();
       preparedStmt.close();
 
@@ -408,12 +417,12 @@ public class DB {
     }
   }
 
-  public static Category getCategory(int id) {
+  public static Category getCategory(CatalogItem parent, int id) {
     try {
       Statement statement = connection.createStatement();
       ResultSet rs = statement.executeQuery("select * from categories where id = " + id);
       while(rs.next()) {
-        Category item = ModelFactory.createCategory(rs);
+        Category item = ModelFactory.createCategory(parent, rs);
         statement.close();
         return item;
       }
@@ -426,12 +435,12 @@ public class DB {
   }
 
 
-  public static Product getProduct(int id) {
+  public static Product getProduct(CatalogItem parent, int id) {
     try {
       Statement statement = connection.createStatement();
       ResultSet rs = statement.executeQuery("select * from products where id = " + id);
       while(rs.next()) {
-        Product item = ModelFactory.createProduct(rs);
+        Product item = ModelFactory.createProduct(parent, rs);
         statement.close();
         return item;
       }
@@ -460,15 +469,15 @@ public class DB {
     return null;
   }
 
-  public static List<Product> getProducts(int parentId) {
+  public static List<Product> getProducts(CatalogItem parent, int parentId) {
     List<Product> items = new ArrayList();
     try {
       Statement statement = connection.createStatement();
       ResultSet rs = statement.executeQuery("select * from products where parent_id = " + parentId + " AND model_type = " + AbstractModel.TYPE_PRODUCT);
       while(rs.next()) {
-        Product item = ModelFactory.createProduct(rs);
+        Product item = ModelFactory.createProduct(parent, rs);
         if(!item.isVariant()) {
-          item.setVariants(getVariants(item.getId()));
+          item.setVariants(getVariants(item, item.getId()));
         }
         items.add(item);
       }
@@ -480,13 +489,13 @@ public class DB {
     return items;
   }
 
-  public static List<Product> getVariants(int parentId) {
+  public static List<Product> getVariants(CatalogItem parent, int parentId) {
     List<Product> items = new ArrayList();
     try {
       Statement statement = connection.createStatement();
       ResultSet rs = statement.executeQuery("select * from products where parent_id = " + parentId + " AND model_type = " + AbstractModel.TYPE_VARIANT);
       while(rs.next()) {
-        Product item = ModelFactory.createProduct(rs);
+        Product item = ModelFactory.createProduct(parent, rs);
         items.add(item);
       }
       statement.close();
@@ -506,20 +515,20 @@ public class DB {
     }
   }
 
-  public static Product createProduct(String name, int parentId, boolean variant) {
+  public static Product createProduct(CatalogItem parent, String name, int parentId, boolean variant) {
     try {
       Statement statement = connection.createStatement();
       int type = CatalogItem.TYPE_PRODUCT;
       if(variant) {
         type = AbstractModel.TYPE_VARIANT;
       }
-      statement.executeUpdate("insert into products (title, model_type, parent_id, amount) VALUES ('" + name + "', " + type + ", " + parentId + ", 1)");
+      statement.executeUpdate("insert into products (title, model_type, parent_id, amount, catalog_status) VALUES ('" + name + "', " + type + ", " + parentId + ", 1, 1)");
       statement.close();
 
       statement = connection.createStatement();
       ResultSet resultSet = statement.executeQuery("SELECT * FROM products ORDER BY id DESC LIMIT 0, 1");
       while(resultSet.next()) {
-        Product item = ModelFactory.createProduct(resultSet);
+        Product item = ModelFactory.createProduct(parent, resultSet);
         statement.close();
         return item;
       }

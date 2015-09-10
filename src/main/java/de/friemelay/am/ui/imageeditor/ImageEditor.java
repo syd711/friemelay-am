@@ -52,7 +52,7 @@ public class ImageEditor extends BorderPane {
     if(dirty) {
       List<ImageVariant> variants = getAllVariants();
       for(ImageEditorChangeListener changeListener : changeListeners) {
-        changeListener.imageChanged(new ImageEditorChangeEvent(variant, variants));
+        changeListener.imageChanged(new ImageEditorChangeEvent(this, variant, variants));
       }
     }
   }

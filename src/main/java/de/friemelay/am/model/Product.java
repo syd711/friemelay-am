@@ -23,6 +23,10 @@ public class Product extends CatalogItem {
   private BooleanProperty amountProperty = new SimpleBooleanProperty(true);
   private boolean variant = false;
 
+  public Product(CatalogItem parent) {
+    super(parent);
+  }
+
   public StringProperty getVariantLabel() {
     return variantLabel;
   }

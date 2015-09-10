@@ -17,6 +17,7 @@ import javafx.event.EventHandler;
 import javafx.scene.control.*;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.BorderPane;
+import javafx.util.Callback;
 import org.apache.commons.lang.StringUtils;
 
 import java.util.ArrayList;
@@ -29,7 +30,8 @@ import java.util.List;
  */
 public class CatalogTreePane extends BorderPane implements EventHandler<MouseEvent> {
 
-  private final TreeItem<Object> treeRoot = new TreeItem<Object>(new Category());
+  private final TreeItem<CatalogItem> treeRoot;
+  private Category root = new Category(null);
   private TreeView treeView;
   private List<Category> items = new ArrayList<>();
 
@@ -39,10 +41,18 @@ public class CatalogTreePane extends BorderPane implements EventHandler<MouseEve
   private Button deleteButton;
 
   public CatalogTreePane() {
-    treeView = new TreeView<Object>();
+    root.setStatus(1);
+    treeRoot = new TreeItem<CatalogItem>(root);
+    treeView = new TreeView<CatalogItem>();
     treeView.setOnMouseClicked(this);
     treeView.setShowRoot(false);
     treeView.setRoot(treeRoot);
+    treeView.setCellFactory(new Callback<TreeView<CatalogItem>, TreeCell<CatalogItem>>() {
+      @Override
+      public TreeCell<CatalogItem> call(TreeView<CatalogItem> p) {
+        return new CatalogTreeCell();
+      }
+    });
 
     setCenter(treeView);
 
@@ -65,7 +75,7 @@ public class CatalogTreePane extends BorderPane implements EventHandler<MouseEve
         if(!StringUtils.isEmpty(name)) {
           Category category = DB.createCategory(name, selection);
           reload();
-          UIController.getInstance().open(category);
+//          UIController.getInstance().open(category);
         }
       }
     });
@@ -78,9 +88,9 @@ public class CatalogTreePane extends BorderPane implements EventHandler<MouseEve
         if(selection != null) {
           String name = WidgetFactory.showInputDialog("", "Produkt anlegen", "Name des Produktes");
           if(!StringUtils.isEmpty(name)) {
-            Product product = DB.createProduct(name, selection.getId(), false);
+            Product product = DB.createProduct(selection, name, selection.getId(), false);
             reload();
-            UIController.getInstance().open(product);
+//            UIController.getInstance().open(product);
           }
         }
       }
@@ -90,13 +100,13 @@ public class CatalogTreePane extends BorderPane implements EventHandler<MouseEve
     addVariantButton.setTooltip(new Tooltip("Neue Produktvariante erstellen"));
     addVariantButton.setOnAction(new EventHandler<ActionEvent>() {
       public void handle(ActionEvent event) {
-        AbstractModel item = getSelection();
+        CatalogItem item = getSelection();
         if(item != null && item instanceof Product) {
           String name = WidgetFactory.showInputDialog("", "Variante anlegen", "Name der Variante");
           if(!StringUtils.isEmpty(name)) {
-            Product product = DB.createProduct(name, item.getId(), true);
+            Product product = DB.createProduct(item, name, item.getId(), true);
             reload();
-            UIController.getInstance().open(product);
+//            UIController.getInstance().open(product);
           }
         }
       }
@@ -148,10 +158,10 @@ public class CatalogTreePane extends BorderPane implements EventHandler<MouseEve
     else {
       deleteButton.setDisable(false);
       if(model instanceof Category) {
+        addCategoryButton.setDisable(false);
         addVariantButton.setDisable(true);
         addProductButton.setDisable(false);
-        addVariantButton.setDisable(true);
-      }
+        }
       if(model instanceof Product) {
         addCategoryButton.setDisable(true);
         Product product = (Product) model;
@@ -189,12 +199,12 @@ public class CatalogTreePane extends BorderPane implements EventHandler<MouseEve
     refresh(treeRoot);
   }
 
-  private void refresh(TreeItem<Object> item) {
-    ObservableList<TreeItem<Object>> children = item.getChildren();
-    for(TreeItem<Object> child : children) {
-      CatalogItem value = (CatalogItem) child.getValue();
+  private void refresh(TreeItem<CatalogItem> item) {
+    ObservableList<TreeItem<CatalogItem>> children = item.getChildren();
+    for(TreeItem<CatalogItem> child : children) {
+      CatalogItem value = child.getValue();
       child.valueProperty().unbind();
-      child.valueProperty().bind(new SimpleObjectProperty<Object>(value));
+      child.valueProperty().bind(new SimpleObjectProperty<>(value));
       refresh(child);
     }
   }
@@ -208,7 +218,7 @@ public class CatalogTreePane extends BorderPane implements EventHandler<MouseEve
       @Override
       public Void call() throws InterruptedException {
         treeRoot.getChildren().removeAll(treeRoot.getChildren());
-        items = DB.loadCatalog();
+        items = DB.loadCatalog(root);
         items = buildCatalog(items);
 
         buildTree(items, treeRoot);
@@ -268,26 +278,28 @@ public class CatalogTreePane extends BorderPane implements EventHandler<MouseEve
     return null;
   }
 
-  private void buildTree(List<Category> children, TreeItem<Object> parent) {
+  private void buildTree(List<Category> children, TreeItem<CatalogItem> parent) {
     for(Category item : children) {
-      TreeItem<Object> categoryTreeItem = new TreeItem<Object>(item, ResourceLoader.getImageView(item.getStatusIcon()));
-      categoryTreeItem.valueProperty().bind(new SimpleObjectProperty<Object>(item));
+      TreeItem<CatalogItem> categoryTreeItem = new TreeItem<>(item, ResourceLoader.getImageView(item.getStatusIcon()));
+      categoryTreeItem.valueProperty().bind(new SimpleObjectProperty<>(item));
       categoryTreeItem.setExpanded(true);
       parent.getChildren().add(categoryTreeItem);
 
       List<Product> products = item.getProducts();
       for(Product product : products) {
-        TreeItem<Object> productTreeItem = new TreeItem<Object>(product, ResourceLoader.getImageView(product.getStatusIcon()));
-        productTreeItem.valueProperty().bind(new SimpleObjectProperty<Object>(product));
+        TreeItem<CatalogItem> productTreeItem = new TreeItem<>(product, ResourceLoader.getImageView(product.getStatusIcon()));
+        productTreeItem.valueProperty().bind(new SimpleObjectProperty<>(product));
         productTreeItem.setExpanded(true);
         categoryTreeItem.getChildren().addAll(productTreeItem);
 
         List<Product> variants = product.getVariants();
         for(Product variant : variants) {
-          TreeItem<Object> variantTreeItem = new TreeItem<Object>(variant, ResourceLoader.getImageView(variant.getStatusIcon()));
-          variantTreeItem.valueProperty().bind(new SimpleObjectProperty<Object>(variant));
+          TreeItem<CatalogItem> variantTreeItem = new TreeItem<>(variant, ResourceLoader.getImageView(variant.getStatusIcon()));
+          variantTreeItem.valueProperty().bind(new SimpleObjectProperty<>(variant));
           variantTreeItem.setExpanded(true);
           productTreeItem.getChildren().addAll(variantTreeItem);
+
+          //.setStyle("-fx-background-color: #0093ff;");
         }
       }
 
@@ -298,23 +310,23 @@ public class CatalogTreePane extends BorderPane implements EventHandler<MouseEve
   }
 
   public void selectCatalogItem(CatalogItem item) {
-    TreeItem<Object> treeItem = findTreeItem(treeRoot, item);
+    TreeItem<CatalogItem> treeItem = findTreeItem(treeRoot, item);
     treeView.getSelectionModel().select(treeItem);
   }
 
   public boolean hasCatalogItem(CatalogItem item) {
-    TreeItem<Object> treeItem = findTreeItem(treeRoot, item);
+    TreeItem<CatalogItem> treeItem = findTreeItem(treeRoot, item);
     return treeItem != null;
   }
 
-  private TreeItem<Object> findTreeItem(TreeItem<Object> child, CatalogItem item) {
-    CatalogItem treeModel = (CatalogItem) child.getValue();
+  private TreeItem<CatalogItem> findTreeItem(TreeItem<CatalogItem> child, CatalogItem item) {
+    CatalogItem treeModel = child.getValue();
     if(treeModel.getId() == item.getId() && treeModel.getType() == item.getType()) {
       return child;
     }
-    ObservableList<TreeItem<Object>> children = child.getChildren();
-    for(TreeItem<Object> treeItem : children) {
-      TreeItem<Object> match = findTreeItem(treeItem, item);
+    ObservableList<TreeItem<CatalogItem>> children = child.getChildren();
+    for(TreeItem<CatalogItem> treeItem : children) {
+      TreeItem<CatalogItem> match = findTreeItem(treeItem, item);
       if(match != null) {
         return match;
       }

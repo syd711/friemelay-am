@@ -12,6 +12,10 @@ public class Category extends CatalogItem {
   private List<Product> products = new ArrayList<>();
   private boolean topLevel;
 
+  public Category(CatalogItem parent) {
+    super(parent);
+  }
+
   public boolean isTopLevel() {
     return topLevel;
   }
