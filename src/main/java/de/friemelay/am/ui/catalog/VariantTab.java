@@ -98,9 +98,9 @@ public class VariantTab extends ModelTab implements EventHandler<ActionEvent>, C
     WidgetFactory.addBindingFormTextfield(variantForm, "Varianten-Kurzbeschreibung:", product.getVariantShortDescription(), index++, true, this);
     WidgetFactory.addBindingFormSpinner(variantForm, "Warenbestand:", 0, 1000, product.getStock(), index++, true, this);
     WidgetFactory.addBindingFormPriceField(variantForm, "Preis:", product.getPrice(), index++, true, this);
-    WidgetFactory.addBindingFormTextarea(variantForm, "Produktbeschreibung:", product.getDetails(), 100, index++, true, this);
+    WidgetFactory.addBindingFormTextarea(variantForm, "Produktbeschreibung:", product.getDetails(), 180, index++, true, this);
     String formLabel = "Bild der Variante - empfohlene Größe: 800 x 600 Pixel:\n(automatische Skalierung größerer Bilder)";
-    WidgetFactory.addFormImageEditor(variantForm, formLabel, product.getImages(), index++, 400, 1, this);
+    WidgetFactory.addFormImageEditor(variantForm, formLabel, product.getImages(), index++, 500, 1, this);
     WidgetFactory.createSection(form, variantForm, "Varianten Details (alle übrigen Einstellungen werden vom Produkt benutzt)", false);
   }
 

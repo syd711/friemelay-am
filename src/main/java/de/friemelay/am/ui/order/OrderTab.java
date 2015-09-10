@@ -117,7 +117,7 @@ public class OrderTab extends ModelTab implements EventHandler<ActionEvent>, Cha
     orderCancelButton = new Button("Bestellung stornieren", ResourceLoader.getImageView("remove.png"));
     orderCancelButton.setOnAction(this);
     orderCancelButton.setDisable(isReadonly());
-    toolbar.getItems().addAll(contactButton, saveButton, resetButton, orderCancelButton);
+    toolbar.getItems().addAll(saveButton, resetButton, new Separator(), orderCancelButton, new Separator(), contactButton);
     root.setTop(toolbar);
 
     orderForm.setAlignment(Pos.TOP_CENTER);

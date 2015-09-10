@@ -26,6 +26,9 @@ public class ResourceLoader {
   }
 
   public static ImageView getWebImageView(String s) {
+    if(!s.startsWith("http")) {
+      s = "http://www.friemlay.de/" + s;
+    }
     Image image = new Image(s);
     ImageView imageView = new ImageView(image);
     imageView.setFitWidth(100);

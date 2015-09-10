@@ -46,7 +46,7 @@ CREATE TABLE order_items (
   order_id INT(8) NOT NULL,
   amount INT(4) NOT NULL,
   price DECIMAL(5,2) NOT NULL,
-  product_id VARCHAR(100),
+  product_id INT NOT NULL,
   product_description VARCHAR(100) NOT NULL,
   url VARCHAR(200),
   image_url VARCHAR(200)

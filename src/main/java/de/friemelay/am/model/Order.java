@@ -125,7 +125,7 @@ public class Order extends AbstractModel {
     return new SimpleDateFormat("dd.MM.yyyy").format(getCreationDate());
   }
   public String getFormattedCreationDateTime() {
-    return new SimpleDateFormat("dd.MM.yyyy hh:mm").format(getCreationDate()) + " Uhr";
+    return new SimpleDateFormat("dd.MM.yyyy HH:mm").format(getCreationDate()) + " Uhr";
   }
 
   public String getFormattedTotalPrice() {

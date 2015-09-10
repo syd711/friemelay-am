@@ -103,7 +103,7 @@ public class ProductTab extends ModelTab implements EventHandler<ActionEvent>, C
     GridPane categoryImageForm = WidgetFactory.createFormGrid();
     categoryImageForm.getStyleClass().add("root");
     index = 0;
-    String formLabel = "Kategoriebild - empfohlene Größe: 305x 200 Pixel:";
+    String formLabel = "Kategoriebild - empfohlene Größe: 305x 200 Pixel\n(keine automatische Skalierung!)";
     categoryImageEditor = WidgetFactory.addFormImageEditor(categoryImageForm, formLabel, product.getImage(), index++, 250, 1, this);
     WidgetFactory.createSection(form, categoryImageForm, "Kategoriebild", false);
 
@@ -117,7 +117,8 @@ public class ProductTab extends ModelTab implements EventHandler<ActionEvent>, C
     WidgetFactory.addBindingFormPriceField(variantForm, "Preis:", product.getPrice(), index++, true, this);
     WidgetFactory.addBindingFormTextarea(variantForm, "Produktbeschreibung:", product.getDetails(), 100, index++, true, this);
     WidgetFactory.addFormImageEditor(variantForm, "Produktbilder", product.getImages(), index++, 400, 10, this);
-    WidgetFactory.createSection(form, variantForm, "Produkt Details (diese werden nur benutzt wenn das Produkt keine Varianten hat)", false);
+
+    WidgetFactory.createSection(form, variantForm, "Produkt Details (diese werden nur benutzt wenn das Produkt keine Varianten hat oder keine aktiviert ist)", !product.getVariants().isEmpty());
   }
 
 

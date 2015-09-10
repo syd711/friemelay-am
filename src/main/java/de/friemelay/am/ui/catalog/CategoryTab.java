@@ -99,10 +99,11 @@ public class CategoryTab extends ModelTab implements EventHandler<ActionEvent>, 
     WidgetFactory.addBindingFormTextfield(categoryDetailsForm, "Name:", category.getTitle(), index++, true, this);
     WidgetFactory.addBindingFormTextarea(categoryDetailsForm, "Titeltext:", category.getDetails(), index++, true, this);
     WidgetFactory.addBindingFormTextarea(categoryDetailsForm, "Kurzbeschreibung (Bildunterschrift):", category.getShortDescription(), index++, true, this);
-    String formLabel = "Bild (empfohlene Größe: 305 x 200 Pixel):";
+    String formLabel = "Bild - empfohlene Größe: 305 x 200 Pixel";
     if(category.isTopLevel()) {
-      formLabel = "Bild (empfohlene Größe: 305 x 130 Pixel):";
+      formLabel = "Bild - empfohlene Größe: 305 x 130 Pixel";
     }
+    formLabel+="\n(keine automatische Skalierung!)";
     WidgetFactory.addFormImageEditor(categoryDetailsForm, formLabel, category.getImage(), index++, 400, 1, this);
 
     String label = "Details der Kategorie";
