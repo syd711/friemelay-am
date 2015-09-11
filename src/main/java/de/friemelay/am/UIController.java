@@ -2,9 +2,7 @@ package de.friemelay.am;
 
 import de.friemelay.am.config.Config;
 import de.friemelay.am.db.DB;
-import de.friemelay.am.model.AbstractModel;
-import de.friemelay.am.model.CatalogItem;
-import de.friemelay.am.model.Order;
+import de.friemelay.am.model.*;
 import de.friemelay.am.ui.ModelTab;
 import de.friemelay.am.ui.order.OrderTab;
 import de.friemelay.am.ui.util.TransitionUtil;
@@ -101,6 +99,12 @@ public class UIController {
     order.setOrderStatus(Order.ORDER_STATUS_CANCELED);
     mainPanel.getOrderTreePane().updateOrderStatus(order);
     DB.save(order);
+    List<OrderItem> orderItems = order.getOrderItems();
+    for(OrderItem orderItem : orderItems) {
+      Product p = getProductModel(orderItem.getProductId());
+      DB.addToStock(p, orderItem.getAmount().get());
+    }
+
     OrderTab tab = (OrderTab) mainPanel.getTabPane().open(order);
     tab.reload();
   }
@@ -114,7 +118,7 @@ public class UIController {
   }
 
   public void reloadCatalog() {
-    mainPanel.getCatalogTreePane().reload();
+    mainPanel.getCatalogTreePane().reloadAndOpen(-1, -1);
   }
 
   public void resetSelectedOrder() {
@@ -169,5 +173,13 @@ public class UIController {
         }
       }
     });
+  }
+
+  public Product getProductModel(int productId) {
+    CatalogItem model = mainPanel.getCatalogTreePane().getModelFromTree(productId, AbstractModel.TYPE_VARIANT);
+    if(model == null) {
+      model = mainPanel.getCatalogTreePane().getModelFromTree(productId, AbstractModel.TYPE_PRODUCT);
+    }
+    return (Product) model;
   }
 }

@@ -5,6 +5,7 @@ import de.friemelay.am.config.Config;
 import de.friemelay.am.db.DB;
 import de.friemelay.am.model.Order;
 import de.friemelay.am.model.OrderItem;
+import de.friemelay.am.model.Product;
 import de.friemelay.am.resources.ResourceLoader;
 import de.friemelay.am.ui.ModelTab;
 import de.friemelay.am.ui.util.MailDialog;
@@ -89,7 +90,9 @@ public class OrderTab extends ModelTab implements EventHandler<ActionEvent>, Cha
       setDirty(!confirmed);
     }
     else if(event.getSource() == orderCancelButton) {
-      boolean confirmed = WidgetFactory.showConfirmation("Bestellung stornieren?", "Soll die Bestellung storniert werden? Ein Statusaktualisierung ist danach nicht mehr möglich!");
+      boolean confirmed = WidgetFactory.showConfirmation("Bestellung stornieren?",
+          "Soll die Bestellung storniert werden?\n\nDie Produkte der Bestellung werden dem Warenbestand wieder hinzugefügt." +
+              "\n\nEin Statusaktualisierung ist danach nicht mehr möglich!");
       if(confirmed) {
         UIController.getInstance().cancelOrder(order);
         createOrderForms();
@@ -282,6 +285,8 @@ public class OrderTab extends ModelTab implements EventHandler<ActionEvent>, Cha
     GridPane.setConstraints(totalPriceLabel, 4, row);
     grid.getChildren().addAll(totalPriceLabel);
 
+    HBox buttonPanel = new HBox(5);
+    buttonPanel.setAlignment(Pos.CENTER);
     Button removeButton = new Button("Löschen", ResourceLoader.getImageView("remove.png"));
     removeButton.setDisable(isReadonly());
     removeButton.setOnAction(new EventHandler<ActionEvent>() {
@@ -291,9 +296,20 @@ public class OrderTab extends ModelTab implements EventHandler<ActionEvent>, Cha
         setDirty(true);
       }
     });
-    GridPane.setMargin(removeButton, new Insets(5, 5, 5, 10));
-    GridPane.setConstraints(removeButton, 5, row);
-    grid.getChildren().addAll(removeButton);
+
+    Button openButton = new Button("Öffnen", ResourceLoader.getImageView("open.png"));
+    openButton.setDisable(isReadonly());
+    openButton.setOnAction(new EventHandler<ActionEvent>() {
+      public void handle(ActionEvent event) {
+        Product product = UIController.getInstance().getProductModel(item.getProductId());
+        UIController.getInstance().open(product);
+      }
+    });
+
+    GridPane.setMargin(buttonPanel, new Insets(5, 5, 5, 10));
+    GridPane.setConstraints(buttonPanel, 5, row);
+    buttonPanel.getChildren().addAll(removeButton, openButton);
+    grid.getChildren().addAll(buttonPanel);
 
   }
 

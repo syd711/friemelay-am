@@ -46,7 +46,7 @@ public class ModelFactory {
     try {
       int amount = resultSet.getInt("amount");
       double price = resultSet.getInt("price");
-      String productId = resultSet.getString("product_id");
+      int productId = resultSet.getInt("product_id");
       String imageUrl = resultSet.getString("image_url");
       String url = resultSet.getString("url");
       String productDescription = resultSet.getString("product_description");
@@ -54,7 +54,7 @@ public class ModelFactory {
       OrderItem item = new OrderItem();
       item.setAmount(amount);
       item.setPrice(price);
-      item.setProduct_id(productId);
+      item.setProductId(productId);
       item.setProductDescription(productDescription);
       item.setImageUrl(imageUrl);
       item.setUrl(url);

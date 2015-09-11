@@ -12,7 +12,7 @@ public class OrderItem {
   private int order_id;
   private IntegerProperty amount = new SimpleIntegerProperty();
   private double price;
-  private String product_id;
+  private int productId;
   private String productDescription;
   private String imageUrl;
   private String url;
@@ -41,12 +41,12 @@ public class OrderItem {
     this.price = price;
   }
 
-  public String getProduct_id() {
-    return product_id;
+  public int getProductId() {
+    return productId;
   }
 
-  public void setProduct_id(String product_id) {
-    this.product_id = product_id;
+  public void setProductId(int productId) {
+    this.productId = productId;
   }
 
   public String getProductDescription() {

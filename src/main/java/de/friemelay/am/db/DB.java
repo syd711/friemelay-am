@@ -538,4 +538,17 @@ public class DB {
     }
     return null;
   }
+
+  public static void addToStock(Product p, int value) {
+    try {
+      int newStock = p.getStock().get() + value;
+      Statement statement = connection.createStatement();
+      statement.executeUpdate("UPDATE products SET stock = " + newStock + " WHERE id = " + p.getId());
+      statement.close();
+      p.setStock(newStock);
+    } catch (SQLException e) {
+      Logger.getLogger(Connection.class.getName()).error("Failed to update stock: " + e.getMessage(), e);
+      WidgetFactory.showError("Failed to update stock: " + e.getMessage(), e);
+    }
+  }
 }
