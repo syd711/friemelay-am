@@ -4,7 +4,6 @@ import de.friemelay.am.UIController;
 import de.friemelay.am.db.DB;
 import de.friemelay.am.model.Category;
 import de.friemelay.am.resources.ResourceLoader;
-import de.friemelay.am.ui.ModelTab;
 import de.friemelay.am.ui.imageeditor.ImageEditorChangeEvent;
 import de.friemelay.am.ui.imageeditor.ImageEditorChangeListener;
 import de.friemelay.am.ui.util.WidgetFactory;
@@ -25,19 +24,12 @@ import javafx.scene.layout.VBox;
 /**
  *
  */
-public class CategoryTab extends ModelTab implements EventHandler<ActionEvent>, ImageEditorChangeListener, ChangeListener {
-  private Category category;
+public class CategoryTab extends CatalogTab<Category> implements EventHandler<ActionEvent>, ImageEditorChangeListener, ChangeListener {
 
-  private Button saveButton;
-  private Button resetButton;
-
-  private boolean dirty;
-  private final VBox catalogForm = new VBox();
+  private VBox catalogForm;
 
   public CategoryTab(Category category) {
     super(category);
-    this.category = category;
-    init();
   }
 
   /**
@@ -46,13 +38,13 @@ public class CategoryTab extends ModelTab implements EventHandler<ActionEvent>, 
    */
   public void handle(ActionEvent event) {
     if(event.getSource() == resetButton) {
-      category = DB.getCategory(category.getParent(), category.getId());
+      model = DB.getCategory(getModel().getParent(), getModel().getId());
       createCatalogForm();
       setDirty(false);
     }
     else if(event.getSource() == saveButton) {
-      DB.save(category);
-      this.setText(category.toString());
+      DB.save(getModel());
+      this.setText(getModel().toString());
       UIController.getInstance().refreshCatalog();
       setDirty(false);
     }
@@ -62,8 +54,9 @@ public class CategoryTab extends ModelTab implements EventHandler<ActionEvent>, 
     createCatalogForm();
   }
 
-  private void init() {
-    BorderPane root = new BorderPane();
+  @Override
+  protected void init() {
+    BorderPane root = getRoot();
 
     ToolBar toolbar = new ToolBar();
     saveButton = new Button("Änderungen speichern", ResourceLoader.getImageView("save.png"));
@@ -75,6 +68,7 @@ public class CategoryTab extends ModelTab implements EventHandler<ActionEvent>, 
     toolbar.getItems().addAll(saveButton, resetButton);
     root.setTop(toolbar);
 
+    catalogForm = new VBox();
     catalogForm.setAlignment(Pos.TOP_CENTER);
     catalogForm.setFillWidth(true);
 
@@ -95,43 +89,27 @@ public class CategoryTab extends ModelTab implements EventHandler<ActionEvent>, 
 
     GridPane categoryDetailsForm = WidgetFactory.createFormGrid();
     int index = 0;
-    WidgetFactory.addBindingFormCheckbox(categoryDetailsForm, "Kategorie aktiviert:", category.getStatus(), index++, true, this);
-    WidgetFactory.addBindingFormTextfield(categoryDetailsForm, "Name:", category.getTitle(), index++, true, this);
-    WidgetFactory.addBindingFormTextarea(categoryDetailsForm, "Titeltext:", category.getDetails(), index++, true, this);
-    WidgetFactory.addBindingFormTextarea(categoryDetailsForm, "Kurzbeschreibung (Bildunterschrift):", category.getShortDescription(), index++, true, this);
+    WidgetFactory.addBindingFormCheckbox(categoryDetailsForm, "Kategorie aktiviert:", getModel().getStatus(), index++, true, this);
+    WidgetFactory.addBindingFormTextfield(categoryDetailsForm, "Name:", getModel().getTitle(), index++, true, this);
+    WidgetFactory.addBindingFormTextarea(categoryDetailsForm, "Titeltext:", getModel().getDetails(), index++, true, this);
+    WidgetFactory.addBindingFormTextarea(categoryDetailsForm, "Kurzbeschreibung (Bildunterschrift):", getModel().getShortDescription(), index++, true, this);
     String formLabel = "Bild - empfohlene Größe: 305 x 200 Pixel";
-    if(category.isTopLevel()) {
+    if(getModel().isTopLevel()) {
       formLabel = "Bild - empfohlene Größe: 305 x 130 Pixel";
     }
     formLabel+="\n(keine automatische Skalierung!)";
-    WidgetFactory.addFormImageEditor(categoryDetailsForm, formLabel, category.getImage(), index++, 400, 1, this);
+    WidgetFactory.addFormImageEditor(categoryDetailsForm, formLabel, getModel().getImage(), index++, 400, 1, this);
 
     String label = "Details der Kategorie";
-    if(category.isTopLevel()) {
+    if(getModel().isTopLevel()) {
       label = "Details der Top-Level Kategorie";
     }
     WidgetFactory.createSection(catalogForm, categoryDetailsForm, label, false);
   }
 
-
-  private void setDirty(boolean dirty) {
-    this.dirty = dirty;
-    saveButton.setDisable(!dirty);
-    resetButton.setDisable(!dirty);
-  }
-
-  public boolean isDirty() {
-    return dirty;
-  }
-
-
-  public Category getCategory() {
-    return category;
-  }
-
   @Override
   public void imageChanged(ImageEditorChangeEvent event) {
-    category.setImage(event.getImageVariant().getImage());
+    getModel().setImage(event.getImageVariant().getImage());
     setDirty(true);
   }
 

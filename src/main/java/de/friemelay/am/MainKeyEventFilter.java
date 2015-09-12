@@ -18,5 +18,8 @@ public class MainKeyEventFilter implements javafx.event.EventHandler<KeyEvent> {
         UIController.getInstance().resetSelectedOrder();
       }
     }
+    else if(event.getCode() == KeyCode.W && event.isControlDown()) {
+      UIController.getInstance().closeTab(null);
+    }
   }
 }

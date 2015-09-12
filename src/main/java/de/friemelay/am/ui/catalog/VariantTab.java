@@ -4,7 +4,6 @@ import de.friemelay.am.UIController;
 import de.friemelay.am.db.DB;
 import de.friemelay.am.model.Product;
 import de.friemelay.am.resources.ResourceLoader;
-import de.friemelay.am.ui.ModelTab;
 import de.friemelay.am.ui.imageeditor.ImageEditorChangeEvent;
 import de.friemelay.am.ui.imageeditor.ImageEditorChangeListener;
 import de.friemelay.am.ui.util.WidgetFactory;
@@ -25,19 +24,11 @@ import javafx.scene.layout.VBox;
 /**
  *
  */
-public class VariantTab extends ModelTab implements EventHandler<ActionEvent>, ChangeListener, ImageEditorChangeListener {
-  private Product product;
-
-  private Button saveButton;
-  private Button resetButton;
-
-  private boolean dirty;
-  private final VBox form = new VBox();
+public class VariantTab extends CatalogTab<Product> implements EventHandler<ActionEvent>, ChangeListener, ImageEditorChangeListener {
+  private VBox form;
 
   public VariantTab(Product product) {
     super(product);
-    this.product = product;
-    init();
   }
 
   /**
@@ -46,20 +37,21 @@ public class VariantTab extends ModelTab implements EventHandler<ActionEvent>, C
    */
   public void handle(ActionEvent event) {
     if(event.getSource() == resetButton) {
-      product = DB.getProduct(product.getParent(), product.getId());
+      model = DB.getProduct(getModel().getParent(), getModel().getId());
       createForm();
       setDirty(false);
     }
     else if(event.getSource() == saveButton) {
-      DB.save(product);
-      this.setText(product.toString());
+      DB.save(getModel());
+      this.setText(getModel().toString());
       UIController.getInstance().refreshCatalog();
       setDirty(false);
     }
   }
 
-  private void init() {
-    BorderPane root = new BorderPane();
+  @Override
+  protected void init() {
+    BorderPane root = getRoot();
 
     ToolBar toolbar = new ToolBar();
     saveButton = new Button("Änderungen speichern", ResourceLoader.getImageView("save.png"));
@@ -71,6 +63,7 @@ public class VariantTab extends ModelTab implements EventHandler<ActionEvent>, C
     toolbar.getItems().addAll(saveButton, resetButton);
     root.setTop(toolbar);
 
+    form = new VBox();
     form.setAlignment(Pos.TOP_CENTER);
     form.setFillWidth(true);
 
@@ -81,8 +74,6 @@ public class VariantTab extends ModelTab implements EventHandler<ActionEvent>, C
     form.setPadding(new Insets(5, 10, 5, 0));
     root.setCenter(centerScroller);
 
-    setContent(root);
-
     createForm();
   }
 
@@ -92,27 +83,16 @@ public class VariantTab extends ModelTab implements EventHandler<ActionEvent>, C
     GridPane variantForm = WidgetFactory.createFormGrid();
     variantForm.getStyleClass().add("root");
     int index = 0;
-    WidgetFactory.addBindingFormCheckbox(variantForm, "Variante aktiviert:", product.getStatus(), index++, true, this);
-    WidgetFactory.addBindingFormTextfield(variantForm, "Varianten-Überschrift:", product.getVariantLabel(), index++, true, this);
-    WidgetFactory.addBindingFormTextfield(variantForm, "Varianten-Name:", product.getTitle(), index++, true, this);
-    WidgetFactory.addBindingFormTextfield(variantForm, "Varianten-Kurzbeschreibung:", product.getVariantShortDescription(), index++, true, this);
-    WidgetFactory.addBindingFormSpinner(variantForm, "Warenbestand:", 0, 1000, product.getStock(), index++, true, this);
-    WidgetFactory.addBindingFormPriceField(variantForm, "Preis:", product.getPrice(), index++, true, this);
-    WidgetFactory.addBindingFormTextarea(variantForm, "Produktbeschreibung:", product.getDetails(), 180, index++, true, this);
+    WidgetFactory.addBindingFormCheckbox(variantForm, "Variante aktiviert:", getModel().getStatus(), index++, true, this);
+    WidgetFactory.addBindingFormTextfield(variantForm, "Varianten-Überschrift:", getModel().getVariantLabel(), index++, true, this);
+    WidgetFactory.addBindingFormTextfield(variantForm, "Varianten-Name:", getModel().getTitle(), index++, true, this);
+    WidgetFactory.addBindingFormTextfield(variantForm, "Varianten-Kurzbeschreibung:", getModel().getVariantShortDescription(), index++, true, this);
+    WidgetFactory.addBindingFormSpinner(variantForm, "Warenbestand:", 0, 1000, getModel().getStock(), index++, true, this);
+    WidgetFactory.addBindingFormPriceField(variantForm, "Preis:", getModel().getPrice(), index++, true, this);
+    WidgetFactory.addBindingFormTextarea(variantForm, "Produktbeschreibung:", getModel().getDetails(), 180, index++, true, this);
     String formLabel = "Variantenbilder - empfohlene Größe: 800 x 600 Pixel:\n(automatische Skalierung größerer Bilder)";
-    WidgetFactory.addFormImageEditor(variantForm, formLabel, product.getImages(), index++, 500, 1, this);
+    WidgetFactory.addFormImageEditor(variantForm, formLabel, getModel().getImages(), index++, 500, 1, this);
     WidgetFactory.createSection(form, variantForm, "Varianten Details (alle übrigen Einstellungen werden vom Produkt benutzt)", false);
-  }
-
-
-  private void setDirty(boolean dirty) {
-    this.dirty = dirty;
-    saveButton.setDisable(!dirty);
-    resetButton.setDisable(!dirty);
-  }
-
-  public boolean isDirty() {
-    return dirty;
   }
 
   @Override
@@ -122,7 +102,7 @@ public class VariantTab extends ModelTab implements EventHandler<ActionEvent>, C
 
   @Override
   public void imageChanged(ImageEditorChangeEvent event) {
-    product.setImages(event.getAllImages());
+    getModel().setImages(event.getAllImages());
     setDirty(true);
   }
 }

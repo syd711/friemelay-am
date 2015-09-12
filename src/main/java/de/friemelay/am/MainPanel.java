@@ -40,7 +40,7 @@ public class MainPanel extends BorderPane {
 
     final Accordion accordion = new Accordion();
     accordion.setMaxWidth(600);
-    accordion.setMinWidth(400);
+    accordion.setMinWidth(300);
     accordion.getPanes().addAll(ordersTreeTitledPane, catalogTreeTitledPane);
 
     splitPane.getItems().addAll(accordion, tabPane);

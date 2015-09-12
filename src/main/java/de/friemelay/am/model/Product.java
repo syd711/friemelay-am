@@ -139,4 +139,8 @@ public class Product extends CatalogItem {
     }
     return false;
   }
+
+  public boolean isForFree() {
+    return getPrice().get() == 0;
+  }
 }

@@ -522,7 +522,21 @@ public class DB {
       if(variant) {
         type = AbstractModel.TYPE_VARIANT;
       }
-      statement.executeUpdate("insert into products (title, model_type, parent_id, amount, catalog_status) VALUES ('" + name + "', " + type + ", " + parentId + ", 1, 1)");
+      String variantLabel = "";
+      double price = 0;
+      String details = "";
+      if(parent.getType() == AbstractModel.TYPE_PRODUCT) {
+        variantLabel = ((Product)parent).getVariantLabel().get();
+        price = ((Product)parent).getPrice().get();
+        details = ((Product)parent).getDetails().get();
+      }
+      if(variantLabel == null) {
+        variantLabel = "";
+      }
+
+      statement.executeUpdate("insert into products (title, model_type, parent_id, amount, catalog_status, " +
+          "variant_label, price, details) VALUES ('" + name + "', " + type + ", " + parentId + ", 1, 1, '" + variantLabel
+          + "', " + price + ", '" + details + "')");
       statement.close();
 
       statement = connection.createStatement();

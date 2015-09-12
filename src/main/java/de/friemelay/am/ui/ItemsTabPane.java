@@ -75,11 +75,11 @@ public class ItemsTabPane extends BorderPane implements ChangeListener<Tab> {
   public void changed(ObservableValue<? extends Tab> observable, Tab oldValue, Tab newValue) {
     if(newValue != null) {
       if(newValue instanceof OrderTab) {
-        Order order = ((OrderTab) newValue).getOrder();
+        Order order = ((OrderTab) newValue).getModel();
         UIController.getInstance().selectOrderTreeNode(order);
       }
       else if(newValue instanceof CategoryTab) {
-        Category category = ((CategoryTab) newValue).getCategory();
+        Category category = ((CategoryTab) newValue).getModel();
         UIController.getInstance().selectCatalogTreeNode(category);
       }
 
@@ -87,6 +87,12 @@ public class ItemsTabPane extends BorderPane implements ChangeListener<Tab> {
   }
 
   public void closeTab(AbstractModel item) {
+    if(item == null) {
+      Tab selectedItem = tabPane.getSelectionModel().getSelectedItem();
+      tabPane.getTabs().removeAll(selectedItem);
+      return;
+    }
+
     ObservableList<Tab> tabs = tabPane.getTabs();
     for(Tab tab : tabs) {
       ModelTab modelTab = (ModelTab) tab;

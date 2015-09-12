@@ -2,13 +2,11 @@ package de.friemelay.am.ui.catalog;
 
 import de.friemelay.am.UIController;
 import de.friemelay.am.db.DB;
-import de.friemelay.am.model.AbstractModel;
-import de.friemelay.am.model.CatalogItem;
-import de.friemelay.am.model.Category;
-import de.friemelay.am.model.Product;
+import de.friemelay.am.model.*;
 import de.friemelay.am.resources.ResourceLoader;
 import de.friemelay.am.ui.util.ProgressForm;
 import de.friemelay.am.ui.util.WidgetFactory;
+import javafx.application.Platform;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.ObservableList;
 import javafx.concurrent.Task;
@@ -39,6 +37,8 @@ public class CatalogTreePane extends BorderPane implements EventHandler<MouseEve
   private Button addProductButton;
   private Button addCategoryButton;
   private Button deleteButton;
+
+  private CatalogTreeExpandListener expandListener = new CatalogTreeExpandListener();
 
   public CatalogTreePane() {
     root.setStatus(1);
@@ -73,7 +73,7 @@ public class CatalogTreePane extends BorderPane implements EventHandler<MouseEve
         Category selection = getSelectedCategory();
         String name = WidgetFactory.showInputDialog("", "Kategorie anlegen", "Name der Kategorie");
         if(!StringUtils.isEmpty(name)) {
-          Category category = DB.createCategory(name, selection);
+          Category category = DB.createCategory(name.trim(), selection);
           reloadAndOpen(category.getId(), AbstractModel.TYPE_CATEGORY);
         }
       }
@@ -87,8 +87,9 @@ public class CatalogTreePane extends BorderPane implements EventHandler<MouseEve
         if(selection != null) {
           String name = WidgetFactory.showInputDialog("", "Produkt anlegen", "Name des Produktes");
           if(!StringUtils.isEmpty(name)) {
-            Product product = DB.createProduct(selection, name, selection.getId(), false);
+            Product product = DB.createProduct(selection, name.trim(), selection.getId(), false);
             reloadAndOpen(product.getId(), AbstractModel.TYPE_PRODUCT);
+            addProductButton.setDisable(true);
           }
         }
       }
@@ -102,8 +103,8 @@ public class CatalogTreePane extends BorderPane implements EventHandler<MouseEve
         if(item != null && item instanceof Product) {
           String name = WidgetFactory.showInputDialog("", "Variante anlegen", "Name der Variante");
           if(!StringUtils.isEmpty(name)) {
-            Product product = DB.createProduct(item, name, item.getId(), true);
-            reloadAndOpen(product.getId(), AbstractModel.TYPE_PRODUCT);
+            Product product = DB.createProduct(item, name.trim(), item.getId(), true);
+            reloadAndOpen(product.getId(), AbstractModel.TYPE_VARIANT);
           }
         }
       }
@@ -125,7 +126,22 @@ public class CatalogTreePane extends BorderPane implements EventHandler<MouseEve
       }
     });
 
-    toolbar.getItems().addAll(addCategoryButton, addProductButton, addVariantButton, new Separator(), deleteButton);
+
+    Button expandButton = new Button("", ResourceLoader.getImageView("expand.png"));
+    expandButton.setOnAction(new EventHandler<ActionEvent>() {
+      public void handle(ActionEvent event) {
+        expandAll(treeRoot.getChildren(), true);
+      }
+    });
+    Button collapseButton = new Button("", ResourceLoader.getImageView("collapse.png"));
+    collapseButton.setOnAction(new EventHandler<ActionEvent>() {
+      public void handle(ActionEvent event) {
+        expandAll(treeRoot.getChildren(), false);
+      }
+    });
+
+    toolbar.getItems().addAll(new Separator(), addCategoryButton, addProductButton, addVariantButton,
+        new Separator(), expandButton, collapseButton, new Separator(), deleteButton);
 
     setTop(toolbar);
   }
@@ -144,7 +160,7 @@ public class CatalogTreePane extends BorderPane implements EventHandler<MouseEve
 
     UIController.getInstance().setInfoMessage("");
     CatalogItem model = getSelection();
-    if(!model.getStatus().get()) {
+    if(model != null && !model.getStatus().get()) {
       UIController.getInstance().setInfoMessage("'" + model + "' ist nicht aktiv und wird nicht auf der Webseite angezeigt.");
     }
 
@@ -164,9 +180,16 @@ public class CatalogTreePane extends BorderPane implements EventHandler<MouseEve
       if(model instanceof Product) {
         addCategoryButton.setDisable(true);
         Product product = (Product) model;
-        if(!product.isOnStock()) {
+        if(!product.getStatus().get()) {
+          UIController.getInstance().setInfoMessage("'" + model + "' ist nicht aktiv und wird nicht auf der Webseite angezeigt.");
+        }
+        else if(!product.isOnStock()) {
           UIController.getInstance().setInfoMessage("'" + model + "' ist nicht mehr auf Lager. Sobald alle Varianten eines Produktes nicht mehr auf Lager sind, sollte dieses deaktiviert werden.");
         }
+        else if(product.isForFree() && (product.isVariant() || product.getVariants().isEmpty())) {
+          UIController.getInstance().setInfoMessage("'" + model + "' hat keinen Preis definiert.");
+        }
+
         if(product.isVariant()) {
           addVariantButton.setDisable(true);
           addProductButton.setDisable(true);
@@ -196,10 +219,10 @@ public class CatalogTreePane extends BorderPane implements EventHandler<MouseEve
     return null;
   }
 
-
   public void refresh() {
     refresh(treeRoot);
   }
+
 
   private void refresh(TreeItem<CatalogItem> item) {
     ObservableList<TreeItem<CatalogItem>> children = item.getChildren();
@@ -219,18 +242,9 @@ public class CatalogTreePane extends BorderPane implements EventHandler<MouseEve
     Task<Void> task = new Task<Void>() {
       @Override
       public Void call() throws InterruptedException {
-        treeRoot.getChildren().removeAll(treeRoot.getChildren());
         root.getChildren().clear();
         items = DB.loadCatalog(root);
-        for(Category topLevel : items) {
-          root.getChildren().add(topLevel);
-        }
 
-        items = buildCatalog(items);
-
-        buildTree(items, treeRoot);
-
-        treeRoot.setExpanded(true);
         updateProgress(10, 10);
         return null;
       }
@@ -242,16 +256,30 @@ public class CatalogTreePane extends BorderPane implements EventHandler<MouseEve
     // in real life this method would get the result of the task
     // and update the UI based on its value:
     task.setOnSucceeded(event -> {
-      pForm.getDialogStage().close();
-      UIController.getInstance().closeInvalidTabs();
-      UIController.getInstance().open(getModelFromTree(id, type));
+      Platform.runLater(new Runnable() {
+        @Override
+        public void run() {
+          pForm.getDialogStage().close();
+          treeRoot.getChildren().removeAll(treeRoot.getChildren());
+          for(Category topLevel : items) {
+            root.getChildren().add(topLevel);
+          }
+
+          items = buildCatalog(items);
+          buildTree(items, treeRoot);
+          treeRoot.setExpanded(true);
+
+          UIController.getInstance().closeInvalidTabs();
+          UIController.getInstance().open(getModelFromTree(id, type));
+        }
+      });
+
     });
 
     pForm.getDialogStage().show();
     Thread thread = new Thread(task);
     thread.start();
   }
-
 
   private static List<Category> buildCatalog(List<Category> items) {
     List<Category> topLevel = new ArrayList<>();
@@ -278,6 +306,7 @@ public class CatalogTreePane extends BorderPane implements EventHandler<MouseEve
     return topLevel;
   }
 
+
   private static Category getParent(Category next, List<Category> items) {
     for(Category item : items) {
       if(item.getId() == next.getParentId()) {
@@ -288,32 +317,41 @@ public class CatalogTreePane extends BorderPane implements EventHandler<MouseEve
   }
 
   private void buildTree(List<Category> children, TreeItem<CatalogItem> parent) {
+    Collections.sort(children, new ModelComparator());
     for(Category item : children) {
       TreeItem<CatalogItem> categoryTreeItem = new TreeItem<>(item, ResourceLoader.getImageView(item.getStatusIcon()));
+      categoryTreeItem.expandedProperty().addListener(expandListener);
       categoryTreeItem.valueProperty().bind(new SimpleObjectProperty<>(item));
-      categoryTreeItem.setExpanded(true);
+      categoryTreeItem.setExpanded(getExpandState(item));
       parent.getChildren().add(categoryTreeItem);
 
       List<Product> products = item.getProducts();
+      Collections.sort(products, new ModelComparator());
       for(Product product : products) {
         TreeItem<CatalogItem> productTreeItem = new TreeItem<>(product, ResourceLoader.getImageView(product.getStatusIcon()));
+        productTreeItem.expandedProperty().addListener(expandListener);
         productTreeItem.valueProperty().bind(new SimpleObjectProperty<>(product));
-        productTreeItem.setExpanded(true);
+        productTreeItem.setExpanded(getExpandState(product));
         categoryTreeItem.getChildren().addAll(productTreeItem);
 
         List<Product> variants = product.getVariants();
+        Collections.sort(variants, new ModelComparator());
         for(Product variant : variants) {
           TreeItem<CatalogItem> variantTreeItem = new TreeItem<>(variant, ResourceLoader.getImageView(variant.getStatusIcon()));
+          variantTreeItem.expandedProperty().addListener(expandListener);
           variantTreeItem.valueProperty().bind(new SimpleObjectProperty<>(variant));
-          variantTreeItem.setExpanded(true);
+          variantTreeItem.setExpanded(getExpandState(variant));
           productTreeItem.getChildren().addAll(variantTreeItem);
         }
       }
 
 
-      Collections.reverse(parent.getChildren());
       buildTree(item.getChildren(), categoryTreeItem);
     }
+  }
+
+  private boolean getExpandState(CatalogItem model) {
+    return expandListener.getExpandState(model);
   }
 
   public void selectCatalogItem(CatalogItem item) {
@@ -375,5 +413,12 @@ public class CatalogTreePane extends BorderPane implements EventHandler<MouseEve
     }
 
     return null;
+  }
+
+  private void expandAll(List<TreeItem<CatalogItem>> children, boolean b) {
+    for(TreeItem<CatalogItem> child : children) {
+      child.setExpanded(b);
+      expandAll(child.getChildren(), b);
+    }
   }
 }

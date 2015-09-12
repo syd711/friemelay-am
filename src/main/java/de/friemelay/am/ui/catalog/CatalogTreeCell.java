@@ -54,11 +54,14 @@ public class CatalogTreeCell extends TreeCell<CatalogItem> {
         setGraphic(textField);
       } else {
         setText(getString());
-        if(item.getStatusValue() == 1) {
+        if(item != null && item.getStatusValue() == 1) {
           setStyle("-fx-text-fill:#000;");
           if(item.getType() == AbstractModel.TYPE_VARIANT || item.getType() == AbstractModel.TYPE_PRODUCT) {
             Product product = (Product) item;
             if(!product.isOnStock()) {
+              setStyle("-fx-text-fill:#cc4444;-fx-font-weight:bold;");
+            }
+            else if(product.isForFree() && (product.isVariant() || product.getVariants().isEmpty())) {
               setStyle("-fx-text-fill:#cc4444;-fx-font-weight:bold;");
             }
             else {
@@ -71,7 +74,9 @@ public class CatalogTreeCell extends TreeCell<CatalogItem> {
         }
 
 
-        setGraphic(getTreeItem().getGraphic());
+        if(getTreeItem() != null) {
+          setGraphic(getTreeItem().getGraphic());
+        }
       }
     }
   }
