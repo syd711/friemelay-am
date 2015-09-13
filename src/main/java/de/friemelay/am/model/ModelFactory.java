@@ -130,7 +130,7 @@ public class ModelFactory {
     return null;
   }
 
-  public static Category createCategory(CatalogItem parent, ResultSet resultSet) {
+  public static Category createCategory(CatalogItem parent, ResultSet resultSet, boolean loadImage) {
     try {
       int id = resultSet.getInt("id");
       int parentId = resultSet.getInt("parent_id");
@@ -139,7 +139,10 @@ public class ModelFactory {
       String title = resultSet.getString("title");
       String details= resultSet.getString("details");
       String short_description = resultSet.getString("short_description");
-      BufferedImage image = ImageUtil.readImage("image", resultSet);
+      BufferedImage image = null;
+      if(loadImage) {
+        image = ImageUtil.readImage("image", resultSet);
+      }
 
 
       Category item = new Category(parent);
@@ -161,7 +164,7 @@ public class ModelFactory {
     return null;
   }
 
-  public static Product createProduct(CatalogItem parent, ResultSet resultSet) {
+  public static Product createProduct(CatalogItem parent, ResultSet resultSet, boolean loadImage) {
     try {
       int id = resultSet.getInt("id");
       int parent_id = resultSet.getInt("parent_id");
@@ -176,7 +179,11 @@ public class ModelFactory {
       String variant_short_description = resultSet.getString("variant_short_description");
       String short_description = resultSet.getString("short_description");
       String details = resultSet.getString("details");
-      BufferedImage image = ImageUtil.readImage("image", resultSet);
+      BufferedImage image = null;
+      if(loadImage) {
+        image = ImageUtil.readImage("image", resultSet);
+      }
+
 
       Product item = new Product(parent);
       item.setImage(image);

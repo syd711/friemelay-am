@@ -4,7 +4,6 @@ import de.friemelay.am.config.Config;
 import de.friemelay.am.db.DB;
 import de.friemelay.am.model.*;
 import de.friemelay.am.ui.ModelTab;
-import de.friemelay.am.ui.order.OrderTab;
 import de.friemelay.am.ui.util.TransitionUtil;
 import javafx.animation.FadeTransition;
 import javafx.application.Platform;
@@ -81,8 +80,7 @@ public class UIController {
     order.setOrderStatus(Order.ORDER_STATUS_CONFIRMED);
     mainPanel.getOrderTreePane().updateOrderStatus(order);
     DB.save(order);
-    OrderTab tab = (OrderTab) mainPanel.getTabPane().open(order);
-    tab.refreshOrderStatus();
+    mainPanel.getTabPane().open(order);
   }
 
   public void deliveryConfirmationSent(Order order) {
@@ -90,8 +88,7 @@ public class UIController {
     order.setOrderStatus(Order.ORDER_STATUS_DELIVERED);
     mainPanel.getOrderTreePane().updateOrderStatus(order);
     DB.save(order);
-    OrderTab tab = (OrderTab) mainPanel.getTabPane().open(order);
-    tab.reload();
+    mainPanel.getTabPane().open(order);
   }
 
   public void cancelOrder(Order order) {
@@ -105,8 +102,7 @@ public class UIController {
       DB.addToStock(p, orderItem.getAmount().get());
     }
 
-    OrderTab tab = (OrderTab) mainPanel.getTabPane().open(order);
-    tab.reload();
+    mainPanel.getTabPane().open(order);
   }
 
   public void closeTab(AbstractModel item) {

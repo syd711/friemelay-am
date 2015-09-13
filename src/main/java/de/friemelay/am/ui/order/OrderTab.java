@@ -96,6 +96,7 @@ public class OrderTab extends ModelTab<Order> implements EventHandler<ActionEven
 
   public void reload() {
     createOrderForms();
+    refreshOrderStatus();
   }
 
   @Override
@@ -180,9 +181,6 @@ public class OrderTab extends ModelTab<Order> implements EventHandler<ActionEven
   }
 
   private void createOrderItemsGroup() {
-    if(orderItemsGroup != null) {
-      orderForm.getChildren().removeAll(orderItemsGroup);
-    }
     final GridPane itemsForm = WidgetFactory.createFormGrid(15, 40, 10, 10, 10, 15);
     itemsForm.setPadding(new Insets(0, 0, 0, 0));
     itemsForm.setGridLinesVisible(true);
@@ -207,6 +205,9 @@ public class OrderTab extends ModelTab<Order> implements EventHandler<ActionEven
         Platform.runLater(new Runnable() {
           public void run() {
             orderForm.getChildren().remove(pg);
+            if(orderItemsGroup != null) {
+              orderForm.getChildren().removeAll(orderItemsGroup);
+            }
             orderItemsGroup = WidgetFactory.createSection(orderForm, itemsForm, "Bestellung", false);
           }
         });
@@ -306,7 +307,7 @@ public class OrderTab extends ModelTab<Order> implements EventHandler<ActionEven
     return getModel().getOrderStatus().get() == Order.ORDER_STATUS_CANCELED || getModel().getOrderStatus().get() == Order.ORDER_STATUS_DELIVERED;
   }
 
-  public void refreshOrderStatus() {
+  private void refreshOrderStatus() {
     setGraphic(ResourceLoader.getImageView(getModel().getStatusIcon()));
 
     switch(getModel().getOrderStatus().getValue()) {

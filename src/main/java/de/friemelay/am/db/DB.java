@@ -258,8 +258,8 @@ public class DB {
       Statement statement = connection.createStatement();
       ResultSet rs = statement.executeQuery("select * from categories");
       while(rs.next()) {
-        Category item = ModelFactory.createCategory(parent, rs);
-        item.setProducts(getProducts(item, item.getId()));
+        Category item = ModelFactory.createCategory(parent, rs, false);
+        item.setProducts(getProducts(item, item.getId(), false));
         items.add(item);
         count++;
       }
@@ -288,7 +288,7 @@ public class DB {
       statement = connection.createStatement();
       ResultSet resultSet = statement.executeQuery("SELECT * FROM categories ORDER BY id DESC LIMIT 0, 1");
       while(resultSet.next()) {
-        Category item = ModelFactory.createCategory(parent, resultSet);
+        Category item = ModelFactory.createCategory(parent, resultSet, false);
         statement.close();
         return item;
       }
@@ -342,20 +342,28 @@ public class DB {
     }
   }
 
-  public static void save(Category category) {
+  public static void save(Category category, boolean saveImages) {
     try {
-      String query = "update categories set title = ?, short_description = ?, details = ? , image = ?, catalog_status = ? where id = " + category.getId();
+      String query = "update categories set title = ?, short_description = ?, details = ?, catalog_status = ? where id = " + category.getId();
+      if(saveImages) {
+        query = "update categories set title = ?, short_description = ?, details = ? , catalog_status = ?, image = ?, where id = " + category.getId();
+      }
+
       PreparedStatement preparedStmt = connection.prepareStatement(query);
       preparedStmt.setString(1, String.valueOf(category.getTitle().get()));
       preparedStmt.setString(2, category.getShortDescription().get());
       preparedStmt.setString(3, category.getDetails().get());
-      if(category.getImage() != null) {
-        preparedStmt.setBinaryStream(4, ImageUtil.getImageInputStream(category.getImage()));
+      preparedStmt.setInt(4, category.getStatusValue());
+
+      if(saveImages) {
+        if(category.getImage() != null) {
+          preparedStmt.setBinaryStream(5, ImageUtil.getImageInputStream(category.getImage()));
+        }
+        else {
+          preparedStmt.setNull(5, Types.BLOB);
+        }
       }
-      else {
-        preparedStmt.setNull(4, Types.BLOB);
-      }
-      preparedStmt.setInt(5, category.getStatusValue());
+
       preparedStmt.executeUpdate();
       preparedStmt.close();
 
@@ -365,10 +373,14 @@ public class DB {
     }
   }
 
-  public static void save(Product product) {
+  public static void save(Product product, boolean saveImages) {
     try {
       String query = "update products set title = ?, variant_label = ?, variant_name = ?, variant_short_description = ?," +
-          " short_description = ?, details = ?, stock = ?, price = ?, amount = ?, catalog_status = ?, image = ? where id = " + product.getId();
+          " short_description = ?, details = ?, stock = ?, price = ?, amount = ?, catalog_status = ? where id = " + product.getId();
+      if(saveImages) {
+        query = "update products set title = ?, variant_label = ?, variant_name = ?, variant_short_description = ?," +
+            " short_description = ?, details = ?, stock = ?, price = ?, amount = ?, catalog_status = ?, image = ? where id = " + product.getId();
+      }
       PreparedStatement preparedStmt = connection.prepareStatement(query);
       preparedStmt.setString(1, String.valueOf(product.getTitle().get()));
       preparedStmt.setString(2, product.getVariantLabel().get());
@@ -380,49 +392,52 @@ public class DB {
       preparedStmt.setDouble(8, product.getPrice().get());
       preparedStmt.setInt(9, product.getAmountValue());
       preparedStmt.setInt(10, product.getStatusValue());
-      if(product.getImage() != null) {
-        preparedStmt.setBinaryStream(11, ImageUtil.getImageInputStream(product.getImage()));
-      }
-      else {
-        preparedStmt.setNull(11, Types.BLOB);
-      }
-      preparedStmt.executeUpdate();
-      preparedStmt.close();
-
-      query = "DELETE FROM productimages where product_id = " + product.getId();
-      preparedStmt = connection.prepareStatement(query);
-      preparedStmt.executeUpdate();
-      preparedStmt.close();
-
-      List<BufferedImage> images = product.getImages();
-      for(BufferedImage image : images) {
-        try {
-          query = "INSERT INTO productimages (product_id, mime_type, image, teaser_image, thumbnail_image) VALUES (?,?,?,?,?)";
-          preparedStmt = connection.prepareStatement(query);
-          preparedStmt.setInt(1, product.getId());
-          preparedStmt.setString(2, "image/jpeg");
-          preparedStmt.setBinaryStream(3, ImageUtil.getImageInputStream(image));
-          preparedStmt.setBinaryStream(4, ImageUtil.getImageInputStream(ImageUtil.createThumbnail(image, Config.getInt("teaser.width"), Config.getInt("teaser.height"))));
-          preparedStmt.setBinaryStream(5, ImageUtil.getImageInputStream(ImageUtil.createThumbnail(image, Config.getInt("thumnail.width"), Config.getInt("thumnail.height"))));
-          preparedStmt.executeUpdate();
-          preparedStmt.close();
-        } catch (RuntimeException e) {
-          Logger.getLogger(Connection.class.getName()).error("Failed to insert image: " + e.getMessage(), e);
+      if(saveImages) {
+        if(product.getImage() != null) {
+          preparedStmt.setBinaryStream(11, ImageUtil.getImageInputStream(product.getImage()));
+        }
+        else {
+          preparedStmt.setNull(11, Types.BLOB);
         }
       }
+      preparedStmt.executeUpdate();
+      preparedStmt.close();
 
+      if(saveImages) {
+        query = "DELETE FROM productimages where product_id = " + product.getId();
+        preparedStmt = connection.prepareStatement(query);
+        preparedStmt.executeUpdate();
+        preparedStmt.close();
+
+        List<BufferedImage> images = product.getImages();
+        for(BufferedImage image : images) {
+          try {
+            query = "INSERT INTO productimages (product_id, mime_type, image, teaser_image, thumbnail_image) VALUES (?,?,?,?,?)";
+            preparedStmt = connection.prepareStatement(query);
+            preparedStmt.setInt(1, product.getId());
+            preparedStmt.setString(2, "image/jpeg");
+            preparedStmt.setBinaryStream(3, ImageUtil.getImageInputStream(image));
+            preparedStmt.setBinaryStream(4, ImageUtil.getImageInputStream(ImageUtil.createThumbnail(image, Config.getInt("teaser.width"), Config.getInt("teaser.height"))));
+            preparedStmt.setBinaryStream(5, ImageUtil.getImageInputStream(ImageUtil.createThumbnail(image, Config.getInt("thumnail.width"), Config.getInt("thumnail.height"))));
+            preparedStmt.executeUpdate();
+            preparedStmt.close();
+          } catch (RuntimeException e) {
+            Logger.getLogger(Connection.class.getName()).error("Failed to insert image: " + e.getMessage(), e);
+          }
+        }
+      }
     } catch (SQLException e) {
       Logger.getLogger(Connection.class.getName()).error("Failed to save product: " + e.getMessage(), e);
       WidgetFactory.showError("Failed to save product: " + e.getMessage(), e);
     }
   }
 
-  public static Category getCategory(CatalogItem parent, int id) {
+  public static Category getCategory(CatalogItem parent, int id, boolean loadImage) {
     try {
       Statement statement = connection.createStatement();
       ResultSet rs = statement.executeQuery("select * from categories where id = " + id);
       while(rs.next()) {
-        Category item = ModelFactory.createCategory(parent, rs);
+        Category item = ModelFactory.createCategory(parent, rs, loadImage);
         statement.close();
         return item;
       }
@@ -435,12 +450,12 @@ public class DB {
   }
 
 
-  public static Product getProduct(CatalogItem parent, int id) {
+  public static Product getProduct(CatalogItem parent, int id, boolean loadImage) {
     try {
       Statement statement = connection.createStatement();
       ResultSet rs = statement.executeQuery("select * from products where id = " + id);
       while(rs.next()) {
-        Product item = ModelFactory.createProduct(parent, rs);
+        Product item = ModelFactory.createProduct(parent, rs, loadImage);
         statement.close();
         return item;
       }
@@ -452,7 +467,41 @@ public class DB {
     return null;
   }
 
-  public static Product loadImages(Product p) {
+  public static void loadImage(Product p) {
+    try {
+      p.getImages().clear();
+      Statement statement = connection.createStatement();
+      ResultSet rs = statement.executeQuery("select image from products where id = " + p.getId());
+      while(rs.next()) {
+        BufferedImage image = ModelFactory.createImage(rs);
+        p.setImage(image);
+        break;
+      }
+      statement.close();
+    } catch (SQLException e) {
+      Logger.getLogger(Connection.class.getName()).error("Failed to get product image: " + e.getMessage(), e);
+      WidgetFactory.showError("Failed to get product image: " + e.getMessage(), e);
+    }
+  }
+
+  public static void loadImage(Category c) {
+    try {
+      Statement statement = connection.createStatement();
+      ResultSet rs = statement.executeQuery("select image from categories where id = " + c.getId());
+      while(rs.next()) {
+        BufferedImage image = ModelFactory.createImage(rs);
+        c.setImage(image);
+        break;
+      }
+      statement.close();
+    } catch (SQLException e) {
+      Logger.getLogger(Connection.class.getName()).error("Failed to get category image: " + e.getMessage(), e);
+      WidgetFactory.showError("Failed to get category image: " + e.getMessage(), e);
+    }
+  }
+
+
+  public static void loadImages(Product p) {
     try {
       p.getImages().clear();
       Statement statement = connection.createStatement();
@@ -466,18 +515,17 @@ public class DB {
       Logger.getLogger(Connection.class.getName()).error("Failed to get product: " + e.getMessage(), e);
       WidgetFactory.showError("Failed to get product: " + e.getMessage(), e);
     }
-    return null;
   }
 
-  public static List<Product> getProducts(CatalogItem parent, int parentId) {
+  public static List<Product> getProducts(CatalogItem parent, int parentId, boolean loadImage) {
     List<Product> items = new ArrayList();
     try {
       Statement statement = connection.createStatement();
       ResultSet rs = statement.executeQuery("select * from products where parent_id = " + parentId + " AND model_type = " + AbstractModel.TYPE_PRODUCT);
       while(rs.next()) {
-        Product item = ModelFactory.createProduct(parent, rs);
+        Product item = ModelFactory.createProduct(parent, rs, loadImage);
         if(!item.isVariant()) {
-          item.setVariants(getVariants(item, item.getId()));
+          item.setVariants(getVariants(item, item.getId(), loadImage));
         }
         items.add(item);
       }
@@ -489,13 +537,13 @@ public class DB {
     return items;
   }
 
-  public static List<Product> getVariants(CatalogItem parent, int parentId) {
+  public static List<Product> getVariants(CatalogItem parent, int parentId, boolean loadImage) {
     List<Product> items = new ArrayList();
     try {
       Statement statement = connection.createStatement();
       ResultSet rs = statement.executeQuery("select * from products where parent_id = " + parentId + " AND model_type = " + AbstractModel.TYPE_VARIANT);
       while(rs.next()) {
-        Product item = ModelFactory.createProduct(parent, rs);
+        Product item = ModelFactory.createProduct(parent, rs, loadImage);
         items.add(item);
       }
       statement.close();
@@ -542,7 +590,7 @@ public class DB {
       statement = connection.createStatement();
       ResultSet resultSet = statement.executeQuery("SELECT * FROM products ORDER BY id DESC LIMIT 0, 1");
       while(resultSet.next()) {
-        Product item = ModelFactory.createProduct(parent, resultSet);
+        Product item = ModelFactory.createProduct(parent, resultSet, false);
         statement.close();
         return item;
       }

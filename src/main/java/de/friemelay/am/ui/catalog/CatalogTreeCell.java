@@ -67,12 +67,15 @@ public class CatalogTreeCell extends TreeCell<CatalogItem> {
             else {
               setStyle("-fx-text-fill:#000;");
             }
+
+            if(product.isOnStock() && (product.isVariant() || product.getVariants().isEmpty())) {
+              setText(getString() + " (" + product.getStock().get() + " auf Lager)");
+            }
           }
         }
         else {
           setStyle("-fx-text-fill:#aaa;-fx-font-weight:normal;");
         }
-
 
         if(getTreeItem() != null) {
           setGraphic(getTreeItem().getGraphic());

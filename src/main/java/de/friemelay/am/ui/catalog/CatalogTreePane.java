@@ -161,7 +161,7 @@ public class CatalogTreePane extends BorderPane implements EventHandler<MouseEve
     UIController.getInstance().setInfoMessage("");
     CatalogItem model = getSelection();
     if(model != null && !model.getStatus().get()) {
-      UIController.getInstance().setInfoMessage("'" + model + "' ist nicht aktiv und wird nicht auf der Webseite angezeigt.");
+      UIController.getInstance().setInfoMessage("'" + model + "' ist deaktiviert und wird nicht auf der Webseite angezeigt.");
     }
 
     if(model == null) {
@@ -181,7 +181,7 @@ public class CatalogTreePane extends BorderPane implements EventHandler<MouseEve
         addCategoryButton.setDisable(true);
         Product product = (Product) model;
         if(!product.getStatus().get()) {
-          UIController.getInstance().setInfoMessage("'" + model + "' ist nicht aktiv und wird nicht auf der Webseite angezeigt.");
+          UIController.getInstance().setInfoMessage("'" + model + "' ist deaktiviert und wird nicht auf der Webseite angezeigt.");
         }
         else if(!product.isOnStock()) {
           UIController.getInstance().setInfoMessage("'" + model + "' ist nicht mehr auf Lager. Sobald alle Varianten eines Produktes nicht mehr auf Lager sind, sollte dieses deaktiviert werden.");

@@ -1,6 +1,5 @@
 package de.friemelay.am.ui.catalog;
 
-import de.friemelay.am.UIController;
 import de.friemelay.am.db.DB;
 import de.friemelay.am.model.Product;
 import de.friemelay.am.resources.ResourceLoader;
@@ -39,15 +38,12 @@ public class ProductTab extends CatalogTab<Product> implements EventHandler<Acti
    */
   public void handle(ActionEvent event) {
     if(event.getSource() == resetButton) {
-      model = DB.getProduct(getModel().getParent(), getModel().getId());
+      model = DB.getProduct(getModel().getParent(), getModel().getId(), true);
       createForm();
       setDirty(false);
     }
     else if(event.getSource() == saveButton) {
-      DB.save(getModel());
-      this.setText(getModel().toString());
-      UIController.getInstance().refreshCatalog();
-      setDirty(false);
+      doSave();
     }
   }
 
@@ -110,7 +106,7 @@ public class ProductTab extends CatalogTab<Product> implements EventHandler<Acti
     WidgetFactory.addFormImageEditor(variantForm, "Produktbilder - empfohlene Größe: 800 x 600 Pixel:\n" +
         "(automatische Skalierung größerer Bilder)", getModel().getImages(), index++, 400, 10, this);
 
-    WidgetFactory.createSection(form, variantForm, "Produkt Details (diese werden nur benutzt wenn das Produkt keine Varianten hat oder keine aktiviert ist)", !getModel().getVariants().isEmpty());
+    WidgetFactory.createSection(form, variantForm, "Produkt Details / Variante Vorlage (diese werden nur benutzt wenn das Produkt keine Varianten hat oder keine aktiviert ist)", !getModel().getVariants().isEmpty());
   }
 
   @Override
@@ -126,7 +122,7 @@ public class ProductTab extends CatalogTab<Product> implements EventHandler<Acti
     else {
       getModel().setImages(event.getAllImages());
     }
-
+    setDirtyImages(true);
     setDirty(true);
   }
 }

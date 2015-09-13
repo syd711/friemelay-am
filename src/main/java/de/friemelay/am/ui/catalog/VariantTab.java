@@ -1,6 +1,5 @@
 package de.friemelay.am.ui.catalog;
 
-import de.friemelay.am.UIController;
 import de.friemelay.am.db.DB;
 import de.friemelay.am.model.Product;
 import de.friemelay.am.resources.ResourceLoader;
@@ -37,15 +36,12 @@ public class VariantTab extends CatalogTab<Product> implements EventHandler<Acti
    */
   public void handle(ActionEvent event) {
     if(event.getSource() == resetButton) {
-      model = DB.getProduct(getModel().getParent(), getModel().getId());
+      model = DB.getProduct(getModel().getParent(), getModel().getId(), true);
       createForm();
       setDirty(false);
     }
     else if(event.getSource() == saveButton) {
-      DB.save(getModel());
-      this.setText(getModel().toString());
-      UIController.getInstance().refreshCatalog();
-      setDirty(false);
+      doSave();
     }
   }
 
@@ -103,6 +99,7 @@ public class VariantTab extends CatalogTab<Product> implements EventHandler<Acti
   @Override
   public void imageChanged(ImageEditorChangeEvent event) {
     getModel().setImages(event.getAllImages());
+    setDirtyImages(true);
     setDirty(true);
   }
 }

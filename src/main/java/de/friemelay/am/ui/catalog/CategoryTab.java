@@ -1,6 +1,5 @@
 package de.friemelay.am.ui.catalog;
 
-import de.friemelay.am.UIController;
 import de.friemelay.am.db.DB;
 import de.friemelay.am.model.Category;
 import de.friemelay.am.resources.ResourceLoader;
@@ -38,15 +37,12 @@ public class CategoryTab extends CatalogTab<Category> implements EventHandler<Ac
    */
   public void handle(ActionEvent event) {
     if(event.getSource() == resetButton) {
-      model = DB.getCategory(getModel().getParent(), getModel().getId());
+      model = DB.getCategory(getModel().getParent(), getModel().getId(), true);
       createCatalogForm();
       setDirty(false);
     }
     else if(event.getSource() == saveButton) {
-      DB.save(getModel());
-      this.setText(getModel().toString());
-      UIController.getInstance().refreshCatalog();
-      setDirty(false);
+      doSave();
     }
   }
 
@@ -91,7 +87,7 @@ public class CategoryTab extends CatalogTab<Category> implements EventHandler<Ac
     int index = 0;
     WidgetFactory.addBindingFormCheckbox(categoryDetailsForm, "Kategorie aktiviert:", getModel().getStatus(), index++, true, this);
     WidgetFactory.addBindingFormTextfield(categoryDetailsForm, "Name:", getModel().getTitle(), index++, true, this);
-    WidgetFactory.addBindingFormTextarea(categoryDetailsForm, "Titeltext:", getModel().getDetails(), index++, true, this);
+    WidgetFactory.addBindingFormTextarea(categoryDetailsForm, "Titeltext:", getModel().getDetails(), 200, index++, true, this);
     WidgetFactory.addBindingFormTextarea(categoryDetailsForm, "Kurzbeschreibung (Bildunterschrift):", getModel().getShortDescription(), index++, true, this);
     String formLabel = "Bild - empfohlene Größe: 305 x 200 Pixel";
     if(getModel().isTopLevel()) {
@@ -110,6 +106,7 @@ public class CategoryTab extends CatalogTab<Category> implements EventHandler<Ac
   @Override
   public void imageChanged(ImageEditorChangeEvent event) {
     getModel().setImage(event.getImageVariant().getImage());
+    setDirtyImages(true);
     setDirty(true);
   }
 
