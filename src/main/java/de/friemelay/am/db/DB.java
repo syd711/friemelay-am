@@ -344,9 +344,9 @@ public class DB {
 
   public static void save(Category category, boolean saveImages) {
     try {
-      String query = "update categories set title = ?, short_description = ?, details = ?, catalog_status = ? where id = " + category.getId();
+      String query = "update categories set title = ?, last_change_date = now(), short_description = ?, details = ?, catalog_status = ? where id = " + category.getId();
       if(saveImages) {
-        query = "update categories set title = ?, short_description = ?, details = ? , catalog_status = ?, image = ?, where id = " + category.getId();
+        query = "update categories set title = ?, last_change_date = now(), short_description = ?, details = ? , catalog_status = ?, image = ? where id = " + category.getId();
       }
 
       PreparedStatement preparedStmt = connection.prepareStatement(query);
@@ -375,10 +375,10 @@ public class DB {
 
   public static void save(Product product, boolean saveImages) {
     try {
-      String query = "update products set title = ?, variant_label = ?, variant_name = ?, variant_short_description = ?," +
+      String query = "update products set title = ?, last_change_date = now(), variant_label = ?, variant_name = ?, variant_short_description = ?," +
           " short_description = ?, details = ?, stock = ?, price = ?, amount = ?, catalog_status = ? where id = " + product.getId();
       if(saveImages) {
-        query = "update products set title = ?, variant_label = ?, variant_name = ?, variant_short_description = ?," +
+        query = "update products set title = ?, last_change_date = now(), variant_label = ?, variant_name = ?, variant_short_description = ?," +
             " short_description = ?, details = ?, stock = ?, price = ?, amount = ?, catalog_status = ?, image = ? where id = " + product.getId();
       }
       PreparedStatement preparedStmt = connection.prepareStatement(query);

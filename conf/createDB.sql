@@ -56,6 +56,7 @@ DROP TABLE IF EXISTS categories;
 CREATE TABLE categories (
   id INT(8) NOT NULL AUTO_INCREMENT PRIMARY KEY,
   model_type INT(4) NOT NULL,
+  last_change_date DATETIME DEFAULT CURRENT_TIMESTAMP,
   catalog_status INT(4) NOT NULL DEFAULT 0,
   parent_id INT(8) NULL,
   top_level INT(1) NOT NULL DEFAULT 0,
@@ -69,6 +70,7 @@ DROP TABLE IF EXISTS products;
 CREATE TABLE products (
   id INT(8) NOT NULL AUTO_INCREMENT PRIMARY KEY,
   model_type INT(4) NOT NULL,
+  last_change_date DATETIME DEFAULT CURRENT_TIMESTAMP,
   catalog_status INT(4) NOT NULL DEFAULT 0,
   parent_id INT(8) NOT NULL,
   stock INT(8) NOT NULL DEFAULT 0,
@@ -87,6 +89,7 @@ DROP TABLE IF EXISTS productimages;
 CREATE TABLE productimages (
   id INT(8) NOT NULL AUTO_INCREMENT PRIMARY KEY,
   product_id INT(8) NULL,
+  last_change_date DATETIME DEFAULT CURRENT_TIMESTAMP,
   mime_type VARCHAR(20) NULL,
   image MEDIUMBLOB,
   teaser_image MEDIUMBLOB,
