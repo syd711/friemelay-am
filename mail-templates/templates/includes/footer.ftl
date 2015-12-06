@@ -15,7 +15,7 @@
         Thorsten Faust<br>
         <br>
         Sitz der Gesellschaft: Lippstadt<br>
-        Ust-IdNr. DE ${ustid}<br>
+        Steuernummer ${ustid}<br>
         </p>
 
 	 </div>

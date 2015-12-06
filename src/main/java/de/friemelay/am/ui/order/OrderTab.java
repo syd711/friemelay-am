@@ -60,7 +60,7 @@ public class OrderTab extends ModelTab<Order> implements EventHandler<ActionEven
     else if(event.getSource() == orderConfirmButton) {
       String to = getModel().getCustomer().getEmail().get();
       String bcc = Config.getString("mail.bcc");
-      List<File> attachments = Arrays.asList(new File("mail-templates/pdf/Widerrufsformular-Friemelay.pdf"));
+      List<File> attachments = Arrays.asList(new File("mail-templates/pdf/Widerrufsformular-Friemelay.pdf"), new File("mail-templates/pdf/AGB.pdf"));
       OrderConfirmationMailDialog dialog = new OrderConfirmationMailDialog("Bestellbestätigung/Rechnung (Bestellnummer " + getModel().getFormattedId() + ")", to, bcc, attachments, getModel());
       dialog.open(event);
     }

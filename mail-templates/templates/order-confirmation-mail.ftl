@@ -7,7 +7,7 @@ Guten Tag,<br>
 <br>
 vielen Dank für Ihre Bestellung bei der <b>Friemelay</b>!<br>
 <br>
-Die von Ihnen bestellten Waren sind	vorrätig, somit nehmen wir hiermit Ihre Bestellung an und werden sie unverzüglich nach Erhalt der Begleichung der Rechnungssumme an die ausliefern.<br>
+Die von Ihnen bestellten Waren sind	vorrätig, somit nehmen wir hiermit Ihre Bestellung an und werden sie unverzüglich nach Erhalt der Begleichung der Rechnungssumme an Sie ausliefern.<br>
 <br>
 Ihre Bestellung geht an:<br>
 <br>
@@ -33,15 +33,16 @@ Versandart: Standardversand DHL<br>
 Bitte richten Sie Ihre Überweisungen mit dem Verwendungzweck "Bestellung ${order.formattedId}" an die:<br>
 <br>
 Volksbank Beckum-Lippstadt<br>
-Konto- Nummer:<br>
-BLZ: ${blz}<br>
-IBAN: ${iban}<br>
 Inhaber: Thorsten Faust<br>
+Konto-Nr.: ${account}<br>
+BLZ: ${blz}<br>
+BIC: ${bic}<br>
+IBAN: ${iban}<br>
 <br>
 
 Wir werden Sie umgehend benachrichtigen, sobald die von Ihnen bei uns bestellten Waren versandt wurden.<br>
 <br>
-Die Lieferung erfolgt unverzüglich nach Zahlungseingang. Bitte beachten Sie, dass Warensendungen bis zu 7 Werktage auf dem "Postweg" unterwegs sein können.<br>
+Die Lieferung erfolgt unverzüglich nach Zahlungseingang. Bitte beachten Sie, dass die an Sie versandten Waren bis zu 7 Werktage auf dem "Postweg" unterwegs sein können.<br>
 <br>
 Sollte der o.g. Betrag innerhalb der 10 Tages-Frist nicht überwiesen werden, gilt ihre Bestellung als ungültig.<br>
 <br>

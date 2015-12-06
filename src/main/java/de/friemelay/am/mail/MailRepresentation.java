@@ -22,6 +22,8 @@ public class MailRepresentation {
   private String iban;
   private String blz;
   private String ustid;
+  private String bic;
+  private String account;
 
   public MailRepresentation(String to, String subject, Order order) {
     this.to = to;
@@ -29,9 +31,11 @@ public class MailRepresentation {
     this.order = order;
     address = order.getCustomer().getAddress();
 
+    this.account = Config.getString("account.nr");
     this.iban = Config.getString("iban.id");
     this.blz = Config.getString("blz.id");
     this.ustid = Config.getString("ust.id.nr");
+    this.bic = Config.getString("bic.id");
   }
 
   public String getName() {
@@ -85,5 +89,13 @@ public class MailRepresentation {
 
   public void setAttachments(List<File> attachments) {
     this.attachments = attachments;
+  }
+
+  public String getBic() {
+    return bic;
+  }
+
+  public String getAccount() {
+    return account;
   }
 }

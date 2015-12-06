@@ -43,6 +43,7 @@ public class Mailer {
     props.put("mail.smtp.starttls.enable", "true");
     props.put("mail.smtp.host", host);
     props.put("mail.smtp.port", "25");
+    props.put("mail.mime.charset", "utf8");
 
     // Get the Session object.
     Session session = Session.getInstance(props,
@@ -73,7 +74,7 @@ public class Mailer {
 
     //build message part
     BodyPart messageBodyPart = new MimeBodyPart();
-    messageBodyPart.setContent(model.getMailText().trim(), "text/html");
+    messageBodyPart.setContent(model.getMailText().trim(), "text/html; charset=UTF-8");
 
     //add text part
     Multipart multipart = new MimeMultipart();
