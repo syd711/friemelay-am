@@ -15,29 +15,43 @@ public class DB {
 
   private static Connection connection;
 
-  public static void connect() throws Exception {
+  public static Connection getConnection() throws SQLException {
     try {
-      Class.forName("com.mysql.jdbc.Driver").newInstance();
+      if(connection == null) {
+        try {
+          Class.forName("com.mysql.jdbc.Driver").newInstance();
+        } catch (InstantiationException e) {
+          e.printStackTrace();
+        } catch (IllegalAccessException e) {
+          e.printStackTrace();
+        } catch (ClassNotFoundException e) {
+          e.printStackTrace();
+        }
 
-      String host = Config.getString("db.host");
-      String schema = Config.getString("db.schema");
-      String login = Config.getString("db.login");
-      String password = Config.getString("db.password");
+        String host = Config.getString("db.host");
+        String schema = Config.getString("db.schema");
+        String login = Config.getString("db.login");
+        String password = Config.getString("db.password");
 
-      connection = DriverManager.getConnection("jdbc:mysql://" + host + "/" + schema + "?" +
-          "user=" + login + "&password=" + password);
-      Logger.getLogger(Connection.class.getName()).info("Connection to database succussful");
-    } catch (Exception ex) {
+        connection = DriverManager.getConnection("jdbc:mysql://" + host + "/" + schema + "?" +
+            "user=" + login + "&password=" + password);
+        Logger.getLogger(Connection.class.getName()).info("Connection to database succussful");
+      }
+      else if(connection.isClosed()) {
+        connection = null;
+        return getConnection();
+      }
+    } catch (SQLException ex) {
       Logger.getLogger(Connection.class.getName()).error("Failed connect to database: " + ex.getMessage(), ex);
       WidgetFactory.showError("Failed connect to database: " + ex.getMessage(), ex);
-      throw ex;
     }
+    return connection;
   }
 
   public static List<Order> getOrders() {
     List<Order> orders = new ArrayList<Order>();
     try {
-      Statement statement = connection.createStatement();
+      Statement statement = getConnection().createStatement();
       ResultSet rs = statement.executeQuery("select * from orders order by id desc");
       while(rs.next()) {
 
@@ -59,7 +73,7 @@ public class DB {
 
   public static Order getOrder(int id) {
     try {
-      Statement statement = connection.createStatement();
+      Statement statement = getConnection().createStatement();
       ResultSet rs = statement.executeQuery("select * from orders where id = " + id);
       while(rs.next()) {
         Order order = ModelFactory.createOrder(rs);
@@ -80,7 +94,7 @@ public class DB {
 
   private static void loadOrderItems(Order order) {
     try {
-      Statement statement = connection.createStatement();
+      Statement statement = getConnection().createStatement();
       ResultSet rs = statement.executeQuery("select * from order_items where order_id = " + order.getId());
       while(rs.next()) {
         OrderItem orderItem = ModelFactory.createOrderItem(rs);
@@ -96,7 +110,7 @@ public class DB {
 
   public static void loadCustomer(Order order) {
     try {
-      Statement statement = connection.createStatement();
+      Statement statement = getConnection().createStatement();
       ResultSet rs = statement.executeQuery("select * from customers where id = " + order.getCustomerId());
       while(rs.next()) {
         Customer customer = ModelFactory.createCustomer(rs);
@@ -116,7 +130,7 @@ public class DB {
       return;
     }
     try {
-      Statement statement = connection.createStatement();
+      Statement statement = getConnection().createStatement();
       ResultSet rs = statement.executeQuery("select * from addresses where id = " + customer.getAddressId());
       while(rs.next()) {
         Address address = ModelFactory.createAddress(rs);
@@ -137,7 +151,7 @@ public class DB {
     }
 
     try {
-      Statement statement = connection.createStatement();
+      Statement statement = getConnection().createStatement();
       ResultSet rs = statement.executeQuery("select * from addresses where id = " + customer.getBillingAddressId());
       while(rs.next()) {
         Address address = ModelFactory.createAddress(rs);
@@ -159,27 +173,27 @@ public class DB {
 
       if(order.getCustomer() != null) {
         String query = "delete from addresses where id = ? or id = ?";
-        PreparedStatement preparedStmt = connection.prepareStatement(query);
+        PreparedStatement preparedStmt = getConnection().prepareStatement(query);
         preparedStmt.setInt(1, order.getCustomer().getAddressId());
         preparedStmt.setInt(2, order.getCustomer().getBillingAddressId());
         preparedStmt.executeUpdate();
         preparedStmt.close();
 
         query = "delete from customers where id = ?";
-        preparedStmt = connection.prepareStatement(query);
+        preparedStmt = getConnection().prepareStatement(query);
         preparedStmt.setInt(1, order.getCustomer().getId());
         preparedStmt.executeUpdate();
         preparedStmt.close();
       }
 
       String query = "delete from orders where id = ?";
-      PreparedStatement preparedStmt = connection.prepareStatement(query);
+      PreparedStatement preparedStmt = getConnection().prepareStatement(query);
       preparedStmt.setInt(1, order.getId());
       preparedStmt.executeUpdate();
       preparedStmt.close();
 
       query = "delete from order_items where order_id = ?";
-      preparedStmt = connection.prepareStatement(query);
+      preparedStmt = getConnection().prepareStatement(query);
       preparedStmt.setInt(1, order.getId());
       preparedStmt.executeUpdate();
       preparedStmt.close();
@@ -194,7 +208,7 @@ public class DB {
   public static void save(Order order) {
     try {
       String query = "update customers set customer_status = ?, email = ?, phone = ?, newsletter =? where id = ?";
-      PreparedStatement preparedStmt = connection.prepareStatement(query);
+      PreparedStatement preparedStmt = getConnection().prepareStatement(query);
       preparedStmt.setString(1, String.valueOf(order.getCustomer().getId()));
       preparedStmt.setString(2, order.getCustomer().getEmail().get());
       preparedStmt.setString(3, order.getCustomer().getPhone().get());
@@ -204,7 +218,7 @@ public class DB {
       preparedStmt.close();
 
       query = "update orders set order_status = ?, total_price = ?, comments = ? where id = ?";
-      preparedStmt = connection.prepareStatement(query);
+      preparedStmt = getConnection().prepareStatement(query);
       preparedStmt.setInt(1, order.getOrderStatus().get());
       preparedStmt.setDouble(2, order.getTotalPrice().get());
       preparedStmt.setString(3, order.getComments().get());
@@ -213,7 +227,7 @@ public class DB {
       preparedStmt.close();
 
       query = "update addresses set firstname = ?, lastname = ?, company = ?, additional =?, street =?, zip = ?, city = ?, country = ? where id = ?";
-      preparedStmt = connection.prepareStatement(query);
+      preparedStmt = getConnection().prepareStatement(query);
       Address address = order.getCustomer().getAddress();
       preparedStmt.setString(1, address.getFirstname().get());
       preparedStmt.setString(2, address.getLastname().get());
@@ -229,7 +243,7 @@ public class DB {
 
       if(order.getCustomer().getBillingAddress() != null) {
         query = "update addresses set firstname = ?, lastname = ?, company = ?, additional =?, street =?, zip = ?, city = ?, country = ? where id = ?";
-        preparedStmt = connection.prepareStatement(query);
+        preparedStmt = getConnection().prepareStatement(query);
         address = order.getCustomer().getBillingAddress();
         preparedStmt.setString(1, address.getFirstname().get());
         preparedStmt.setString(2, address.getLastname().get());
@@ -255,7 +269,7 @@ public class DB {
     List<Category> items = new ArrayList<Category>();
     int count = 0;
     try {
-      Statement statement = connection.createStatement();
+      Statement statement = getConnection().createStatement();
       ResultSet rs = statement.executeQuery("select * from categories");
       while(rs.next()) {
         Category item = ModelFactory.createCategory(parent, rs, false);
@@ -281,11 +295,11 @@ public class DB {
         topLevel = 0;
         parentId = parent.getId();
       }
-      Statement statement = connection.createStatement();
+      Statement statement = getConnection().createStatement();
       statement.executeUpdate("insert into categories (title, model_type, top_level, parent_id, catalog_status) VALUES ('" + name + "', " + CatalogItem.TYPE_CATEGORY + ", " + topLevel + ", " + parentId + ", 1)");
       statement.close();
 
-      statement = connection.createStatement();
+      statement = getConnection().createStatement();
       ResultSet resultSet = statement.executeQuery("SELECT * FROM categories ORDER BY id DESC LIMIT 0, 1");
       while(resultSet.next()) {
         Category item = ModelFactory.createCategory(parent, resultSet, false);
@@ -304,7 +318,7 @@ public class DB {
     Logger.getLogger(Connection.class.getName()).info("Deleting category " + category);
     try {
       String query = "delete from categories where id = " + category.getId();
-      PreparedStatement preparedStmt = connection.prepareStatement(query);
+      PreparedStatement preparedStmt = getConnection().prepareStatement(query);
       preparedStmt.executeUpdate();
       preparedStmt.close();
 
@@ -328,7 +342,7 @@ public class DB {
     Logger.getLogger(Connection.class.getName()).info("Deleting product " + product);
     try {
       String query = "delete from products where id = " + product.getId();
-      PreparedStatement preparedStmt = connection.prepareStatement(query);
+      PreparedStatement preparedStmt = getConnection().prepareStatement(query);
       preparedStmt.executeUpdate();
       preparedStmt.close();
 
@@ -349,7 +363,7 @@ public class DB {
         query = "update categories set title = ?, last_change_date = now(), short_description = ?, details = ? , catalog_status = ?, image = ? where id = " + category.getId();
       }
 
-      PreparedStatement preparedStmt = connection.prepareStatement(query);
+      PreparedStatement preparedStmt = getConnection().prepareStatement(query);
       preparedStmt.setString(1, String.valueOf(category.getTitle().get()));
       preparedStmt.setString(2, category.getShortDescription().get());
       preparedStmt.setString(3, category.getDetails().get());
@@ -381,7 +395,7 @@ public class DB {
         query = "update products set title = ?, last_change_date = now(), variant_label = ?, variant_name = ?, variant_short_description = ?," +
             " short_description = ?, details = ?, stock = ?, price = ?, amount = ?, catalog_status = ?, image = ? where id = " + product.getId();
       }
-      PreparedStatement preparedStmt = connection.prepareStatement(query);
+      PreparedStatement preparedStmt = getConnection().prepareStatement(query);
       preparedStmt.setString(1, String.valueOf(product.getTitle().get()));
       preparedStmt.setString(2, product.getVariantLabel().get());
       preparedStmt.setString(3, product.getVariantName().get());
@@ -405,7 +419,7 @@ public class DB {
 
       if(saveImages) {
         query = "DELETE FROM productimages where product_id = " + product.getId();
-        preparedStmt = connection.prepareStatement(query);
+        preparedStmt = getConnection().prepareStatement(query);
         preparedStmt.executeUpdate();
         preparedStmt.close();
 
@@ -413,7 +427,7 @@ public class DB {
         for(BufferedImage image : images) {
           try {
             query = "INSERT INTO productimages (product_id, mime_type, image, teaser_image, thumbnail_image) VALUES (?,?,?,?,?)";
-            preparedStmt = connection.prepareStatement(query);
+            preparedStmt = getConnection().prepareStatement(query);
             preparedStmt.setInt(1, product.getId());
             preparedStmt.setString(2, "image/jpeg");
             preparedStmt.setBinaryStream(3, ImageUtil.getImageInputStream(image));
@@ -434,7 +448,7 @@ public class DB {
 
   public static Category getCategory(CatalogItem parent, int id, boolean loadImage) {
     try {
-      Statement statement = connection.createStatement();
+      Statement statement = getConnection().createStatement();
       ResultSet rs = statement.executeQuery("select * from categories where id = " + id);
       while(rs.next()) {
         Category item = ModelFactory.createCategory(parent, rs, loadImage);
@@ -452,7 +466,7 @@ public class DB {
 
   public static Product getProduct(CatalogItem parent, int id, boolean loadImage) {
     try {
-      Statement statement = connection.createStatement();
+      Statement statement = getConnection().createStatement();
       ResultSet rs = statement.executeQuery("select * from products where id = " + id);
       while(rs.next()) {
         Product item = ModelFactory.createProduct(parent, rs, loadImage);
@@ -470,7 +484,7 @@ public class DB {
   public static void loadImage(Product p) {
     try {
       p.getImages().clear();
-      Statement statement = connection.createStatement();
+      Statement statement = getConnection().createStatement();
       ResultSet rs = statement.executeQuery("select image from products where id = " + p.getId());
       while(rs.next()) {
         BufferedImage image = ModelFactory.createImage(rs);
@@ -486,7 +500,7 @@ public class DB {
 
   public static void loadImage(Category c) {
     try {
-      Statement statement = connection.createStatement();
+      Statement statement = getConnection().createStatement();
       ResultSet rs = statement.executeQuery("select image from categories where id = " + c.getId());
       while(rs.next()) {
         BufferedImage image = ModelFactory.createImage(rs);
@@ -504,7 +518,7 @@ public class DB {
   public static void loadImages(Product p) {
     try {
       p.getImages().clear();
-      Statement statement = connection.createStatement();
+      Statement statement = getConnection().createStatement();
       ResultSet rs = statement.executeQuery("select * from productimages where product_id = " + p.getId());
       while(rs.next()) {
         BufferedImage image = ModelFactory.createImage(rs);
@@ -520,7 +534,7 @@ public class DB {
   public static List<Product> getProducts(CatalogItem parent, int parentId, boolean loadImage) {
     List<Product> items = new ArrayList();
     try {
-      Statement statement = connection.createStatement();
+      Statement statement = getConnection().createStatement();
       ResultSet rs = statement.executeQuery("select * from products where parent_id = " + parentId + " AND model_type = " + AbstractModel.TYPE_PRODUCT);
       while(rs.next()) {
         Product item = ModelFactory.createProduct(parent, rs, loadImage);
@@ -540,7 +554,7 @@ public class DB {
   public static List<Product> getVariants(CatalogItem parent, int parentId, boolean loadImage) {
     List<Product> items = new ArrayList();
     try {
-      Statement statement = connection.createStatement();
+      Statement statement = getConnection().createStatement();
       ResultSet rs = statement.executeQuery("select * from products where parent_id = " + parentId + " AND model_type = " + AbstractModel.TYPE_VARIANT);
       while(rs.next()) {
         Product item = ModelFactory.createProduct(parent, rs, loadImage);
@@ -565,7 +579,7 @@ public class DB {
 
   public static Product createProduct(CatalogItem parent, String name, int parentId, boolean variant) {
     try {
-      Statement statement = connection.createStatement();
+      Statement statement = getConnection().createStatement();
       int type = CatalogItem.TYPE_PRODUCT;
       if(variant) {
         type = AbstractModel.TYPE_VARIANT;
@@ -587,7 +601,7 @@ public class DB {
           + "', " + price + ", '" + details + "')");
       statement.close();
 
-      statement = connection.createStatement();
+      statement = getConnection().createStatement();
       ResultSet resultSet = statement.executeQuery("SELECT * FROM products ORDER BY id DESC LIMIT 0, 1");
       while(resultSet.next()) {
         Product item = ModelFactory.createProduct(parent, resultSet, false);
@@ -604,7 +618,7 @@ public class DB {
   public static void addToStock(Product p, int value) {
     try {
       int newStock = p.getStock().get() + value;
-      Statement statement = connection.createStatement();
+      Statement statement = getConnection().createStatement();
       statement.executeUpdate("UPDATE products SET stock = " + newStock + " WHERE id = " + p.getId());
       statement.close();
       p.setStock(newStock);

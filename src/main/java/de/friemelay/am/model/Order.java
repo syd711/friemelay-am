@@ -1,6 +1,7 @@
 package de.friemelay.am.model;
 
 import javafx.beans.property.*;
+import org.apache.log4j.Logger;
 
 import java.sql.Date;
 import java.text.DecimalFormat;
@@ -102,7 +103,13 @@ public class Order extends AbstractModel {
 
   @Override
   public String toString() {
-    return getCustomer().getAddress().getFirstname().get() +  " "  + getCustomer().getAddress().getLastname().get()  + " (" + getFormattedCreationDateTime() + ")";
+    try {
+      return getCustomer().getAddress().getFirstname().get() +  " "  + getCustomer().getAddress().getLastname().get()  + " (" + getFormattedCreationDateTime() + ")";
+    }
+    catch (NullPointerException npe) {
+      Logger.getLogger(Order.class.getName()).error("NPE in Order: " + npe.getMessage(), npe);
+    }
+    return "Fehlerhafter Datenbestand (ID: " + getId() + ", erstellt " + getFormattedCreationDateTime() + ")";
   }
 
   public List<OrderItem> getOrderItems() {

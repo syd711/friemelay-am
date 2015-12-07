@@ -5,6 +5,7 @@ import de.friemelay.am.mail.TemplateService;
 import de.friemelay.am.resources.ResourceLoader;
 import de.friemelay.am.ui.imageeditor.ImageEditor;
 import de.friemelay.am.ui.imageeditor.ImageEditorChangeListener;
+import javafx.application.Platform;
 import javafx.beans.binding.Bindings;
 import javafx.beans.property.*;
 import javafx.beans.value.ChangeListener;
@@ -47,12 +48,17 @@ import java.util.Optional;
  *
  */
 public class WidgetFactory {
-  public static void showError(String message, Throwable e) {
-    Alert alert = new Alert(Alert.AlertType.INFORMATION);
-    alert.setTitle("Fehler");
-    alert.setHeaderText("Fehler");
-    alert.setContentText(new String(("Ups, das hätte nicht passieren dürfen: " + message+ " [" + e.getMessage() + "]").getBytes(), Charset.forName("utf-8")));
-    alert.showAndWait();
+  public static void showError(final String message, final Throwable e) {
+    Platform.runLater(new Runnable() {
+      @Override
+      public void run() {
+        Alert alert = new Alert(Alert.AlertType.INFORMATION);
+        alert.setTitle("Fehler");
+        alert.setHeaderText("Fehler");
+        alert.setContentText(new String(("Ups, das hätte nicht passieren dürfen: " + message + " [" + e.getMessage() + "]").getBytes(), Charset.forName("utf-8")));
+        alert.showAndWait();
+      }
+    });
   }
 
   public static String showInputDialog(String title, String header, String label) {
