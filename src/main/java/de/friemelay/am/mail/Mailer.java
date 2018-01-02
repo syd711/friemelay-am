@@ -12,6 +12,7 @@ import javax.mail.internet.MimeBodyPart;
 import javax.mail.internet.MimeMessage;
 import javax.mail.internet.MimeMultipart;
 import java.io.File;
+import java.io.UnsupportedEncodingException;
 import java.util.List;
 import java.util.Properties;
 
@@ -26,7 +27,7 @@ public class Mailer {
     this.model = model;
   }
 
-  public void mail() throws MessagingException {
+  public void mail() throws MessagingException, UnsupportedEncodingException {
     // Recipient's email ID needs to be mentioned.
     String to = model.getTo().trim();
 
@@ -44,6 +45,8 @@ public class Mailer {
     props.put("mail.smtp.host", host);
     props.put("mail.smtp.port", "25");
     props.put("mail.mime.charset", "utf8");
+//    props.put("mail.transport.protocol", "smtp");
+
 
     // Get the Session object.
     Session session = Session.getInstance(props,
@@ -57,6 +60,9 @@ public class Mailer {
 
     // Set From: header field of the header.
     message.setFrom(new InternetAddress(from));
+//    message.setFrom(new InternetAddress(from, "Friemelay"));
+
+//    message.setReplyTo(new InternetAddress[] {new InternetAddress(from, "Friemelay")});
 
     // Set To: header field of the header.
     message.setRecipients(Message.RecipientType.TO,

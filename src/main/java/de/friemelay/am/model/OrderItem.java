@@ -79,12 +79,12 @@ public class OrderItem {
   }
 
   public String getFormattedPrice() {
-    DecimalFormat df = new DecimalFormat("#.00");
+    DecimalFormat df = new DecimalFormat("0.00");
     return df.format(getPrice()) + " Euro";
   }
 
   public String getFormattedTotalPrice() {
-    DecimalFormat df = new DecimalFormat("#.00");
+    DecimalFormat df = new DecimalFormat("0.00");
     return df.format(getAmount().get()*getPrice()) + " Euro";
   }
 }

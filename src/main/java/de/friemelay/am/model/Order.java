@@ -136,17 +136,17 @@ public class Order extends AbstractModel {
   }
 
   public String getFormattedTotalPrice() {
-    DecimalFormat df = new DecimalFormat("#.00");
+    DecimalFormat df = new DecimalFormat("0.00");
     return df.format(getTotalPrice().get()) + " Euro";
   }
 
   public String getFormattedShippingCosts() {
-    DecimalFormat df = new DecimalFormat("#.00");
+    DecimalFormat df = new DecimalFormat("0.00");
     return df.format(getShippingCosts().get()) + " Euro";
   }
 
   public String getFormattedTotalPriceWithShipping() {
-    DecimalFormat df = new DecimalFormat("#.00");
+    DecimalFormat df = new DecimalFormat("0.00");
     return df.format(getShippingCosts().get()+getTotalPrice().get()) + " Euro";
   }
 

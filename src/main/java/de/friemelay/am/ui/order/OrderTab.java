@@ -143,7 +143,7 @@ public class OrderTab extends ModelTab<Order> implements EventHandler<ActionEven
     int index = 0;
     WidgetFactory.addFormLabel(orderDetailsForm, "Bestellnummer:", String.valueOf(getModel().getId()), index++);
     WidgetFactory.addFormLabel(orderDetailsForm, "Eingang:", String.valueOf(getModel().getFormattedCreationDateTime()), index++);
-    if(getModel().getCustomer() != null && getModel().getCustomer().getBillingAddress() != null) {
+    if(getModel().getCustomer() != null) {
       WidgetFactory.addBindingFormLabel(orderDetailsForm, "Name:", getModel().getCustomer().getAddress().getLastname(), index++, null);
       WidgetFactory.addBindingFormLabel(orderDetailsForm, "Vorname:", getModel().getCustomer().getAddress().getFirstname(), index++, null);
       WidgetFactory.addFormLabel(orderDetailsForm, "Preis:", index++, getModel().getTotalPrice(), new TotalPriceConverter(getModel()));

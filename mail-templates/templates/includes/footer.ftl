@@ -7,14 +7,14 @@
         <p style="font-size:10px;">
         Impressum:<br>
         <a href="http://www.friemelay.de">http://www.friemelay.de.</a><br>
-        Schillerstra&szlig;e 43<br>
-        59555 Lippstadt<br>
+        Sudentenstr&szlig;e 2<br>
+        59329 Wadersloh<br>
         Amtsgericht Lippstadt<br>
         <br>
         Geschäftsführer:<br>
         Thorsten Faust<br>
         <br>
-        Sitz der Gesellschaft: Lippstadt<br>
+        Sitz der Gesellschaft: Wadersloh<br>
         Steuernummer ${ustid}<br>
         </p>
 

@@ -22,7 +22,7 @@ public class TotalPriceConverter extends StringConverter<Number> {
     for(OrderItem orderItem : order.getOrderItems()) {
       value = value + (orderItem.getAmount().get()*orderItem.getPrice());
     }
-    DecimalFormat df = new DecimalFormat("#.00");
+    DecimalFormat df = new DecimalFormat("0.00");
     return df.format(value) + " Euro";
   }
 

@@ -45,7 +45,7 @@ public class ModelFactory {
   public static OrderItem createOrderItem(ResultSet resultSet) {
     try {
       int amount = resultSet.getInt("amount");
-      double price = resultSet.getInt("price");
+      double price = resultSet.getDouble("price");
       int productId = resultSet.getInt("product_id");
       String imageUrl = resultSet.getString("image_url");
       String url = resultSet.getString("url");
