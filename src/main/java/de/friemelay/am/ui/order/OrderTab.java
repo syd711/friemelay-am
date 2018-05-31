@@ -1,8 +1,11 @@
 package de.friemelay.am.ui.order;
 
+import de.friemelay.am.Main;
 import de.friemelay.am.UIController;
 import de.friemelay.am.config.Config;
 import de.friemelay.am.db.DB;
+import de.friemelay.am.mail.MailRepresentation;
+import de.friemelay.am.mail.TemplateService;
 import de.friemelay.am.model.Order;
 import de.friemelay.am.model.OrderItem;
 import de.friemelay.am.model.Product;
@@ -24,8 +27,11 @@ import javafx.geometry.Pos;
 import javafx.scene.control.*;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.*;
+import org.apache.log4j.Logger;
 
 import java.io.File;
+import java.io.IOException;
+import java.io.PrintWriter;
 import java.util.Arrays;
 import java.util.List;
 
@@ -35,9 +41,11 @@ import java.util.List;
  */
 public class OrderTab extends ModelTab<Order> implements EventHandler<ActionEvent>, ChangeListener<String> {
 
+  private final static Logger LOG = Logger.getLogger(OrderTab.class);
   private Button contactButton;
   private Button orderConfirmButton;
   private Button deliveryConfirmButton;
+  private Button printOrderButton;
   private Button orderCancelButton;
   private VBox orderForm;
   private TitledPane orderItemsGroup;
@@ -69,6 +77,26 @@ public class OrderTab extends ModelTab<Order> implements EventHandler<ActionEven
       String bcc = Config.getString("mail.bcc");
       OrderDeliveryConfirmationMailDialog dialog = new OrderDeliveryConfirmationMailDialog("Versandbestätigung (Bestellnummer " + getModel().getFormattedId() + ")", to, bcc, getModel());
       dialog.open(event);
+    }
+    else if(event.getSource() == printOrderButton) {
+      String to = getModel().getCustomer().getEmail().get();
+      String bcc = Config.getString("mail.bcc");
+      String subject = "Übersicht (Bestellnummer " + getModel().getFormattedId() + ")";
+      Order order = getModel();
+
+      MailRepresentation model =  new MailRepresentation(to, subject, order);
+      String mailText = TemplateService.getTemplateSet().renderTemplate("print-order.ftl", model);
+      try {
+        File tmpFile = File.createTempFile("order-" + order.getId(), ".html");
+        tmpFile.deleteOnExit();
+        PrintWriter out = new PrintWriter(tmpFile);
+        out.write(mailText);
+        out.close();
+
+        Main.showDocument(tmpFile);
+      } catch (IOException e) {
+        LOG.error("Failed to generate template: " + e.getMessage(), e);
+      }
     }
     else if(event.getSource() == resetButton) {
       model = DB.getOrder(getModel().getId());
@@ -114,8 +142,10 @@ public class OrderTab extends ModelTab<Order> implements EventHandler<ActionEven
     resetButton.setDisable(isReadonly() || !isDirty());
     orderCancelButton = new Button("Bestellung stornieren", ResourceLoader.getImageView("remove.png"));
     orderCancelButton.setOnAction(this);
+    printOrderButton = new Button("Bestellung drucken", ResourceLoader.getImageView("details.png"));
+    printOrderButton.setOnAction(this);
     orderCancelButton.setDisable(isReadonly());
-    toolbar.getItems().addAll(saveButton, resetButton, new Separator(), orderCancelButton, new Separator(), contactButton);
+    toolbar.getItems().addAll(saveButton, resetButton, new Separator(), orderCancelButton, new Separator(), contactButton, new Separator(), printOrderButton);
     root.setTop(toolbar);
 
     orderForm = new VBox();

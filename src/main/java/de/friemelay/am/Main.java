@@ -1,5 +1,7 @@
 package de.friemelay.am;
 
+import com.sun.deploy.uitoolkit.impl.fx.HostServicesFactory;
+import com.sun.javafx.application.HostServicesDelegate;
 import de.friemelay.am.db.DB;
 import de.friemelay.am.resources.ResourceLoader;
 import javafx.application.Application;
@@ -11,12 +13,15 @@ import javafx.stage.Screen;
 import javafx.stage.Stage;
 import org.apache.log4j.PropertyConfigurator;
 
+import java.io.File;
 import java.sql.Connection;
 
 /**
  *
  */
 public class Main extends Application {
+
+  private static Application application;
   
   public static void main(String[] args) {
     Application.launch(args);
@@ -24,6 +29,7 @@ public class Main extends Application {
 
   @Override
   public void start(Stage primaryStage) throws Exception {
+    Main.application = this;
     PropertyConfigurator.configure("conf/log4j.properties");
 
     Connection con = DB.getConnection();
@@ -47,5 +53,10 @@ public class Main extends Application {
       primaryStage.show();
       UIController.getInstance().loadData();
     }
+  }
+
+  public static void showDocument(File file) {
+    HostServicesDelegate hostServices = HostServicesFactory.getInstance(Main.application);
+    hostServices.showDocument(file.getAbsolutePath());
   }
 }
